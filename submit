@@ -118,6 +118,12 @@
   [$title, $desc, $tags, $mv].forEach(el => el.addEventListener("input", updateButtonState));
 
   $btn.addEventListener("click", async () => {
+const err = validateMobCrafterJson(parsedJson);
+if (err) {
+  setResult("送信できません: " + err);
+  return;
+}
+
     updateButtonState();
     if ($btn.disabled) return;
 
