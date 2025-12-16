@@ -161,6 +161,25 @@
     }
   });
 })();
+function validateMobCrafterJson(obj) {
+  if (!obj || typeof obj !== "object") return "JSONがオブジェクトではありません";
+  if (!Array.isArray(obj.blocks)) return "blocks 配列がありません";
+
+  if (obj.blocks.length === 0) return "blocks が空です";
+  if (obj.blocks.length > 200000) return "blocks が多すぎます（200k超）";
+
+  for (let i = 0; i < Math.min(obj.blocks.length, 1000); i++) {
+    const b = obj.blocks[i];
+    if (typeof b.dx !== "number" || typeof b.dy !== "number" || typeof b.dz !== "number") {
+      return `blocks[${i}] に dx/dy/dz がありません`;
+    }
+    if (typeof b.blockId !== "string") {
+      return `blocks[${i}] に blockId がありません`;
+    }
+  }
+  return null;
+}
+
 </script>
 </body>
 </html>
