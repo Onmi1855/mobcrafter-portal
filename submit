@@ -69,6 +69,25 @@
 
   let parsedJson = null;
 
+  function validateMobCrafterJson(obj) {
+    if (!obj || typeof obj !== "object") return "JSONがオブジェクトではありません";
+    if (!Array.isArray(obj.blocks)) return "blocks 配列がありません";
+
+    if (obj.blocks.length === 0) return "blocks が空です";
+    if (obj.blocks.length > 200000) return "blocks が多すぎます（200k超）";
+
+    for (let i = 0; i < Math.min(obj.blocks.length, 1000); i++) {
+      const b = obj.blocks[i];
+      if (typeof b.dx !== "number" || typeof b.dy !== "number" || typeof b.dz !== "number") {
+        return `blocks[${i}] に dx/dy/dz がありません`;
+      }
+      if (typeof b.blockId !== "string") {
+        return `blocks[${i}] に blockId がありません`;
+      }
+    }
+    return null;
+  }
+
   function setResult(objOrText) {
     $res.textContent = typeof objOrText === "string"
       ? objOrText
@@ -102,12 +121,18 @@
         $title.value = (f.name || "unit.json").replace(/\.json$/i, "");
       }
 
-      // 軽いプレビュー（巨大だと重いので、トップだけ）
-      const previewObj = {
-        file: { name: f.name, size: f.size },
-        json_top: (obj && typeof obj === "object") ? Object.keys(obj).slice(0, 30) : null
-      };
-      setPreview(previewObj);
+      const err = validateMobCrafterJson(parsedJson);
+      if (err) {
+        setPreview("MobCrafter用JSONとして不正: " + err);
+      } else {
+        // 軽いプレビュー
+        const previewObj = {
+          file: { name: f.name, size: f.size },
+          blocks_count: Array.isArray(obj.blocks) ? obj.blocks.length : null,
+          json_top: (obj && typeof obj === "object") ? Object.keys(obj).slice(0, 30) : null
+        };
+        setPreview(previewObj);
+      }
     } catch (e) {
       setPreview("JSONとして読み込めませんでした: " + String(e && e.message ? e.message : e));
       parsedJson = null;
@@ -118,14 +143,14 @@
   [$title, $desc, $tags, $mv].forEach(el => el.addEventListener("input", updateButtonState));
 
   $btn.addEventListener("click", async () => {
-const err = validateMobCrafterJson(parsedJson);
-if (err) {
-  setResult("送信できません: " + err);
-  return;
-}
-
     updateButtonState();
     if ($btn.disabled) return;
+
+    const err = validateMobCrafterJson(parsedJson);
+    if (err) {
+      setResult("送信できません: " + err);
+      return;
+    }
 
     const title = ($title.value || "").trim();
     const description = ($desc.value || "").trim();
@@ -135,13 +160,7 @@ if (err) {
       .filter(Boolean);
     const mod_version = ($mv.value || "").trim();
 
-    const payload = {
-      title,
-      description,
-      tags,
-      mod_version,
-      json: parsedJson
-    };
+    const payload = { title, description, tags, mod_version, json: parsedJson };
 
     setResult("送信中...");
 
@@ -150,42 +169,20 @@ if (err) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-        credentials: "include" // Accessログイン時のCookie等
+        credentials: "include"
       });
 
       const text = await resp.text();
       let data = null;
       try { data = JSON.parse(text); } catch { data = { raw: text }; }
 
-      if (!resp.ok) {
-        setResult({ http: resp.status, ...data });
-        return;
-      }
       setResult({ http: resp.status, ...data });
     } catch (e) {
       setResult("送信エラー: " + String(e && e.message ? e.message : e));
     }
   });
 })();
-function validateMobCrafterJson(obj) {
-  if (!obj || typeof obj !== "object") return "JSONがオブジェクトではありません";
-  if (!Array.isArray(obj.blocks)) return "blocks 配列がありません";
-
-  if (obj.blocks.length === 0) return "blocks が空です";
-  if (obj.blocks.length > 200000) return "blocks が多すぎます（200k超）";
-
-  for (let i = 0; i < Math.min(obj.blocks.length, 1000); i++) {
-    const b = obj.blocks[i];
-    if (typeof b.dx !== "number" || typeof b.dy !== "number" || typeof b.dz !== "number") {
-      return `blocks[${i}] に dx/dy/dz がありません`;
-    }
-    if (typeof b.blockId !== "string") {
-      return `blocks[${i}] に blockId がありません`;
-    }
-  }
-  return null;
-}
-
 </script>
+
 </body>
 </html>
