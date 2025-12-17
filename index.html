@@ -274,53 +274,54 @@
       return [];
     }
 
-    function render(){
-      const query = (q.value || "").trim().toLowerCase();
+function render(){
+  const query = (q.value || "").trim().toLowerCase();
 
-      let list = items.filter(it => {
-        if (!query) return true;
-        const name = (it.name || "").toLowerCase();
-        const desc = (it.desc || "").toLowerCase();
-        const author = (it.author || "").toLowerCase();
-        const tags = (it.tags || []).join(" ").toLowerCase();
-        return name.includes(query) || desc.includes(query) || author.includes(query) || tags.includes(query);
-      });
+  let list = items.filter(it => {
+    if (!query) return true;
+    const name = (it.name || "").toLowerCase();
+    const desc = (it.desc || "").toLowerCase();
+    const author = (it.author || "").toLowerCase();
+    const tags = (it.tags || []).join(" ").toLowerCase();
+    return name.includes(query) || desc.includes(query) || author.includes(query) || tags.includes(query);
+  });
 
-      const s = sort.value;
-      list.sort((a,b)=>{
-        if(s==="new") return (String(b.date).localeCompare(String(a.date)));
-        if(s==="name") return String(a.name).localeCompare(String(b.name));
-        return 0;
-      });
+  const s = sort.value;
+  list.sort((a,b)=>{
+    if(s==="new") return (String(b.date).localeCompare(String(a.date)));
+    if(s==="name") return String(a.name).localeCompare(String(b.name));
+    return 0;
+  });
 
-      if (list.length === 0){
-        grid.innerHTML = `<div style="color:var(--muted);">該当するユニットがありません。</div>`;
-          hydrateThumbs(list);
-        return;
-      }
+  if (list.length === 0){
+    grid.innerHTML = `<div style="color:var(--muted);">該当するユニットがありません。</div>`;
+    return;
+  }
 
-grid.innerHTML = list.map(it => `
-  <a class="card item" href="#unit-${it.id}" title="${it.name}">
-    <div class="thumb">
-      <canvas class="thumb3d" data-id="${escapeHtml(it.id)}" width="360" height="140"
-        style="width:100%;height:140px;border-radius:0;"></canvas>
-      <div style="position:absolute;inset:auto 12px 12px 12px;display:flex;gap:8px;justify-content:space-between;">
-        <span class="badge">JSON</span>
-        <span class="badge">Forge ${escapeHtml(it.mod)}</span>
+  grid.innerHTML = list.map(it => `
+    <a class="card item" href="#unit-${it.id}" title="${it.name}">
+      <div class="thumb">
+        <canvas class="thumb3d" data-id="${escapeHtml(it.id)}" width="360" height="140"
+          style="width:100%;height:140px;border-radius:0;"></canvas>
+        <div style="position:absolute;inset:auto 12px 12px 12px;display:flex;gap:8px;justify-content:space-between;">
+          <span class="badge">JSON</span>
+          <span class="badge">Forge ${escapeHtml(it.mod)}</span>
+        </div>
       </div>
-    </div>
-    <div class="content">
-      <div class="name">${escapeHtml(it.name)}</div>
-      <p class="desc">${escapeHtml(it.desc)}</p>
-      <div class="meta">
-        <span>👤 ${escapeHtml(it.author)}</span>
-        <span>⬇ ${Number(it.dl ?? 0).toLocaleString()}</span>
+      <div class="content">
+        <div class="name">${escapeHtml(it.name)}</div>
+        <p class="desc">${escapeHtml(it.desc)}</p>
+        <div class="meta">
+          <span>👤 ${escapeHtml(it.author)}</span>
+          <span>⬇ ${it.dl.toLocaleString()}</span>
+        </div>
       </div>
-    </div>
-  </a>
-`).join("");
+    </a>
+  `).join("");
 
-    }
+  // ★ここが重要：HTMLでcanvas作った直後にサムネ生成
+  hydrateThumbs(list);
+}
 
     function escapeHtml(s){
       return String(s)
