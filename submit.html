@@ -78,8 +78,6 @@
 
   let parsedJson = null;
 
-  /* ---------- utils ---------- */
-
   function setPreview(v) {
     $prev.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
   }
@@ -107,8 +105,6 @@
     }
     return null;
   }
-
-  /* ---------- analyze ---------- */
 
   function analyzeBlocks(blocks) {
     let minX = Infinity, minY = Infinity, minZ = Infinity;
@@ -180,8 +176,6 @@
     }
   }
 
-  /* ---------- events ---------- */
-
   $file.addEventListener("change", async () => {
     parsedJson = null;
     setResult("未送信");
@@ -209,11 +203,12 @@
       setPreview({
         file: { name: f.name, size: f.size },
         blocks: info.count,
-        size: `${info.sizeX} x ${info.sizeY} x ${info.sizeZ}`
+        size: `${info.sizeX} x ${info.sizeY} x ${info.sizeZ}`,
+        note: info.count > 10000 ? "ブロック数が多いため描画は間引き表示です" : ""
       });
       drawBlocks(canvas, obj.blocks, info);
     } catch (e) {
-      setPreview("JSONとして読み込めません: " + e.message);
+      setPreview("JSONとして読み込めません: " + (e?.message || String(e)));
     }
     updateButtonState();
   });
@@ -236,15 +231,21 @@
     setResult("送信中...");
 
     try {
-      const r = await fetch("https://api.mobcrafter.net/api/submit", {
+      // ★ここが重要：同一オリジンにする（CORS消える）
+      const resp = await fetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
         credentials: "include"
       });
-      setResult(await r.json());
+
+      const text = await resp.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = { raw: text }; }
+
+      setResult({ http: resp.status, ok: resp.ok, ...data });
     } catch (e) {
-      setResult("送信失敗: " + e.message);
+      setResult("送信失敗: " + (e?.message || String(e)));
     }
   });
 })();
