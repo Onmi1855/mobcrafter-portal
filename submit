@@ -17,44 +17,52 @@
     button:disabled { opacity:.5; cursor:not-allowed; }
     pre { white-space: pre-wrap; word-break: break-word; background:#f6f6f6; padding: 12px; border-radius: 10px; }
     .hint { color:#555; font-size: 13px; margin-top: 8px; }
+    canvas { margin-top: 8px; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>ユニット投稿</h1>
-    <div class="hint">
-      ※ 送信時に <code>https://api.mobcrafter.net/api/submit</code> にPOSTします。<br>
-      ※ Cloudflare Accessで保護されている場合、ログインしていないと送信できません。
-    </div>
 
-    <label>JSONファイル</label>
-    <input id="file" type="file" accept=".json,application/json" />
-
-    <label>タイトル</label>
-    <input id="title" type="text" placeholder="例: Sephiroth Unit v1" />
-
-    <label>説明</label>
-    <textarea id="description" placeholder="説明（任意）"></textarea>
-
-    <div class="row">
-      <div>
-        <label>タグ（カンマ区切り）</label>
-        <input id="tags" type="text" placeholder="例: boss, ff7, sword" />
-      </div>
-      <div>
-        <label>mod_version（任意）</label>
-        <input id="modVersion" type="text" placeholder="例: 1.0.0" />
-      </div>
-    </div>
-
-    <button id="btn" class="primary" disabled>送信</button>
-
-    <label>プレビュー</label>
-    <pre id="preview">{}</pre>
-
-    <label>結果</label>
-    <pre id="result">未送信</pre>
+<div class="card">
+  <h1>ユニット投稿</h1>
+  <div class="hint">
+    Cloudflare Access ログイン後に投稿できます。
   </div>
+
+  <label>JSONファイル</label>
+  <input id="file" type="file" accept=".json,application/json" />
+
+  <label>タイトル</label>
+  <input id="title" type="text" placeholder="例: Sephiroth Unit v1" />
+
+  <label>説明</label>
+  <textarea id="description" placeholder="説明（任意）"></textarea>
+
+  <div class="row">
+    <div>
+      <label>タグ（カンマ区切り）</label>
+      <input id="tags" type="text" placeholder="boss, ff7, sword" />
+    </div>
+    <div>
+      <label>mod_version（任意）</label>
+      <input id="modVersion" type="text" placeholder="1.0.0" />
+    </div>
+  </div>
+
+  <button id="btn" class="primary" disabled>送信</button>
+
+  <label>プレビュー（情報）</label>
+  <pre id="preview">{}</pre>
+
+  <label>3Dイメージ（簡易）</label>
+  <canvas id="canvas" width="420" height="420"
+    style="border:1px solid #ccc; border-radius:10px;"></canvas>
+  <div class="hint">
+    ※ 形状確認用の簡易表示です（色・質感は実物と異なります）
+  </div>
+
+  <label>結果</label>
+  <pre id="result">未送信</pre>
+</div>
 
 <script>
 (() => {
@@ -66,95 +74,25 @@
   const $btn   = document.getElementById("btn");
   const $prev  = document.getElementById("preview");
   const $res   = document.getElementById("result");
+  const canvas = document.getElementById("canvas");
 
   let parsedJson = null;
-function analyzeBlocks(blocks) {
-  let minX = Infinity, minY = Infinity, minZ = Infinity;
-  let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
 
-  for (const b of blocks) {
-    minX = Math.min(minX, b.dx);
-    minY = Math.min(minY, b.dy);
-    minZ = Math.min(minZ, b.dz);
-    maxX = Math.max(maxX, b.dx);
-    maxY = Math.max(maxY, b.dy);
-    maxZ = Math.max(maxZ, b.dz);
+  /* ---------- utils ---------- */
+
+  function setPreview(v) {
+    $prev.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
   }
-
-  return {
-    count: blocks.length,
-    sizeX: maxX - minX + 1,
-    sizeY: maxY - minY + 1,
-    sizeZ: maxZ - minZ + 1,
-    minX, minY, minZ
-  };
-}
-
-function colorFromBlockId(id) {
-  if (!id) return "#888";
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = (hash * 31 + id.charCodeAt(i)) | 0;
+  function setResult(v) {
+    $res.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
   }
-  const r = 100 + (hash & 0x7F);
-  const g = 100 + ((hash >> 8) & 0x7F);
-  const b = 100 + ((hash >> 16) & 0x7F);
-  return `rgb(${r},${g},${b})`;
-}
-
-function drawBlocks(canvas, blocks, info) {
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // ★重い時に固まらないよう安全策（最大1万ブロックだけ描く）
-  const MAX_DRAW = 10000;
-  let drawList = blocks;
-  if (blocks.length > MAX_DRAW) {
-    const step = Math.ceil(blocks.length / MAX_DRAW);
-    drawList = blocks.filter((_, i) => i % step === 0);
+  function updateButtonState() {
+    $btn.disabled = !(parsedJson && ($title.value || "").trim());
   }
-
-  // 画面に収まるスケールを計算（形状確認用）
-  const scale = Math.max(
-    1,
-    Math.min(
-      canvas.width / (info.sizeX + info.sizeZ + 2),
-      canvas.height / (info.sizeY + info.sizeX + 2)
-    ) * 20
-  );
-
-  const ox = canvas.width / 2;
-  const oy = canvas.height * 0.75;
-
-  function iso(x, y, z) {
-    return {
-      x: ox + (x - z) * scale,
-      y: oy - (x + z) * scale * 0.5 - y * scale
-    };
-  }
-
-  // 奥→手前で描く
-  const sorted = [...drawList].sort((a, b) =>
-    (a.dx + a.dz + a.dy) - (b.dx + b.dz + b.dy)
-  );
-
-  for (const b of sorted) {
-    const p = iso(
-      b.dx - info.minX,
-      b.dy - info.minY,
-      b.dz - info.minZ
-    );
-
-    ctx.fillStyle = colorFromBlockId(b.blockId);
-    ctx.fillRect(p.x - scale / 2, p.y - scale / 2, scale, scale);
-  }
-}
 
   function validateMobCrafterJson(obj) {
     if (!obj || typeof obj !== "object") return "JSONがオブジェクトではありません";
     if (!Array.isArray(obj.blocks)) return "blocks 配列がありません";
-
     if (obj.blocks.length === 0) return "blocks が空です";
     if (obj.blocks.length > 200000) return "blocks が多すぎます（200k超）";
 
@@ -170,113 +108,143 @@ function drawBlocks(canvas, blocks, info) {
     return null;
   }
 
-  function setResult(objOrText) {
-    $res.textContent = typeof objOrText === "string"
-      ? objOrText
-      : JSON.stringify(objOrText, null, 2);
+  /* ---------- analyze ---------- */
+
+  function analyzeBlocks(blocks) {
+    let minX = Infinity, minY = Infinity, minZ = Infinity;
+    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+
+    for (const b of blocks) {
+      minX = Math.min(minX, b.dx);
+      minY = Math.min(minY, b.dy);
+      minZ = Math.min(minZ, b.dz);
+      maxX = Math.max(maxX, b.dx);
+      maxY = Math.max(maxY, b.dy);
+      maxZ = Math.max(maxZ, b.dz);
+    }
+    return {
+      count: blocks.length,
+      sizeX: maxX - minX + 1,
+      sizeY: maxY - minY + 1,
+      sizeZ: maxZ - minZ + 1,
+      minX, minY, minZ
+    };
   }
 
-  function setPreview(objOrText) {
-    $prev.textContent = typeof objOrText === "string"
-      ? objOrText
-      : JSON.stringify(objOrText, null, 2);
+  function colorFromBlockId(id) {
+    let h = 0;
+    for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+    return `rgb(${100 + (h & 127)},${100 + ((h>>8)&127)},${100 + ((h>>16)&127)})`;
   }
 
-  function updateButtonState() {
-    const ok = !!parsedJson && ($title.value || "").trim().length > 0;
-    $btn.disabled = !ok;
+  function drawBlocks(canvas, blocks, info) {
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    const MAX_DRAW = 10000;
+    let list = blocks;
+    if (blocks.length > MAX_DRAW) {
+      const step = Math.ceil(blocks.length / MAX_DRAW);
+      list = blocks.filter((_,i)=>i%step===0);
+    }
+
+    const scale = Math.max(1,
+      Math.min(
+        canvas.width / (info.sizeX + info.sizeZ + 2),
+        canvas.height / (info.sizeY + info.sizeX + 2)
+      ) * 20
+    );
+
+    const ox = canvas.width/2;
+    const oy = canvas.height*0.75;
+
+    function iso(x,y,z){
+      return {
+        x: ox + (x - z)*scale,
+        y: oy - (x + z)*scale*0.5 - y*scale
+      };
+    }
+
+    const sorted = [...list].sort((a,b)=>
+      (a.dx+a.dy+a.dz)-(b.dx+b.dy+b.dz)
+    );
+
+    for (const b of sorted) {
+      const p = iso(
+        b.dx - info.minX,
+        b.dy - info.minY,
+        b.dz - info.minZ
+      );
+      ctx.fillStyle = colorFromBlockId(b.blockId);
+      ctx.fillRect(p.x-scale/2, p.y-scale/2, scale, scale);
+    }
   }
+
+  /* ---------- events ---------- */
 
   $file.addEventListener("change", async () => {
     parsedJson = null;
     setResult("未送信");
+    setPreview("{}");
+
     const f = $file.files && $file.files[0];
-    if (!f) { setPreview("{}"); updateButtonState(); return; }
+    if (!f) return;
+
+    if (f.size > 2_200_000) {
+      setPreview("ファイルが大きすぎます（約2MB超）");
+      return;
+    }
 
     try {
-      const text = await f.text();
-      const obj = JSON.parse(text);
+      const obj = JSON.parse(await f.text());
+      const err = validateMobCrafterJson(obj);
+      if (err) { setPreview(err); return; }
+
       parsedJson = obj;
-
-      // タイトルが空ならファイル名から入れる
-      if (!(($title.value || "").trim())) {
-        $title.value = (f.name || "unit.json").replace(/\.json$/i, "");
+      if (!$title.value.trim()) {
+        $title.value = f.name.replace(/\.json$/i,"");
       }
 
-      const err = validateMobCrafterJson(parsedJson);
-      if (err) {
-        setPreview("MobCrafter用JSONとして不正: " + err);
-      } else {
-        // 軽いプレビュー
-        const previewObj = {
-          file: { name: f.name, size: f.size },
-          blocks_count: Array.isArray(obj.blocks) ? obj.blocks.length : null,
-          json_top: (obj && typeof obj === "object") ? Object.keys(obj).slice(0, 30) : null
-        };
-        setPreview(previewObj);
-const canvas = document.getElementById("canvas");
-const info = analyzeBlocks(parsedJson.blocks);
-
-const previewObj = {
-  file: { name: f.name, size: f.size },
-  blocks: info.count,
-  size: `${info.sizeX} x ${info.sizeY} x ${info.sizeZ}`,
-  note: (info.count > 10000) ? "ブロック数が多いため描画は間引き表示です" : ""
-};
-
-setPreview(previewObj);
-
-const canvas = document.getElementById("canvas");
-drawBlocks(canvas, parsedJson.blocks, info);
-
-
-      }
+      const info = analyzeBlocks(obj.blocks);
+      setPreview({
+        file: { name: f.name, size: f.size },
+        blocks: info.count,
+        size: `${info.sizeX} x ${info.sizeY} x ${info.sizeZ}`
+      });
+      drawBlocks(canvas, obj.blocks, info);
     } catch (e) {
-      setPreview("JSONとして読み込めませんでした: " + String(e && e.message ? e.message : e));
-      parsedJson = null;
+      setPreview("JSONとして読み込めません: " + e.message);
     }
     updateButtonState();
   });
 
-  [$title, $desc, $tags, $mv].forEach(el => el.addEventListener("input", updateButtonState));
+  [$title,$desc,$tags,$mv].forEach(el =>
+    el.addEventListener("input", updateButtonState)
+  );
 
   $btn.addEventListener("click", async () => {
-    updateButtonState();
-    if ($btn.disabled) return;
+    if (!parsedJson) return;
 
-    const err = validateMobCrafterJson(parsedJson);
-    if (err) {
-      setResult("送信できません: " + err);
-      return;
-    }
-
-    const title = ($title.value || "").trim();
-    const description = ($desc.value || "").trim();
-    const tags = ($tags.value || "")
-      .split(",")
-      .map(s => s.trim())
-      .filter(Boolean);
-    const mod_version = ($mv.value || "").trim();
-
-    const payload = { title, description, tags, mod_version, json: parsedJson };
+    const payload = {
+      title: $title.value.trim(),
+      description: $desc.value.trim(),
+      tags: ($tags.value||"").split(",").map(s=>s.trim()).filter(Boolean),
+      mod_version: $mv.value.trim(),
+      json: parsedJson
+    };
 
     setResult("送信中...");
 
     try {
-      const resp = await fetch("https://api.mobcrafter.net/api/submit", {
+      const r = await fetch("https://api.mobcrafter.net/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
         credentials: "include"
       });
-
-      const text = await resp.text();
-      let data = null;
-      try { data = JSON.parse(text); } catch { data = { raw: text }; }
-
-      setResult({ http: resp.status, ...data });
+      setResult(await r.json());
     } catch (e) {
-      setResult("送信エラー: " + String(e && e.message ? e.message : e));
+      setResult("送信失敗: " + e.message);
     }
   });
 })();
