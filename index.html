@@ -149,6 +149,23 @@
     .desc{margin:0;color:var(--muted);font-size:13px;line-height:1.5;min-height:38px}
     .meta{display:flex;justify-content:space-between;gap:10px;margin-top:10px;color:var(--muted);font-size:12px}
     .footer{border-top:1px solid var(--line);padding:18px 0;color:var(--muted);font-size:12px}
+
+    .errorBox{
+      border:1px solid #fecaca;
+      background:#fff1f2;
+      color:#991b1b;
+      padding:12px 14px;
+      border-radius:12px;
+      margin:10px 0 18px;
+      font-size:13px;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .small{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:6px;
+    }
   </style>
 </head>
 <body>
@@ -164,7 +181,7 @@
       <nav class="nav">
         <a class="btn" href="#latest">新着</a>
         <a class="btn" href="#popular">人気</a>
-        <a class="btn" href="#upload">投稿（準備中）</a>
+        <a class="btn" href="/submit">投稿</a>
         <a class="btn primary" href="#guide">使い方</a>
       </nav>
     </div>
@@ -176,7 +193,7 @@
         <h1>MobCrafter 用ユニットJSONを探して、すぐ使える。</h1>
         <p>
           シンプルに「見つけやすい」「配布が安全」「投稿しやすい」ポータルを目指します。
-          いまは<strong>見た目と導線</strong>を固めるMVP段階です。
+          いまは<strong>MVP</strong>段階です（一覧は approved 実データ）。
         </p>
 
         <div class="searchRow">
@@ -186,21 +203,22 @@
           </div>
           <select id="sort">
             <option value="new">新着順</option>
-            <option value="dl">DL数順</option>
             <option value="name">名前順</option>
           </select>
         </div>
 
-        <div class="hint">※ いまは仮データ表示です。次のステップで「JSON一覧（実データ）」に置き換えます。</div>
+        <div class="hint">※ 表示は approved のみ。投稿は /submit、承認は /admin で行います。</div>
+        <div id="err" class="errorBox" style="display:none;"></div>
       </div>
 
       <aside class="card heroSide">
         <div style="font-weight:900;font-size:16px;margin-bottom:10px;">ポータル状況</div>
         <div class="stat"><b>公開</b><span>✅ mobcrafter.net</span></div>
-        <div class="stat"><b>UI</b><span>🟡 MVP（仮データ）</span></div>
-        <div class="stat"><b>配布</b><span>🟡 次：安全DL</span></div>
-        <div class="stat"><b>投稿</b><span>🔜 次：アカウント制</span></div>
+        <div class="stat"><b>UI</b><span>🟢 MVP（実データ）</span></div>
+        <div class="stat"><b>配布</b><span>🟢 安全DL</span></div>
+        <div class="stat"><b>投稿</b><span>🟢 /submit</span></div>
         <div class="stat"><b>広告</b><span>🔜 次：AdSense準備</span></div>
+        <div class="small">※ DL数は次フェーズで計測予定</div>
       </aside>
     </section>
 
@@ -217,48 +235,80 @@
   </main>
 
   <script>
-    // 仮データ（次のステップで data/units.json から読み込む方式にします）
-    const items = [
-      { id:"sephiroth", name:"Sephiroth", desc:"高身長キャラ。剣士向けの存在感あるシルエット。", mod:"1.20.1", dl:1280, author:"Omni", date:"2025-12-10" },
-      { id:"mech-wand", name:"Emerald Command Wand", desc:"メカ系ユニットを指揮する雰囲気のモデル案。", mod:"1.20.1", dl:860, author:"Omni", date:"2025-12-12" },
-      { id:"castle-mini", name:"Mini Castle", desc:"小型の城・砦。スケール調整で雰囲気を出せる。", mod:"1.20.1", dl:640, author:"Guest", date:"2025-12-09" },
-      { id:"airship", name:"Airship", desc:"飛行船。構造体ユニット化で移動演出に強い。", mod:"1.20.1", dl:520, author:"Guest", date:"2025-12-08" },
-      { id:"boss-golem", name:"Boss Golem", desc:"ボス級の巨大ユニット。圧のあるシルエット。", mod:"1.20.1", dl:410, author:"Guest", date:"2025-12-11" },
-      { id:"anime-girl", name:"Anime Girl (Voxel)", desc:"アニメ寄りの立体。顔の再現に重点。", mod:"1.20.1", dl:980, author:"Omni", date:"2025-12-07" },
-    ];
+    // ====== API (approved only) ======
+    const API_LIST = "https://api.mobcrafter.net/api/public/submissions";
+    const API_DL   = (id) => `https://api.mobcrafter.net/api/public/submissions/${id}/download`;
+
+    // 画面側の状態
+    let items = [];
 
     const grid = document.getElementById("grid");
     const q = document.getElementById("q");
     const sort = document.getElementById("sort");
+    const errBox = document.getElementById("err");
     document.getElementById("y").textContent = new Date().getFullYear();
+
+    function showError(msg){
+      errBox.style.display = "block";
+      errBox.textContent = msg;
+    }
+    function hideError(){
+      errBox.style.display = "none";
+      errBox.textContent = "";
+    }
+
+    function normalizeTags(tags){
+      if (!tags) return [];
+      if (Array.isArray(tags)) return tags;
+      if (typeof tags === "string") {
+        // D1に JSON.stringify してある想定なので parse
+        try {
+          const v = JSON.parse(tags);
+          return Array.isArray(v) ? v : [];
+        } catch {
+          // もしカンマ区切りで入ってきても落ちないように
+          return tags.split(",").map(s=>s.trim()).filter(Boolean);
+        }
+      }
+      return [];
+    }
 
     function render(){
       const query = (q.value || "").trim().toLowerCase();
 
       let list = items.filter(it => {
-        return !query || (it.name.toLowerCase().includes(query) || it.desc.toLowerCase().includes(query));
+        if (!query) return true;
+        const name = (it.name || "").toLowerCase();
+        const desc = (it.desc || "").toLowerCase();
+        const author = (it.author || "").toLowerCase();
+        const tags = (it.tags || []).join(" ").toLowerCase();
+        return name.includes(query) || desc.includes(query) || author.includes(query) || tags.includes(query);
       });
 
       const s = sort.value;
       list.sort((a,b)=>{
-        if(s==="new") return (b.date.localeCompare(a.date));
-        if(s==="dl") return (b.dl - a.dl);
-        if(s==="name") return a.name.localeCompare(b.name);
+        if(s==="new") return (String(b.date).localeCompare(String(a.date)));
+        if(s==="name") return String(a.name).localeCompare(String(b.name));
         return 0;
       });
 
+      if (list.length === 0){
+        grid.innerHTML = `<div style="color:var(--muted);">該当するユニットがありません。</div>`;
+        return;
+      }
+
       grid.innerHTML = list.map(it => `
-        <a class="card item" href="#unit-${it.id}" title="${it.name}">
+        <a class="card item" href="${API_DL(it.id)}" title="ダウンロード: ${escapeHtml(it.name)}" target="_blank" rel="noopener">
           <div class="thumb">
             <span class="badge">JSON</span>
-            <span class="badge">Forge ${it.mod}</span>
+            <span class="badge">Forge ${escapeHtml(it.mod || "1.20.1")}</span>
           </div>
           <div class="content">
             <div class="name">${escapeHtml(it.name)}</div>
-            <p class="desc">${escapeHtml(it.desc)}</p>
+            <p class="desc">${escapeHtml(it.desc || "")}</p>
             <div class="meta">
-              <span>👤 ${escapeHtml(it.author)}</span>
-              <span>⬇ ${it.dl.toLocaleString()}</span>
+              <span>👤 ${escapeHtml(it.author || "unknown")}</span>
+              <span>⬇ Download</span>
             </div>
           </div>
         </a>
@@ -274,9 +324,46 @@
         .replaceAll("'","&#39;");
     }
 
+    async function loadFromApi(){
+      hideError();
+      grid.innerHTML = `<div style="color:var(--muted);">読み込み中...</div>`;
+
+      try{
+        const resp = await fetch(API_LIST, { method:"GET" });
+        const text = await resp.text();
+        let data = null;
+        try { data = JSON.parse(text); } catch { data = { raw:text }; }
+
+        if(!resp.ok){
+          showError("一覧取得に失敗しました。\nHTTP: " + resp.status + "\n" + JSON.stringify(data, null, 2));
+          grid.innerHTML = "";
+          return;
+        }
+
+        const rows = (data && data.items) ? data.items : [];
+        // Workerが返す形式に合わせて表示用へ整形
+        items = rows.map(r => ({
+          id: r.id,
+          name: r.title,
+          desc: r.description,
+          tags: normalizeTags(r.tags),
+          author: r.author_name,
+          date: r.created_at,
+          mod: r.mod_version
+        }));
+
+        render();
+      }catch(e){
+        showError("一覧取得で例外が発生しました。\n" + String(e && e.message ? e.message : e));
+        grid.innerHTML = "";
+      }
+    }
+
     q.addEventListener("input", render);
     sort.addEventListener("change", render);
-    render();
+
+    // 初回ロード
+    loadFromApi();
   </script>
 </body>
 </html>
