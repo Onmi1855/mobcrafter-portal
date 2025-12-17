@@ -348,15 +348,17 @@ grid.innerHTML = list.map(it => `
 
         const rows = (data && data.items) ? data.items : [];
         // Workerが返す形式に合わせて表示用へ整形
-        items = rows.map(r => ({
-          id: r.id,
-          name: r.title,
-          desc: r.description,
-          tags: normalizeTags(r.tags),
-          author: r.author_name,
-          date: r.created_at,
-          mod: r.mod_version
-        }));
+items = rows.map(r => ({
+  id: r.id,
+  name: r.title,
+  desc: r.description || "",
+  tags: normalizeTags(r.tags),
+  author: r.author_name || "unknown",
+  date: r.created_at || "",
+  mod: r.mod_version || "",
+  jsonUrl: API_DL(r.id), // ★ここ重要：blocks取得先
+  dl: 0 // まだ計測してないなら0でOK
+}));
 
         render();
       }catch(e){
