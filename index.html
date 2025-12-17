@@ -482,7 +482,7 @@
       if(deg < 0) deg += 360;
 
       // 90度刻みに丸め
-      const q = (Math.round(deg / 90) + 1) % 4; // 0,1,2,3
+      const q = (Math.round(deg / 90) + 3) % 4; // 0,1,2,3
       return q;
     }
 
