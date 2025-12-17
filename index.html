@@ -519,6 +519,7 @@ function renderThumbToCanvas(canvas, blocks){
 }
 
 async function hydrateThumbs(list){
+  console.log("[thumb] hydrate start", list.length);
   const canvases = [...document.querySelectorAll("canvas.thumb3d")];
   for(const c of canvases){
     const id = c.dataset.id;
