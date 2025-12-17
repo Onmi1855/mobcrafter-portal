@@ -216,7 +216,19 @@ function drawBlocks(canvas, blocks, info) {
         setPreview(previewObj);
 const canvas = document.getElementById("canvas");
 const info = analyzeBlocks(parsedJson.blocks);
+
+const previewObj = {
+  file: { name: f.name, size: f.size },
+  blocks: info.count,
+  size: `${info.sizeX} x ${info.sizeY} x ${info.sizeZ}`,
+  note: (info.count > 10000) ? "ブロック数が多いため描画は間引き表示です" : ""
+};
+
+setPreview(previewObj);
+
+const canvas = document.getElementById("canvas");
 drawBlocks(canvas, parsedJson.blocks, info);
+
 
       }
     } catch (e) {
