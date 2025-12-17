@@ -128,6 +128,7 @@
       box-shadow: 0 14px 30px rgba(15,23,42,.12);
     }
     .thumb{
+      position:relative; height:140px;
       height:140px;
       background:
         linear-gradient(180deg, rgba(37,99,235,.10), rgba(22,163,74,.08)),
@@ -297,22 +298,27 @@
         return;
       }
 
-      grid.innerHTML = list.map(it => `
-        <a class="card item" href="${API_DL(it.id)}" title="ダウンロード: ${escapeHtml(it.name)}" target="_blank" rel="noopener">
-          <div class="thumb">
-            <span class="badge">JSON</span>
-            <span class="badge">Forge ${escapeHtml(it.mod || "1.20.1")}</span>
-          </div>
-          <div class="content">
-            <div class="name">${escapeHtml(it.name)}</div>
-            <p class="desc">${escapeHtml(it.desc || "")}</p>
-            <div class="meta">
-              <span>👤 ${escapeHtml(it.author || "unknown")}</span>
-              <span>⬇ Download</span>
-            </div>
-          </div>
-        </a>
-      `).join("");
+grid.innerHTML = list.map(it => `
+  <a class="card item" href="#unit-${it.id}" title="${it.name}">
+    <div class="thumb">
+      <canvas class="thumb3d" data-id="${escapeHtml(it.id)}" width="360" height="140"
+        style="width:100%;height:140px;border-radius:0;"></canvas>
+      <div style="position:absolute;inset:auto 12px 12px 12px;display:flex;gap:8px;justify-content:space-between;">
+        <span class="badge">JSON</span>
+        <span class="badge">Forge ${escapeHtml(it.mod)}</span>
+      </div>
+    </div>
+    <div class="content">
+      <div class="name">${escapeHtml(it.name)}</div>
+      <p class="desc">${escapeHtml(it.desc)}</p>
+      <div class="meta">
+        <span>👤 ${escapeHtml(it.author)}</span>
+        <span>⬇ ${it.dl.toLocaleString()}</span>
+      </div>
+    </div>
+  </a>
+`).join("");
+
     }
 
     function escapeHtml(s){
@@ -356,11 +362,165 @@
       }catch(e){
         showError("一覧取得で例外が発生しました。\n" + String(e && e.message ? e.message : e));
         grid.innerHTML = "";
+        hydrateThumbs(list);
       }
     }
 
     q.addEventListener("input", render);
     sort.addEventListener("change", render);
+const THUMB_CACHE_VER = "v1"; // 描画ロジック変えたら上げる
+const thumbCacheKey = (id)=> `mc_thumb_${THUMB_CACHE_VER}_${id}`;
+
+async function loadJsonBlocks(it){
+  // 実データ化後：it.jsonUrl を使う想定
+  if (!it.jsonUrl) return null;
+  const r = await fetch(it.jsonUrl);
+  if(!r.ok) return null;
+  const j = await r.json();
+  if(!j || !Array.isArray(j.blocks)) return null;
+  return j.blocks;
+}
+
+function analyzeBlocks(blocks){
+  let minX=Infinity,minY=Infinity,minZ=Infinity;
+  let maxX=-Infinity,maxY=-Infinity,maxZ=-Infinity;
+  for(const b of blocks){
+    minX=Math.min(minX,b.dx); minY=Math.min(minY,b.dy); minZ=Math.min(minZ,b.dz);
+    maxX=Math.max(maxX,b.dx); maxY=Math.max(maxY,b.dy); maxZ=Math.max(maxZ,b.dz);
+  }
+  return {minX,minY,minZ, sizeX:maxX-minX+1, sizeY:maxY-minY+1, sizeZ:maxZ-minZ+1};
+}
+
+function hashColor(id){
+  let h=0;
+  for(let i=0;i<id.length;i++) h=(h*31 + id.charCodeAt(i))|0;
+  const r = 110 + (h & 90);
+  const g = 110 + ((h>>8)&90);
+  const b = 110 + ((h>>16)&90);
+  return {r,g,b};
+}
+
+// “面”で描く：上面＋左面＋右面（超軽量）
+function drawIsoCube(ctx, x, y, z, s, col){
+  // iso 変換（x,zで横、yで高さ）
+  const sx = (x - z) * s;
+  const sy = (x + z) * s * 0.5 - y * s;
+
+  // 色を少しずつ変えて立体感
+  const top = `rgb(${Math.min(255,col.r+35)},${Math.min(255,col.g+35)},${Math.min(255,col.b+35)})`;
+  const left= `rgb(${Math.max(0,col.r-10)},${Math.max(0,col.g-10)},${Math.max(0,col.b-10)})`;
+  const right=`rgb(${Math.max(0,col.r-30)},${Math.max(0,col.g-30)},${Math.max(0,col.b-30)})`;
+
+  // 上面（ひし形）
+  ctx.fillStyle = top;
+  ctx.beginPath();
+  ctx.moveTo(sx, sy - s*0.5);
+  ctx.lineTo(sx + s, sy);
+  ctx.lineTo(sx, sy + s*0.5);
+  ctx.lineTo(sx - s, sy);
+  ctx.closePath();
+  ctx.fill();
+
+  // 左面
+  ctx.fillStyle = left;
+  ctx.beginPath();
+  ctx.moveTo(sx - s, sy);
+  ctx.lineTo(sx, sy + s*0.5);
+  ctx.lineTo(sx, sy + s*0.5 + s);
+  ctx.lineTo(sx - s, sy + s);
+  ctx.closePath();
+  ctx.fill();
+
+  // 右面
+  ctx.fillStyle = right;
+  ctx.beginPath();
+  ctx.moveTo(sx + s, sy);
+  ctx.lineTo(sx, sy + s*0.5);
+  ctx.lineTo(sx, sy + s*0.5 + s);
+  ctx.lineTo(sx + s, sy + s);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function renderThumbToCanvas(canvas, blocks){
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width, h = canvas.height;
+
+  // 背景
+  ctx.clearRect(0,0,w,h);
+  const g = ctx.createLinearGradient(0,0,0,h);
+  g.addColorStop(0,"rgba(37,99,235,.10)");
+  g.addColorStop(1,"rgba(22,163,74,.08)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,w,h);
+
+  const info = analyzeBlocks(blocks);
+
+  // 巨大対策：間引き（ブロック数に応じて可変）
+  let list = blocks;
+  const n = blocks.length;
+  const target = 12000; // サムネはこのくらいが限界
+  if(n > target){
+    const step = Math.ceil(n / target);
+    list = blocks.filter((_,i)=>i%step===0);
+  }
+
+  // 収まりスケール（ざっくり）
+  const spanX = info.sizeX + info.sizeZ;
+  const spanY = info.sizeY;
+  const s = Math.max(2, Math.min(w/(spanX+6), h/(spanY+8)) * 1.6);
+
+  // 原点を中央寄せ
+  const ox = w*0.5;
+  const oy = h*0.78;
+
+  // 描画順：奥→手前・下→上 っぽく（簡易）
+  const sorted = [...list].sort((a,b)=>
+    (a.dx+a.dz+a.dy) - (b.dx+b.dz+b.dy)
+  );
+
+  ctx.save();
+  ctx.translate(ox, oy);
+
+  for(const b of sorted){
+    const x = b.dx - info.minX;
+    const y = b.dy - info.minY;
+    const z = b.dz - info.minZ;
+    const col = hashColor(b.blockId);
+    drawIsoCube(ctx, x, y, z, s, col);
+  }
+  ctx.restore();
+}
+
+async function hydrateThumbs(list){
+  const canvases = [...document.querySelectorAll("canvas.thumb3d")];
+  for(const c of canvases){
+    const id = c.dataset.id;
+    const cache = localStorage.getItem(thumbCacheKey(id));
+    if(cache){
+      // キャッシュがあれば即表示（imgとして描画）
+      const img = new Image();
+      img.onload = ()=> c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+      img.src = cache;
+      continue;
+    }
+
+    // 実データが無い（仮データ）ならスキップ
+    const it = list.find(x=>x.id===id);
+    if(!it) continue;
+
+    const blocks = await loadJsonBlocks(it);
+    if(!blocks) continue;
+
+    renderThumbToCanvas(c, blocks);
+
+    // キャッシュ保存（サイズが大きすぎると失敗するのでtry）
+    try{
+      const png = c.toDataURL("image/png");
+      localStorage.setItem(thumbCacheKey(id), png);
+    }catch{}
+  }
+}
 
     // 初回ロード
     loadFromApi();
