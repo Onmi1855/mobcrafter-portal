@@ -295,6 +295,7 @@
 
       if (list.length === 0){
         grid.innerHTML = `<div style="color:var(--muted);">該当するユニットがありません。</div>`;
+          hydrateThumbs(list);
         return;
       }
 
@@ -313,7 +314,7 @@ grid.innerHTML = list.map(it => `
       <p class="desc">${escapeHtml(it.desc)}</p>
       <div class="meta">
         <span>👤 ${escapeHtml(it.author)}</span>
-        <span>⬇ ${it.dl.toLocaleString()}</span>
+        <span>⬇ ${Number(it.dl ?? 0).toLocaleString()}</span>
       </div>
     </div>
   </a>
@@ -364,7 +365,6 @@ items = rows.map(r => ({
       }catch(e){
         showError("一覧取得で例外が発生しました。\n" + String(e && e.message ? e.message : e));
         grid.innerHTML = "";
-        hydrateThumbs(list);
       }
     }
 
