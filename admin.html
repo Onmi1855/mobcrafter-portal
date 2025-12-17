@@ -31,8 +31,8 @@
 <div class="wrap">
   <h1>MobCrafter 管理画面</h1>
   <div class="muted">
-    ※ このページは管理者のみ。APIは <code>https://api.mobcrafter.net/api/admin/*</code> を叩きます。<br>
-    ※ Cloudflare Access（Google OAuth）で <code>api.mobcrafter.net/api/admin*</code> を保護している前提です。
+    ※ このページは管理者のみ。APIは <code>/api/admin/*</code> を叩きます（同一オリジン）。<br>
+    ※ Cloudflare Access（Google OAuth）で <code>mobcrafter.net/api/admin*</code> を保護している前提です。
   </div>
 
   <div class="card">
@@ -70,6 +70,7 @@
 
 <script>
 (() => {
+  // ✅ 同一オリジン（CORS回避）
   const API_BASE = "/api/admin";
 
   const $status = document.getElementById("status");
@@ -97,19 +98,19 @@
       if (typeof tags === "string") {
         const t = tags.trim();
         if (!t) return [];
-        // D1側がJSON文字列で入ってる場合
         if (t.startsWith("[") && t.endsWith("]")) return JSON.parse(t);
-        // カンマ区切りの場合
         return t.split(",").map(s=>s.trim()).filter(Boolean);
       }
     } catch {}
     return [];
   }
 
+  // ✅ pathは "/submissions..." のように “/api/admin を除いた形” を渡す
   async function apiGet(path) {
-    const r = await fetch(API_BASE + path, {
+    const url = API_BASE.replace(/\/+$/,"") + "/" + String(path).replace(/^\/+/,"");
+    const r = await fetch(url, {
       method: "GET",
-      credentials: "include", // Access Cookie
+      credentials: "include",
       headers: { "Accept": "application/json" }
     });
     const text = await r.text();
@@ -120,7 +121,8 @@
   }
 
   async function apiPost(path) {
-    const r = await fetch(API_BASE + path, {
+    const url = API_BASE.replace(/\/+$/,"") + "/" + String(path).replace(/^\/+/,"");
+    const r = await fetch(url, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json", "Accept": "application/json" },
@@ -136,7 +138,6 @@
   function filterItems(list) {
     const q = ($q.value || "").trim().toLowerCase();
     if (!q) return list;
-
     return list.filter(it => {
       const title = String(it.title || "").toLowerCase();
       const author = String(it.author_name || it.author_email || "").toLowerCase();
@@ -179,7 +180,6 @@
               ? `<div class="tags">${tags.slice(0, 12).map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>`
               : `<span class="muted">タグなし</span>`;
 
-            // pending以外は操作ボタンを無効化（誤操作防止）
             const canAct = (status === "pending");
 
             return `
@@ -217,22 +217,21 @@
     log(`loading... status=${status}`);
 
     try {
-      const data = await apiGet(`/api/admin/submissions?status=${encodeURIComponent(status)}`);
+      // ✅ ここ重要："/api/admin/..." ではなく "submissions?..." にする
+      const data = await apiGet(`submissions?status=${encodeURIComponent(status)}`);
       items = Array.isArray(data.items) ? data.items : [];
       log({ ok: true, loaded: items.length, status });
       render();
     } catch (e) {
-      // 401の場合：Access未ログイン or Policy未設定の可能性が高い
       log({
         ok: false,
-        hint: "401の場合は Cloudflare Access の保護範囲（api.mobcrafter.net/api/admin*）と、管理者Allowポリシーを確認してください。",
+        hint: "401の場合：Cloudflare Access の保護範囲（mobcrafter.net/api/admin*）と、管理者Allowポリシーを確認してください。",
         error: e
       });
       $list.innerHTML = `<div class="muted">読み込み失敗（ログ参照）</div>`;
     }
   }
 
-  // ボタン操作（イベント委譲）
   $list.addEventListener("click", async (ev) => {
     const btn = ev.target.closest("button[data-act]");
     if (!btn) return;
@@ -248,14 +247,14 @@
     log(`${act}... ${id}`);
 
     try {
+      // ✅ ここも重要："/api/admin/..." を消して "submissions/..." にする
       const path = act === "approve"
-        ? `/api/admin/submissions/${encodeURIComponent(id)}/approve`
-        : `/api/admin/submissions/${encodeURIComponent(id)}/reject`;
+        ? `submissions/${encodeURIComponent(id)}/approve`
+        : `submissions/${encodeURIComponent(id)}/reject`;
 
       const r = await apiPost(path);
       log({ ok: true, action: act, id, response: r });
 
-      // pending一覧なら、その場で消す
       items = items.filter(x => x.id !== id);
       render();
     } catch (e) {
