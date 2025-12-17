@@ -214,6 +214,10 @@ function drawBlocks(canvas, blocks, info) {
           json_top: (obj && typeof obj === "object") ? Object.keys(obj).slice(0, 30) : null
         };
         setPreview(previewObj);
+const canvas = document.getElementById("canvas");
+const info = analyzeBlocks(parsedJson.blocks);
+drawBlocks(canvas, parsedJson.blocks, info);
+
       }
     } catch (e) {
       setPreview("JSONとして読み込めませんでした: " + String(e && e.message ? e.message : e));
