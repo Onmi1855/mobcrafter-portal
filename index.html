@@ -374,14 +374,37 @@ const THUMB_CACHE_VER = "v1"; // 描画ロジック変えたら上げる
 const thumbCacheKey = (id)=> `mc_thumb_${THUMB_CACHE_VER}_${id}`;
 
 async function loadJsonBlocks(it){
-  // 実データ化後：it.jsonUrl を使う想定
   if (!it.jsonUrl) return null;
-  const r = await fetch(it.jsonUrl);
-  if(!r.ok) return null;
-  const j = await r.json();
-  if(!j || !Array.isArray(j.blocks)) return null;
-  return j.blocks;
+
+  try{
+    const r = await fetch(it.jsonUrl, { cache: "no-store" });
+    console.log("[thumb] fetch", it.id, r.status, r.headers.get("content-type"), it.jsonUrl);
+
+    if(!r.ok) {
+      const t = await r.text().catch(()=>"(no text)");
+      console.warn("[thumb] not ok", it.id, r.status, t.slice(0,200));
+      return null;
+    }
+
+    const ct = (r.headers.get("content-type") || "").toLowerCase();
+    if(!ct.includes("application/json")){
+      const t = await r.text().catch(()=>"(no text)");
+      console.warn("[thumb] not json content-type", it.id, ct, t.slice(0,200));
+      return null;
+    }
+
+    const j = await r.json();
+    if(!j || !Array.isArray(j.blocks)) {
+      console.warn("[thumb] no blocks", it.id, j);
+      return null;
+    }
+    return j.blocks;
+  } catch(e){
+    console.error("[thumb] exception", it.id, e);
+    return null;
+  }
 }
+
 
 function analyzeBlocks(blocks){
   let minX=Infinity,minY=Infinity,minZ=Infinity;
