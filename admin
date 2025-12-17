@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MobCrafter Admin - Submissions</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 24px; }
+    .wrap { max-width: 980px; margin: 0 auto; }
+    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin-top: 12px; }
+    h1 { margin: 0 0 8px; }
+    .row { display:flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .row > * { flex: 0 0 auto; }
+    select, button, input { padding: 10px; border-radius: 10px; border: 1px solid #ccc; }
+    button { cursor: pointer; }
+    button.primary { background:#111; color:#fff; border: 0; }
+    button.danger { background:#b00020; color:#fff; border: 0; }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    pre { background:#f6f6f6; padding: 12px; border-radius: 10px; white-space: pre-wrap; word-break: break-word; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border-bottom: 1px solid #eee; padding: 10px; vertical-align: top; }
+    th { text-align: left; color:#444; font-size: 13px; }
+    .muted { color:#666; font-size: 13px; }
+    .pill { display:inline-block; padding: 2px 8px; border-radius: 999px; background:#eee; font-size: 12px; }
+    .tags { display:flex; flex-wrap: wrap; gap: 6px; }
+    .tag { background:#eef; border:1px solid #dde; padding:2px 8px; border-radius: 999px; font-size: 12px; }
+    a { color: #0b57d0; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>MobCrafter 管理画面</h1>
+  <div class="muted">
+    ※ このページは管理者のみ。APIは <code>https://api.mobcrafter.net/api/admin/*</code> を叩きます。<br>
+    ※ Cloudflare Access（Google OAuth）で <code>api.mobcrafter.net/api/admin*</code> を保護している前提です。
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <label>
+        表示ステータス：
+        <select id="status">
+          <option value="pending" selected>pending（未承認）</option>
+          <option value="approved">approved（承認済）</option>
+          <option value="rejected">rejected（却下）</option>
+        </select>
+      </label>
+
+      <button id="reload" class="primary">再読み込み</button>
+
+      <label>
+        検索（タイトル/作者/タグ）：
+        <input id="q" type="text" placeholder="例: ff7 / Sephiroth" />
+      </label>
+
+      <span class="pill" id="count">0件</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="muted">ログ</div>
+    <pre id="log">ready</pre>
+  </div>
+
+  <div class="card">
+    <div class="muted">一覧</div>
+    <div id="list"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const API_BASE = "https://api.mobcrafter.net";
+
+  const $status = document.getElementById("status");
+  const $reload = document.getElementById("reload");
+  const $q = document.getElementById("q");
+  const $count = document.getElementById("count");
+  const $log = document.getElementById("log");
+  const $list = document.getElementById("list");
+
+  let items = [];
+
+  function log(v) {
+    $log.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
+  }
+
+  function esc(s) {
+    return String(s ?? "").replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[m]));
+  }
+
+  function parseTags(tags) {
+    try {
+      if (Array.isArray(tags)) return tags;
+      if (typeof tags === "string") {
+        const t = tags.trim();
+        if (!t) return [];
+        // D1側がJSON文字列で入ってる場合
+        if (t.startsWith("[") && t.endsWith("]")) return JSON.parse(t);
+        // カンマ区切りの場合
+        return t.split(",").map(s=>s.trim()).filter(Boolean);
+      }
+    } catch {}
+    return [];
+  }
+
+  async function apiGet(path) {
+    const r = await fetch(API_BASE + path, {
+      method: "GET",
+      credentials: "include", // Access Cookie
+      headers: { "Accept": "application/json" }
+    });
+    const text = await r.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = { raw: text }; }
+    if (!r.ok) throw { http: r.status, data };
+    return data;
+  }
+
+  async function apiPost(path) {
+    const r = await fetch(API_BASE + path, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: "{}"
+    });
+    const text = await r.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = { raw: text }; }
+    if (!r.ok) throw { http: r.status, data };
+    return data;
+  }
+
+  function filterItems(list) {
+    const q = ($q.value || "").trim().toLowerCase();
+    if (!q) return list;
+
+    return list.filter(it => {
+      const title = String(it.title || "").toLowerCase();
+      const author = String(it.author_name || it.author_email || "").toLowerCase();
+      const tags = parseTags(it.tags).join(" ").toLowerCase();
+      return title.includes(q) || author.includes(q) || tags.includes(q);
+    });
+  }
+
+  function render() {
+    const view = filterItems(items);
+    $count.textContent = `${view.length}件`;
+
+    if (view.length === 0) {
+      $list.innerHTML = `<div class="muted">該当なし</div>`;
+      return;
+    }
+
+    const status = $status.value;
+
+    $list.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 180px;">作成日時</th>
+            <th>内容</th>
+            <th style="width: 200px;">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${view.map(it => {
+            const tags = parseTags(it.tags);
+            const created = esc(it.created_at || "");
+            const title = esc(it.title || "");
+            const desc = esc(it.description || "");
+            const author = esc(it.author_name || it.author_email || "");
+            const mv = esc(it.mod_version || "");
+            const id = esc(it.id || "");
+
+            const tagHtml = tags.length
+              ? `<div class="tags">${tags.slice(0, 12).map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>`
+              : `<span class="muted">タグなし</span>`;
+
+            // pending以外は操作ボタンを無効化（誤操作防止）
+            const canAct = (status === "pending");
+
+            return `
+              <tr>
+                <td>
+                  <div>${created || "-"}</div>
+                  <div class="muted">id: ${id}</div>
+                </td>
+                <td>
+                  <div style="font-weight:700;">${title || "(no title)"}</div>
+                  <div class="muted">author: ${author || "-"}</div>
+                  ${mv ? `<div class="muted">mod_version: ${mv}</div>` : ""}
+                  ${desc ? `<div style="margin-top:6px;">${desc}</div>` : `<div class="muted" style="margin-top:6px;">説明なし</div>`}
+                  <div style="margin-top:8px;">${tagHtml}</div>
+                </td>
+                <td>
+                  <div class="row" style="gap:8px;">
+                    <button class="primary" data-act="approve" data-id="${id}" ${canAct ? "" : "disabled"}>承認</button>
+                    <button class="danger"  data-act="reject"  data-id="${id}" ${canAct ? "" : "disabled"}>却下</button>
+                  </div>
+                  <div class="muted" style="margin-top:8px;">
+                    ※ JSON本体プレビュー/ダウンロードは次段階で追加
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    `;
+  }
+
+  async function load() {
+    const status = $status.value;
+    log(`loading... status=${status}`);
+
+    try {
+      const data = await apiGet(`/api/admin/submissions?status=${encodeURIComponent(status)}`);
+      items = Array.isArray(data.items) ? data.items : [];
+      log({ ok: true, loaded: items.length, status });
+      render();
+    } catch (e) {
+      // 401の場合：Access未ログイン or Policy未設定の可能性が高い
+      log({
+        ok: false,
+        hint: "401の場合は Cloudflare Access の保護範囲（api.mobcrafter.net/api/admin*）と、管理者Allowポリシーを確認してください。",
+        error: e
+      });
+      $list.innerHTML = `<div class="muted">読み込み失敗（ログ参照）</div>`;
+    }
+  }
+
+  // ボタン操作（イベント委譲）
+  $list.addEventListener("click", async (ev) => {
+    const btn = ev.target.closest("button[data-act]");
+    if (!btn) return;
+
+    const act = btn.getAttribute("data-act");
+    const id = btn.getAttribute("data-id");
+    if (!act || !id) return;
+
+    const ok = confirm(`${act === "approve" ? "承認" : "却下"}します。\nID: ${id}\nよろしいですか？`);
+    if (!ok) return;
+
+    btn.disabled = true;
+    log(`${act}... ${id}`);
+
+    try {
+      const path = act === "approve"
+        ? `/api/admin/submissions/${encodeURIComponent(id)}/approve`
+        : `/api/admin/submissions/${encodeURIComponent(id)}/reject`;
+
+      const r = await apiPost(path);
+      log({ ok: true, action: act, id, response: r });
+
+      // pending一覧なら、その場で消す
+      items = items.filter(x => x.id !== id);
+      render();
+    } catch (e) {
+      log({ ok: false, action: act, id, error: e });
+      btn.disabled = false;
+    }
+  });
+
+  $reload.addEventListener("click", load);
+  $status.addEventListener("change", load);
+  $q.addEventListener("input", render);
+
+  load();
+})();
+</script>
+
+</body>
+</html>
