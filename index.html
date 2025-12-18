@@ -326,8 +326,8 @@
         </a>
       `).join("");
 
-      // ★HTMLでcanvas作った直後にサムネ生成
-      hydrateThumbs(list);
+      // ★HTMLでcanvas作った直後にサムネ生成（重いのでidle優先）
+      scheduleHydrate(list);
     }
 
     async function loadFromApi(){
@@ -356,7 +356,7 @@
           author: r.author_name || "unknown",
           date: r.created_at || "",
           mod: r.mod_version || "",
-          jsonUrl: API_DL(r.id), // blocks取得先
+          jsonUrl: API_DL(r.id),
           dl: 0
         }));
 
@@ -371,42 +371,70 @@
     sort.addEventListener("change", render);
 
     // =========================
-    // 3D thumbnail (frontYaw対応 + 無ければ両面)
+    // 3D thumbnail engine v3
     // =========================
 
-    // 描画ロジック変えたのでキャッシュ版を上げる
-    const THUMB_CACHE_VER = "v2";
+    // 回転の“流派差”吸収用（0..3）
+    // 例：ここを 1 にすると「全作品を右90度」寄せる
+    const YAW_OFFSET_QUARTER = 0;
+
+    // キャッシュ更新
+    const THUMB_CACHE_VER = "v3";
     const thumbCacheKey = (id)=> `mc_thumb_${THUMB_CACHE_VER}_${id}`;
+
+    function scheduleHydrate(list){
+      const run = ()=> hydrateThumbs(list);
+      if ("requestIdleCallback" in window) {
+        requestIdleCallback(run, { timeout: 1200 });
+      } else {
+        setTimeout(run, 0);
+      }
+    }
 
     async function loadUnitJson(it){
       if (!it.jsonUrl) return null;
-
       try{
         const r = await fetch(it.jsonUrl, { cache: "no-store" });
-        console.log("[thumb] fetch", it.id, r.status, r.headers.get("content-type"), it.jsonUrl);
-
-        if(!r.ok) {
-          const t = await r.text().catch(()=>"(no text)");
-          console.warn("[thumb] not ok", it.id, r.status, t.slice(0,200));
-          return null;
-        }
-
+        if(!r.ok) return null;
         const ct = (r.headers.get("content-type") || "").toLowerCase();
-        if(!ct.includes("application/json")){
-          const t = await r.text().catch(()=>"(no text)");
-          console.warn("[thumb] not json content-type", it.id, ct, t.slice(0,200));
+        // Workerの返しがjsonでもctが違うケースを許容（まずjsonとして読みに行く）
+        const txt = await r.text();
+        try{
+          const j = JSON.parse(txt);
+          if (!j || !Array.isArray(j.blocks)) return null;
+          return j;
+        }catch{
+          if(!ct.includes("application/json")) return null;
           return null;
         }
-
-        const j = await r.json();
-        if(!j || !Array.isArray(j.blocks)) {
-          console.warn("[thumb] no blocks", it.id, j);
-          return null;
-        }
-        return j;
-      } catch(e){
-        console.error("[thumb] exception", it.id, e);
+      } catch{
         return null;
+      }
+    }
+
+    function yawToQuarterTurns(frontYaw){
+      if(frontYaw == null) return null;
+      const y = Number(frontYaw);
+      if(!Number.isFinite(y)) return null;
+
+      let deg = y % 360;
+      if(deg < 0) deg += 360;
+
+      // 90度刻みへ
+      let q = (Math.round(deg / 90) % 4);
+
+      // サイト側補正（作品の流派差を吸収）
+      q = (q + YAW_OFFSET_QUARTER) % 4;
+
+      return q;
+    }
+
+    function rotateXZ(x, z, q){
+      switch(q){
+        case 1: return {x: z,  z: -x};
+        case 2: return {x: -x, z: -z};
+        case 3: return {x: -z, z: x};
+        default:return {x, z};
       }
     }
 
@@ -417,27 +445,67 @@
         minX=Math.min(minX,b.dx); minY=Math.min(minY,b.dy); minZ=Math.min(minZ,b.dz);
         maxX=Math.max(maxX,b.dx); maxY=Math.max(maxY,b.dy); maxZ=Math.max(maxZ,b.dz);
       }
-      return {minX,minY,minZ, sizeX:maxX-minX+1, sizeY:maxY-minY+1, sizeZ:maxZ-minZ+1};
+      return {minX,minY,minZ, maxX,maxY,maxZ, sizeX:maxX-minX+1, sizeY:maxY-minY+1, sizeZ:maxZ-minZ+1};
     }
 
-    function hashColor(id){
-      id = String(id || "");
+    // ---- Minecraft “っぽい”雑パレット ----
+    // 文字列判定でカテゴリを決めて固定色にする（ハッシュ色より雰囲気が出る）
+    function pickBaseColor(blockId){
+      const id = String(blockId||"").toLowerCase();
+
+      // 透明系
+      if (id.includes("glass") || id.includes("ice")) return {r: 170, g: 210, b: 230};
+      // 植物
+      if (id.includes("leaves") || id.includes("leaf") || id.includes("moss") || id.includes("vine")) return {r: 90, g: 150, b: 90};
+      // 木材
+      if (id.includes("log") || id.includes("wood") || id.includes("planks") || id.includes("bamboo")) return {r: 160, g: 125, b: 85};
+      // 土・砂
+      if (id.includes("dirt") || id.includes("grass") || id.includes("sand") || id.includes("gravel") || id.includes("clay")) return {r: 160, g: 145, b: 110};
+      // 石
+      if (id.includes("stone") || id.includes("deepslate") || id.includes("andesite") || id.includes("diorite") || id.includes("granite") || id.includes("cobble") || id.includes("tuff")) return {r: 140, g: 145, b: 155};
+      // 金属
+      if (id.includes("iron") || id.includes("anvil") || id.includes("chain") || id.includes("rail")) return {r: 170, g: 175, b: 185};
+      if (id.includes("copper")) return {r: 190, g: 120, b: 80};
+      if (id.includes("gold")) return {r: 210, g: 185, b: 90};
+      // 宝石
+      if (id.includes("diamond")) return {r: 120, g: 210, b: 220};
+      if (id.includes("emerald")) return {r: 70, g: 200, b: 120};
+      if (id.includes("lapis")) return {r: 70, g: 110, b: 200};
+      if (id.includes("redstone")) return {r: 190, g: 70, b: 70};
+      // コンクリ/羊毛/テラコッタ（色名が入ってたら寄せる）
+      if (id.includes("wool") || id.includes("concrete") || id.includes("terracotta")) {
+        if (id.includes("white")) return {r: 220,g:220,b:220};
+        if (id.includes("black")) return {r: 60,g:60,b:65};
+        if (id.includes("gray")) return {r: 130,g:130,b:135};
+        if (id.includes("light_gray")) return {r: 180,g:180,b:185};
+        if (id.includes("red")) return {r: 190,g:75,b:75};
+        if (id.includes("blue")) return {r: 85,g:120,b:200};
+        if (id.includes("green")) return {r: 85,g:170,b:110};
+        if (id.includes("yellow")) return {r: 220,g:200,b:90};
+        if (id.includes("purple")) return {r: 150,g:95,b:190};
+        if (id.includes("pink")) return {r: 220,g:140,b:170};
+        if (id.includes("orange")) return {r: 220,g:150,b:80};
+        if (id.includes("cyan")) return {r: 95,g:190,b:190};
+        if (id.includes("magenta")) return {r: 200,g:110,b:190};
+        return {r: 180,g:160,b:150};
+      }
+
+      // fallback（ハッシュ色だけど控えめ）
       let h=0;
       for(let i=0;i<id.length;i++) h=(h*31 + id.charCodeAt(i))|0;
-      const r = 110 + (h & 90);
-      const g = 110 + ((h>>8)&90);
-      const b = 110 + ((h>>16)&90);
+      const r = 120 + (h & 70);
+      const g = 120 + ((h>>8)&70);
+      const b = 120 + ((h>>16)&70);
       return {r,g,b};
     }
 
-    // “面”で描く：上面＋左面＋右面（超軽量）
-    function drawIsoCube(ctx, x, y, z, s, col){
+    function drawIsoCube(ctx, x, y, z, s, col, stroke){
       const sx = (x - z) * s;
       const sy = (x + z) * s * 0.5 - y * s;
 
-      const top = `rgb(${Math.min(255,col.r+35)},${Math.min(255,col.g+35)},${Math.min(255,col.b+35)})`;
+      const top = `rgb(${Math.min(255,col.r+30)},${Math.min(255,col.g+30)},${Math.min(255,col.b+30)})`;
       const left= `rgb(${Math.max(0,col.r-10)},${Math.max(0,col.g-10)},${Math.max(0,col.b-10)})`;
-      const right=`rgb(${Math.max(0,col.r-30)},${Math.max(0,col.g-30)},${Math.max(0,col.b-30)})`;
+      const right=`rgb(${Math.max(0,col.r-25)},${Math.max(0,col.g-25)},${Math.max(0,col.b-25)})`;
 
       // 上面
       ctx.fillStyle = top;
@@ -448,6 +516,12 @@
       ctx.lineTo(sx - s, sy);
       ctx.closePath();
       ctx.fill();
+
+      if (stroke){
+        ctx.strokeStyle = "rgba(15,23,42,.10)";
+        ctx.lineWidth = Math.max(1, s*0.06);
+        ctx.stroke();
+      }
 
       // 左面
       ctx.fillStyle = left;
@@ -470,38 +544,46 @@
       ctx.fill();
     }
 
-    // frontYaw(度)→回転(90度刻み)に丸める
-    // Minecraftのyawは作品によって定義がブレるので「大枠90度だけ合わせる」方針
-    function yawToQuarterTurns(frontYaw){
-      if(frontYaw == null) return null;
-      const y = Number(frontYaw);
-      if(!Number.isFinite(y)) return null;
+    // ---- 空間ビニングで集約（輪郭が残りやすい） ----
+    // bin=2なら 2x2x2 の小立方体ごとに1ブロックへ圧縮
+    function binBlocks(blocks, bin){
+      if(bin <= 1) return blocks;
 
-      // 0..360 に正規化
-      let deg = y % 360;
-      if(deg < 0) deg += 360;
+      const m = new Map();
+      for(const b of blocks){
+        const bx = Math.floor(b.dx / bin);
+        const by = Math.floor(b.dy / bin);
+        const bz = Math.floor(b.dz / bin);
+        const k = bx + "," + by + "," + bz;
 
-      // 90度刻みに丸め
-      const q = (Math.round(deg / 90) + 3) % 4; // 0,1,2,3
-      return q;
+        // そのビン内で「一番上（dyが大）」を優先して残す（シルエットが崩れにくい）
+        const cur = m.get(k);
+        if(!cur || b.dy > cur.dy){
+          m.set(k, b);
+        }
+      }
+      return Array.from(m.values());
     }
 
-    // (x,z) をY軸周りに 90度単位で回転
-    // q=0:そのまま, q=1:90, q=2:180, q=3:270
-    function rotateXZ(x, z, q){
-      switch(q){
-        case 1: return {x: z,  z: -x};
-        case 2: return {x: -x, z: -z};
-        case 3: return {x: -z, z: x};
-        default:return {x, z};
-      }
+    function chooseBinSize(blockCount, info){
+      // 目標点数（サムネ用）
+      const target = 16000;
+
+      if(blockCount <= target) return 1;
+
+      // バウンディング箱の体積っぽいものから荒く決める
+      const vol = Math.max(1, info.sizeX * info.sizeY * info.sizeZ);
+      const ratio = blockCount / target;
+
+      // だいたい ratio の立方根が縮小係数の目安
+      let bin = Math.ceil(Math.cbrt(ratio));
+
+      // 形が細い/薄い作品を潰しすぎないため上限は控えめに
+      bin = Math.min(6, Math.max(2, bin));
+      return bin;
     }
 
     function renderThumbToCanvas(canvas, unitJson){
-      const blocks = unitJson.blocks;
-      const frontYaw = unitJson.frontYaw; // 無い作品も多い想定
-      const qTurns = yawToQuarterTurns(frontYaw); // nullなら不明
-
       const ctx = canvas.getContext("2d");
       const w = canvas.width, h = canvas.height;
 
@@ -513,77 +595,64 @@
       ctx.fillStyle = g;
       ctx.fillRect(0,0,w,h);
 
-      // 巨大対策：間引き（ブロック数に応じて可変）
-      let list = blocks;
-      const n = blocks.length;
-      const target = 12000;
-      if(n > target){
-        const step = Math.ceil(n / target);
-        list = blocks.filter((_,i)=>i%step===0);
-      }
+      const blocks0 = unitJson.blocks;
+      const qTurns = yawToQuarterTurns(unitJson.frontYaw); // nullなら不明
 
-      // まず一旦、回転を適用した座標で bbox を計算（サイズ決めのため）
-      const rotatedForBounds = list.map(b=>{
-        const x = b.dx;
-        const z = b.dz;
-        const r = (qTurns==null) ? {x, z} : rotateXZ(x, z, qTurns);
-        return {dx:r.x, dy:b.dy, dz:r.z, blockId:b.blockId};
-      });
+      // まず bbox を取って、bin を決める
+      const info0 = analyzeBlocks(blocks0);
+      const bin = chooseBinSize(blocks0.length, info0);
 
-      const info = analyzeBlocks(rotatedForBounds);
+      // 集約してから回転
+      const blocks = binBlocks(blocks0, bin);
 
-      // 収まりスケール（ざっくり）
-      const spanX = info.sizeX + info.sizeZ;
-      const spanY = info.sizeY;
-      const s = Math.max(2, Math.min(w/(spanX+6), h/(spanY+8)) * 1.6);
-
-      // 原点を中央寄せ
-      const ox = w*0.5;
-      const oy = h*0.78;
-
-      // 描画本体（指定回転で描く）
       function drawPass(turns, alpha){
-        // turns: 0/1/2/3 (四分回転)
-        // alpha: 0..1
-        const transformed = list.map(b=>{
+        // 回転後座標を作る
+        const transformed = blocks.map(b=>{
           const r = rotateXZ(b.dx, b.dz, turns);
           return {dx:r.x, dy:b.dy, dz:r.z, blockId:b.blockId};
         });
 
         const inf = analyzeBlocks(transformed);
 
-        // 描画順（簡易）
-        const sorted = transformed.sort((a,b)=>
-          (a.dx+a.dz+a.dy) - (b.dx+b.dz+b.dy)
+        const spanX = inf.sizeX + inf.sizeZ;
+        const spanY = inf.sizeY;
+
+        const s = Math.max(1.8, Math.min(w/(spanX+6), h/(spanY+10)) * 1.6);
+
+        const ox = w*0.5;
+        const oy = h*0.80;
+
+        // 描画順（奥→手前/下→上寄り）
+        transformed.sort((a,b)=>
+          (a.dx+a.dz) - (b.dx+b.dz) || (a.dy - b.dy)
         );
 
         ctx.save();
         ctx.globalAlpha = alpha;
         ctx.translate(ox, oy);
 
-        for(const b of sorted){
-          const x = b.dx - inf.minX;
-          const y = b.dy - inf.minY;
-          const z = b.dz - inf.minZ;
-          const col = hashColor(b.blockId);
-          drawIsoCube(ctx, x, y, z, s, col);
+        const stroke = (s >= 3); // 小さすぎる時は線を消す
+        for(const b of transformed){
+          const x = (b.dx - inf.minX);
+          const y = (b.dy - inf.minY);
+          const z = (b.dz - inf.minZ);
+          const col = pickBaseColor(b.blockId);
+          drawIsoCube(ctx, x, y, z, s, col, stroke);
         }
+
         ctx.restore();
       }
 
-      // 方針：
-      // - frontYaw がある → その向きに回転して1回描画
-      // - 無い/不正 → 両面（0°と180°を重ね描き）で「正面が曖昧」でも破綻しにくく
+      // frontYaw 無い → 両面（正面曖昧でも破綻しにくい）
       if(qTurns == null){
         drawPass(0, 1.0);
-        drawPass(2, 0.35);
+        drawPass(2, 0.33);
       }else{
         drawPass(qTurns, 1.0);
       }
     }
 
     async function hydrateThumbs(list){
-      console.log("[thumb] hydrate start", list.length);
       const canvases = [...document.querySelectorAll("canvas.thumb3d")];
 
       for(const c of canvases){
