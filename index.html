@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MobCrafter Portal</title>
   <meta name="description" content="MobCrafter用ユニットJSON共有ポータル。検索・新着で探せます。" />
   <style>
@@ -14,675 +14,584 @@
       --line:#e5e7eb;
       --brand:#2563eb;
       --brand2:#16a34a;
-      --shadow: 0 10px 25px rgba(15,23,42,.08);
-      --radius: 16px;
+      --shadow: 0 10px 25px rgba(15,23,42,.10);
+      --radius:16px;
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-    a{color:inherit;text-decoration:none}
-    .container{max-width:1100px;margin:0 auto;padding:18px}
-    header{
-      position:sticky; top:0; z-index:10;
-      background: rgba(246,248,251,.92);
-      backdrop-filter: blur(10px);
-      border-bottom:1px solid var(--line);
-    }
-    .topbar{
-      display:flex;gap:14px;align-items:center;justify-content:space-between;
-      padding:14px 18px;
-      max-width:1100px;margin:0 auto;
-    }
-    .brand{
-      display:flex;align-items:center;gap:10px;
-      font-weight:900; letter-spacing:.2px;
-    }
-    .logo{
-      width:38px;height:38px;border-radius:12px;
-      background: linear-gradient(135deg,var(--brand),#60a5fa);
-      display:grid;place-items:center;color:white;font-weight:900;
-      box-shadow: 0 8px 18px rgba(37,99,235,.18);
-    }
-    .brand small{display:block;color:var(--muted);font-weight:700;margin-top:2px}
-    .nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .btn{
+    *{box-sizing:border-box;}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,sans-serif;}
+    header{padding:22px 18px 10px;max-width:1120px;margin:0 auto;}
+    h1{margin:0;font-size:22px;}
+    .sub{margin-top:4px;color:var(--muted);font-size:13px;}
+    .wrap{max-width:1120px;margin:0 auto;padding:0 18px 28px;}
+    .topbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px;}
+    .input, .select{
+      background:var(--card);
       border:1px solid var(--line);
-      background: #fff;
-      padding:9px 12px;border-radius:12px;
-      font-weight:800;color:var(--text);
-    }
-    .btn.primary{
-      border:none;
-      background: linear-gradient(135deg,var(--brand),var(--brand2));
-      color:white;
-    }
-
-    .hero{
-      display:grid;grid-template-columns: 1.35fr .65fr;
-      gap:14px;
-      padding:18px 0 8px;
-    }
-    @media (max-width: 860px){ .hero{grid-template-columns:1fr} }
-    .card{
-      background: var(--card);
-      border:1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-    .heroMain{padding:18px}
-    .hero h1{margin:0 0 8px;font-size:28px}
-    .hero p{margin:0;color:var(--muted);line-height:1.7}
-    .searchRow{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
-    .search{
-      flex:1;min-width:220px;
-      display:flex;align-items:center;gap:10px;
-      background: #fff;
-      border:1px solid var(--line);
-      padding:10px 12px;border-radius:14px;
-    }
-    .search input{
-      width:100%;border:none;outline:none;background:transparent;
-      color:var(--text);font-size:14px;
-    }
-    select{
-      background:#fff;
-      border:1px solid var(--line);
-      color:var(--text);
-      padding:10px 12px;border-radius:12px;
+      border-radius:12px;
+      padding:10px 12px;
+      box-shadow:0 1px 0 rgba(15,23,42,.03);
+      font-size:14px;
       outline:none;
-      font-weight:700;
     }
-    .hint{font-size:12px;color:var(--muted);margin-top:10px}
-
-    .heroSide{padding:18px}
-    .stat{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
-    .stat:last-child{border-bottom:none}
-    .stat b{color:var(--text)}
-    .stat span{color:var(--muted)}
-
-    .toolbar{
-      display:flex;justify-content:space-between;align-items:center;gap:12px;
-      padding:18px 0 10px;
-      flex-wrap:wrap;
-    }
-    .toolbar .title{font-size:18px;font-weight:900}
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap:14px;
-      padding-bottom:28px;
-    }
-    @media (max-width: 980px){ .grid{grid-template-columns:repeat(2,1fr)} }
-    @media (max-width: 640px){ .grid{grid-template-columns:1fr} }
-
-    .item{
+    .input{flex:1;min-width:220px;}
+    .select{min-width:160px;}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px;}
+    @media (max-width:980px){.grid{grid-template-columns:repeat(2,1fr);}}
+    @media (max-width:640px){.grid{grid-template-columns:1fr;}}
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
       overflow:hidden;
-      transition: transform .12s ease, box-shadow .12s ease;
-    }
-    .item:hover{
-      transform: translateY(-2px);
-      box-shadow: 0 14px 30px rgba(15,23,42,.12);
+      display:flex;
+      flex-direction:column;
+      min-height:240px;
     }
     .thumb{
-      position:relative;
-      height:140px;
-      background:
-        linear-gradient(180deg, rgba(37,99,235,.10), rgba(22,163,74,.08)),
-        #f8fafc;
+      background:linear-gradient(180deg, rgba(37,99,235,.10), rgba(22,163,74,.08));
       border-bottom:1px solid var(--line);
-      display:flex;align-items:flex-end;justify-content:space-between;
-      padding:12px;
+      height:140px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
     }
-    .badge{
-      padding:6px 9px;border-radius:999px;
-      background: rgba(255,255,255,.9);
+    canvas{display:block;width:360px;height:140px;}
+    .body{padding:12px 12px 14px;display:flex;flex-direction:column;gap:10px;}
+    .title{font-size:15px;font-weight:700;line-height:1.2;}
+    .meta{display:flex;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:12px;}
+    .tag{border:1px solid var(--line);padding:3px 8px;border-radius:999px;background:#fff;}
+    .actions{display:flex;gap:10px;margin-top:auto;}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;
       border:1px solid var(--line);
-      color: var(--muted);
-      font-size:12px;
-      font-weight:800;
-    }
-    .content{padding:12px}
-    .name{font-weight:900;margin:0 0 6px;font-size:16px}
-    .desc{margin:0;color:var(--muted);font-size:13px;line-height:1.5;min-height:38px}
-    .meta{display:flex;justify-content:space-between;gap:10px;margin-top:10px;color:var(--muted);font-size:12px}
-    .footer{border-top:1px solid var(--line);padding:18px 0;color:var(--muted);font-size:12px}
-
-    .errorBox{
-      border:1px solid #fecaca;
-      background:#fff1f2;
-      color:#991b1b;
-      padding:12px 14px;
+      background:#fff;
+      padding:9px 10px;
       border-radius:12px;
-      margin:10px 0 18px;
       font-size:13px;
-      white-space:pre-wrap;
-      word-break:break-word;
+      cursor:pointer;
+      text-decoration:none;
+      color:var(--text);
+      flex:1;
     }
-    .small{
-      color:var(--muted);
-      font-size:12px;
-      margin-top:6px;
-    }
+    .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;}
+    .btn.secondary{background:var(--brand2);border-color:var(--brand2);color:#fff;}
+    .note{color:var(--muted);font-size:12px;margin-top:12px;}
   </style>
 </head>
 <body>
   <header>
+    <h1>MobCrafter Portal</h1>
+    <div class="sub">ユニットJSONを探して、すぐ使える。</div>
+
     <div class="topbar">
-      <div class="brand">
-        <div class="logo">MC</div>
-        <div>
-          <div>MobCrafter Portal</div>
-          <small>ユニットJSON共有</small>
-        </div>
-      </div>
-      <nav class="nav">
-        <a class="btn" href="#latest">新着</a>
-        <a class="btn" href="#popular">人気</a>
-        <a class="btn" href="/submit">投稿</a>
-        <a class="btn primary" href="#guide">使い方</a>
-      </nav>
+      <input id="q" class="input" placeholder="検索（タイトル / タグ / 説明）" />
+      <select id="sort" class="select">
+        <option value="new">新着順</option>
+        <option value="old">古い順</option>
+        <option value="blocks_desc">ブロック数（多い順）</option>
+        <option value="blocks_asc">ブロック数（少ない順）</option>
+      </select>
+      <select id="yaw" class="select" title="作品ごとの正面ズレ補正（90度刻み）">
+        <option value="0">Yaw補正 0°</option>
+        <option value="1">Yaw補正 +90°</option>
+        <option value="2">Yaw補正 +180°</option>
+        <option value="3">Yaw補正 +270°</option>
+      </select>
+      <select id="cache" class="select" title="サムネキャッシュ更新">
+        <option value="v3">Thumb cache v3</option>
+      </select>
     </div>
   </header>
 
-  <main class="container">
-    <section class="hero">
-      <div class="card heroMain">
-        <h1>MobCrafter 用ユニットJSONを探して、すぐ使える。</h1>
-        <p>
-          シンプルに「見つけやすい」「配布が安全」「投稿しやすい」ポータルを目指します。
-          いまは<strong>MVP</strong>段階です（一覧は approved 実データ）。
-        </p>
+  <div class="wrap">
+    <div id="grid" class="grid"></div>
+    <div class="note">※ サムネは簡易描画です。色は palette 辞書（/assets/palette.v1.json）を優先し、それ以外はカテゴリ色/控えめハッシュ色です。</div>
+  </div>
 
-        <div class="searchRow">
-          <div class="search" role="search">
-            <span aria-hidden="true">🔎</span>
-            <input id="q" type="search" placeholder="例：sephiroth / castle / mech / boss / ship" />
-          </div>
-          <select id="sort">
-            <option value="new">新着順</option>
-            <option value="name">名前順</option>
-          </select>
-        </div>
+<script>
+(() => {
+  const API_BASE = "https://api.mobcrafter.net";
+  const ENDPOINT_LIST = `${API_BASE}/api/public/submissions`;
+  const ENDPOINT_DL   = (id) => `${API_BASE}/api/public/submissions/${encodeURIComponent(id)}/download`;
 
-        <div class="hint">※ 表示は approved のみ。投稿は /submit、承認は /admin で行います。</div>
-        <div id="err" class="errorBox" style="display:none;"></div>
+  const $q = document.getElementById("q");
+  const $sort = document.getElementById("sort");
+  const $yaw = document.getElementById("yaw");
+  const $cache = document.getElementById("cache");
+  const $grid = document.getElementById("grid");
+
+  // ====== thumb config ======
+  const THUMB_CACHE_VER = "v3"; // 必要なら増やして破棄更新
+  const YAW_OFFSET_QUARTER_KEY = "mcYawOffsetQuarter"; // site-wide override
+
+  // ---- Palette (BlockId -> color) ----
+  // MVP: palette.v1.json を読み込んで「ちゃんとした色」を優先する。
+  // - 例: /assets/palette.v1.json
+  // - format: { "minecraft:stone":"#7f7f7f", "create:brass_block":"#c8a86a", ... }
+  // - 値は "#RRGGBB" / "rgb(...)" / "rgba(...)" を許可
+  const PALETTE_URL = "/assets/palette.v1.json";
+  const PALETTE_VER = "v1"; // 変えれば強制更新できる
+  const PALETTE_LS_KEY = `mcPalette:${PALETTE_VER}`;
+  let PALETTE_MAP = null;
+
+  function parseColorString(s){
+    if(!s) return null;
+    const v = String(s).trim();
+    // #RRGGBB
+    const hex = /^#([0-9a-f]{6})$/i.exec(v);
+    if(hex){
+      const n = parseInt(hex[1], 16);
+      return { r:(n>>16)&255, g:(n>>8)&255, b:n&255, a:1 };
+    }
+    // rgb/rgba
+    const rgba = /^rgba?\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})(?:\s*,\s*([0-9]*\.?[0-9]+))?\s*\)$/i.exec(v);
+    if(rgba){
+      const r = Math.max(0, Math.min(255, parseInt(rgba[1],10)));
+      const g = Math.max(0, Math.min(255, parseInt(rgba[2],10)));
+      const b = Math.max(0, Math.min(255, parseInt(rgba[3],10)));
+      const a = rgba[4] == null ? 1 : Math.max(0, Math.min(1, parseFloat(rgba[4])));
+      return {r,g,b,a};
+    }
+    return null;
+  }
+
+  async function loadPalette(){
+    if(PALETTE_MAP) return PALETTE_MAP;
+    // localStorage cache
+    try{
+      const cached = localStorage.getItem(PALETTE_LS_KEY);
+      if(cached){
+        const obj = JSON.parse(cached);
+        if(obj && typeof obj === "object"){
+          PALETTE_MAP = obj;
+          return PALETTE_MAP;
+        }
+      }
+    }catch(e){ /* ignore */ }
+
+    // fetch
+    try{
+      const url = `${PALETTE_URL}?v=${encodeURIComponent(PALETTE_VER)}`;
+      const r = await fetch(url, { method:"GET", cache:"no-store", mode:"same-origin" });
+      if(r.ok){
+        const obj = await r.json();
+        if(obj && typeof obj === "object"){
+          PALETTE_MAP = obj;
+          try{ localStorage.setItem(PALETTE_LS_KEY, JSON.stringify(obj)); }catch(e){}
+          return PALETTE_MAP;
+        }
+      }
+    }catch(e){ /* ignore */ }
+
+    PALETTE_MAP = {}; // fallback empty
+    return PALETTE_MAP;
+  }
+
+  function paletteLookup(blockId){
+    if(!PALETTE_MAP) return null;
+    const k = String(blockId||"").trim().toLowerCase();
+    const v = PALETTE_MAP[k];
+    return parseColorString(v);
+  }
+
+  // ====== utils ======
+  function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+  function safeJsonParse(s){
+    try { return JSON.parse(s); } catch { return null; }
+  }
+
+  function yawToQuarterTurns(frontYaw){
+    if(frontYaw == null) return null;
+    const y = Number(frontYaw);
+    if(!Number.isFinite(y)) return null;
+
+    let deg = y % 360;
+    if(deg < 0) deg += 360;
+
+    let q = (Math.round(deg / 90) % 4);
+
+    const off = Number(localStorage.getItem(YAW_OFFSET_QUARTER_KEY) || "0");
+    q = (q + (Number.isFinite(off)? off : 0)) % 4;
+    return q;
+  }
+
+  function rotateXZ(x, z, q){
+    switch(q){
+      case 1: return {x: z,  z: -x};
+      case 2: return {x: -x, z: -z};
+      case 3: return {x: -z, z: x};
+      default:return {x, z};
+    }
+  }
+
+  function analyzeBlocks(blocks){
+    let minX=Infinity,minY=Infinity,minZ=Infinity;
+    let maxX=-Infinity,maxY=-Infinity,maxZ=-Infinity;
+    for(const b of blocks){
+      minX=Math.min(minX,b.dx); minY=Math.min(minY,b.dy); minZ=Math.min(minZ,b.dz);
+      maxX=Math.max(maxX,b.dx); maxY=Math.max(maxY,b.dy); maxZ=Math.max(maxZ,b.dz);
+    }
+    return {minX,minY,minZ, maxX,maxY,maxZ, sizeX:maxX-minX+1, sizeY:maxY-minY+1, sizeZ:maxZ-minZ+1};
+  }
+
+  // ---- Minecraft “っぽい”雑パレット ----
+  // 文字列判定でカテゴリを決めて固定色にする（ハッシュ色より雰囲気が出る）
+  function pickBaseColor(blockId){
+    // 1) palette.json 優先（バニラ/主要MODを“ちゃんとした色”に）
+    const p = paletteLookup(blockId);
+    if(p) return p;
+
+    // 2) 文字列カテゴリ判定（辞書に無いブロックも雰囲気は維持）
+    const raw = String(blockId||"").toLowerCase();
+    const id = raw.includes(":") ? raw.split(":")[1] : raw; // namespace除去（他MODも判定しやすい）
+
+    // 透明系
+    if (id.includes("glass") || id.includes("ice")) return {r: 170, g: 210, b: 230, a: 0.55};
+    // 植物
+    if (id.includes("leaves") || id.includes("leaf") || id.includes("moss") || id.includes("vine") || id.includes("grass")) return {r: 90, g: 150, b: 90, a: 0.95};
+    // 木材
+    if (id.includes("log") || id.includes("wood") || id.includes("planks") || id.includes("bamboo")) return {r: 160, g: 125, b: 85, a: 0.95};
+    // 土・砂
+    if (id.includes("dirt") || id.includes("sand") || id.includes("gravel") || id.includes("clay") || id.includes("mud")) return {r: 160, g: 145, b: 110, a: 0.98};
+    // 石
+    if (id.includes("stone") || id.includes("deepslate") || id.includes("andesite") || id.includes("diorite") || id.includes("granite") || id.includes("cobble") || id.includes("tuff") || id.includes("slate")) return {r: 140, g: 145, b: 155, a: 0.98};
+
+    // 金属・機械っぽい
+    if (id.includes("iron") || id.includes("anvil") || id.includes("chain") || id.includes("rail") || id.includes("steel") || id.includes("machine") || id.includes("metal")) return {r: 170, g: 175, b: 185, a: 0.98};
+    if (id.includes("copper") || id.includes("bronze")) return {r: 190, g: 120, b: 80, a: 0.98};
+    if (id.includes("gold")) return {r: 210, g: 185, b: 90, a: 0.98};
+
+    // 宝石
+    if (id.includes("diamond")) return {r: 120, g: 210, b: 220, a: 0.98};
+    if (id.includes("emerald")) return {r: 70, g: 200, b: 120, a: 0.98};
+    if (id.includes("lapis")) return {r: 70, g: 110, b: 200, a: 0.98};
+    if (id.includes("redstone") || id.includes("ruby")) return {r: 190, g: 70, b: 70, a: 0.98};
+
+    // コンクリ/羊毛/テラコッタ
+    if (id.includes("wool") || id.includes("concrete") || id.includes("terracotta")) {
+      if (id.includes("white")) return {r: 220,g:220,b:220,a:0.98};
+      if (id.includes("black")) return {r: 60,g:60,b:65,a:0.98};
+      if (id.includes("gray")) return {r: 130,g:130,b:135,a:0.98};
+      if (id.includes("light_gray")) return {r: 180,g:180,b:185,a:0.98};
+      if (id.includes("red")) return {r: 190,g:75,b:75,a:0.98};
+      if (id.includes("blue")) return {r: 85,g:120,b:200,a:0.98};
+      if (id.includes("green")) return {r: 85,g:170,b:110,a:0.98};
+      if (id.includes("yellow")) return {r: 220,g:200,b:90,a:0.98};
+      if (id.includes("purple")) return {r: 150,g:95,b:190,a:0.98};
+      if (id.includes("pink")) return {r: 220,g:140,b:170,a:0.98};
+      if (id.includes("orange")) return {r: 220,g:150,b:80,a:0.98};
+      if (id.includes("cyan")) return {r: 95,g:190,b:190,a:0.98};
+      if (id.includes("magenta")) return {r: 200,g:110,b:190,a:0.98};
+      return {r: 180,g:160,b:150,a:0.98};
+    }
+
+    // 3) fallback（控えめハッシュ）
+    let h=0;
+    for(let i=0;i<raw.length;i++) h=(h*31 + raw.charCodeAt(i))|0;
+    const r = 120 + (h & 70);
+    const g = 120 + ((h>>8)&70);
+    const b = 120 + ((h>>16)&70);
+    return {r,g,b,a:0.98};
+  }
+
+  function drawIsoCube(ctx, x, y, z, s, col, stroke){
+    const sx = (x - z) * s;
+    const sy = (x + z) * s * 0.5 - y * s;
+
+    const a = (col.a == null ? 1 : col.a);
+    const top = `rgba(${Math.min(255,col.r+30)},${Math.min(255,col.g+30)},${Math.min(255,col.b+30)},${a})`;
+    const left= `rgba(${Math.max(0,col.r-10)},${Math.max(0,col.g-10)},${Math.max(0,col.b-10)},${a})`;
+    const right=`rgba(${Math.max(0,col.r-25)},${Math.max(0,col.g-25)},${Math.max(0,col.b-25)},${a})`;
+
+    ctx.fillStyle = top;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy - s*0.5);
+    ctx.lineTo(sx + s, sy);
+    ctx.lineTo(sx, sy + s*0.5);
+    ctx.lineTo(sx - s, sy);
+    ctx.closePath();
+    ctx.fill();
+
+    if (stroke){
+      ctx.strokeStyle = "rgba(15,23,42,.10)";
+      ctx.lineWidth = Math.max(1, s*0.06);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = left;
+    ctx.beginPath();
+    ctx.moveTo(sx - s, sy);
+    ctx.lineTo(sx, sy + s*0.5);
+    ctx.lineTo(sx, sy + s*0.5 + s);
+    ctx.lineTo(sx - s, sy + s);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = right;
+    ctx.beginPath();
+    ctx.moveTo(sx + s, sy);
+    ctx.lineTo(sx, sy + s*0.5);
+    ctx.lineTo(sx, sy + s*0.5 + s);
+    ctx.lineTo(sx + s, sy + s);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // ---- 空間ビニング（輪郭保持）----
+  function binBlocks(blocks, bin){
+    if(bin <= 1) return blocks;
+    const m = new Map();
+    for(const b of blocks){
+      const bx = Math.floor(b.dx / bin);
+      const by = Math.floor(b.dy / bin);
+      const bz = Math.floor(b.dz / bin);
+      const k = bx + "," + by + "," + bz;
+      const cur = m.get(k);
+      if(!cur || b.dy > cur.dy){
+        m.set(k, b);
+      }
+    }
+    return Array.from(m.values());
+  }
+
+  function chooseBinSize(blockCount){
+    const target = 16000;
+    if(blockCount <= target) return 1;
+    const ratio = blockCount / target;
+    let bin = Math.ceil(Math.cbrt(ratio));
+    bin = Math.min(6, Math.max(2, bin));
+    return bin;
+  }
+
+  // ---- render ----
+  function renderThumbToCanvas(canvas, unitJson){
+    const ctx = canvas.getContext("2d");
+    const w = canvas.width, h = canvas.height;
+
+    ctx.clearRect(0,0,w,h);
+    const g = ctx.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,"rgba(37,99,235,.10)");
+    g.addColorStop(1,"rgba(22,163,74,.08)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,w,h);
+
+    const blocks0 = unitJson.blocks || [];
+    if(!blocks0.length) return;
+
+    const qTurns = yawToQuarterTurns(unitJson.frontYaw);
+
+    const bin = chooseBinSize(blocks0.length);
+    const blocks = binBlocks(blocks0, bin);
+
+    function drawPass(turns, alpha){
+      const transformed = blocks.map(b=>{
+        const r = rotateXZ(b.dx, b.dz, turns);
+        return {dx:r.x, dy:b.dy, dz:r.z, blockId:b.blockId};
+      });
+
+      const inf = analyzeBlocks(transformed);
+      const spanX = inf.sizeX + inf.sizeZ;
+      const spanY = inf.sizeY;
+
+      const s = Math.max(1.6, Math.min(w/(spanX+6), h/(spanY+10)) * 1.6);
+
+      const ox = w*0.5;
+      const oy = h*0.80;
+
+      transformed.sort((a,b)=>
+        (a.dx+a.dz) - (b.dx+b.dz) || (a.dy - b.dy)
+      );
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(ox, oy);
+
+      const stroke = (s >= 3);
+      for(const b of transformed){
+        const x = (b.dx - inf.minX);
+        const y = (b.dy - inf.minY);
+        const z = (b.dz - inf.minZ);
+        const col = pickBaseColor(b.blockId);
+        drawIsoCube(ctx, x, y, z, s, col, stroke);
+      }
+      ctx.restore();
+    }
+
+    if(qTurns == null){
+      drawPass(0, 1.0);
+      drawPass(2, 0.33);
+    }else{
+      drawPass(qTurns, 1.0);
+    }
+  }
+
+  // ====== cache ======
+  function thumbCacheKey(id){
+    const yawOff = Number(localStorage.getItem(YAW_OFFSET_QUARTER_KEY) || "0");
+    return `thumb:${THUMB_CACHE_VER}:${id}:yaw${yawOff}`;
+  }
+
+  function getCachedThumb(id){
+    try{
+      return localStorage.getItem(thumbCacheKey(id));
+    }catch(e){ return null; }
+  }
+
+  function setCachedThumb(id, dataUrl){
+    try{
+      localStorage.setItem(thumbCacheKey(id), dataUrl);
+    }catch(e){}
+  }
+
+  function hydrateThumbs(items){
+    for(const it of items){
+      const c = document.getElementById(`c_${it.id}`);
+      if(!c) continue;
+
+      const cached = getCachedThumb(it.id);
+      if(cached){
+        const img = new Image();
+        img.onload = () => {
+          const ctx = c.getContext("2d");
+          ctx.clearRect(0,0,c.width,c.height);
+          ctx.drawImage(img, 0, 0, c.width, c.height);
+        };
+        img.src = cached;
+        continue;
+      }
+
+      const unitJson = safeJsonParse(it.unit_json || it.json || "");
+      if(!unitJson || !Array.isArray(unitJson.blocks)) continue;
+
+      renderThumbToCanvas(c, unitJson);
+      try{
+        const url = c.toDataURL("image/png");
+        setCachedThumb(it.id, url);
+      }catch(e){}
+    }
+  }
+
+  // ====== ui ======
+  function normalizeTags(tags){
+    if(!tags) return [];
+    if(Array.isArray(tags)) return tags;
+    if(typeof tags === "string") return tags.split(",").map(s=>s.trim()).filter(Boolean);
+    return [];
+  }
+
+  function buildCard(it){
+    const tags = normalizeTags(it.tags);
+    const blocks = Number(it.blocks || it.block_count || it.blockCount || 0);
+
+    const el = document.createElement("div");
+    el.className = "card";
+    el.innerHTML = `
+      <div class="thumb">
+        <canvas id="c_${it.id}" width="360" height="140"></canvas>
       </div>
+      <div class="body">
+        <div class="title">${escapeHtml(it.title || "Untitled")}</div>
+        <div class="meta">
+          <span class="tag">${blocks.toLocaleString()} blocks</span>
+          ${(tags.slice(0,4)).map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join("")}
+        </div>
+        <div class="actions">
+          <a class="btn primary" href="${ENDPOINT_DL(it.id)}" target="_blank" rel="noopener">Download</a>
+          <a class="btn secondary" href="/submit" target="_blank" rel="noopener">Submit</a>
+        </div>
+      </div>
+    `;
+    return el;
+  }
 
-      <aside class="card heroSide">
-        <div style="font-weight:900;font-size:16px;margin-bottom:10px;">ポータル状況</div>
-        <div class="stat"><b>公開</b><span>✅ mobcrafter.net</span></div>
-        <div class="stat"><b>UI</b><span>🟢 MVP（実データ）</span></div>
-        <div class="stat"><b>配布</b><span>🟢 安全DL</span></div>
-        <div class="stat"><b>投稿</b><span>🟢 /submit</span></div>
-        <div class="stat"><b>広告</b><span>🔜 次：AdSense準備</span></div>
-        <div class="small">※ DL数は次フェーズで計測予定</div>
-      </aside>
-    </section>
+  function escapeHtml(s){
+    return String(s??"").replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+    }[m]));
+  }
 
-    <section class="toolbar" id="latest">
-      <div class="title">ユニット一覧</div>
-      <div style="color:var(--muted);font-size:13px;">検索 / ソート（クライアント側）</div>
-    </section>
+  function filterSort(items){
+    const q = ($q.value||"").trim().toLowerCase();
+    let arr = items.slice();
 
-    <section class="grid" id="grid"></section>
-
-    <div class="footer">
-      © <span id="y"></span> MobCrafter Portal — MVP
-    </div>
-  </main>
-
-  <script>
-    // ====== API (approved only) ======
-    const API_LIST = "https://api.mobcrafter.net/api/public/submissions";
-    const API_DL   = (id) => `https://api.mobcrafter.net/api/public/submissions/${id}/download`;
-
-    // 画面側の状態
-    let items = [];
-
-    const grid = document.getElementById("grid");
-    const q = document.getElementById("q");
-    const sort = document.getElementById("sort");
-    const errBox = document.getElementById("err");
-    document.getElementById("y").textContent = new Date().getFullYear();
-
-    function showError(msg){
-      errBox.style.display = "block";
-      errBox.textContent = msg;
-    }
-    function hideError(){
-      errBox.style.display = "none";
-      errBox.textContent = "";
-    }
-
-    function normalizeTags(tags){
-      if (!tags) return [];
-      if (Array.isArray(tags)) return tags;
-      if (typeof tags === "string") {
-        try {
-          const v = JSON.parse(tags);
-          return Array.isArray(v) ? v : [];
-        } catch {
-          return tags.split(",").map(s=>s.trim()).filter(Boolean);
-        }
-      }
-      return [];
-    }
-
-    function escapeHtml(s){
-      return String(s)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#39;");
-    }
-
-    function render(){
-      const query = (q.value || "").trim().toLowerCase();
-
-      let list = items.filter(it => {
-        if (!query) return true;
-        const name = (it.name || "").toLowerCase();
-        const desc = (it.desc || "").toLowerCase();
-        const author = (it.author || "").toLowerCase();
-        const tags = (it.tags || []).join(" ").toLowerCase();
-        return name.includes(query) || desc.includes(query) || author.includes(query) || tags.includes(query);
+    if(q){
+      arr = arr.filter(it=>{
+        const t = String(it.title||"").toLowerCase();
+        const d = String(it.description||"").toLowerCase();
+        const tags = normalizeTags(it.tags).join(" ").toLowerCase();
+        return (t.includes(q) || d.includes(q) || tags.includes(q));
       });
+    }
 
-      const s = sort.value;
-      list.sort((a,b)=>{
-        if(s==="new") return (String(b.date).localeCompare(String(a.date)));
-        if(s==="name") return String(a.name).localeCompare(String(b.name));
-        return 0;
-      });
+    const s = $sort.value;
+    arr.sort((a,b)=>{
+      if(s==="new") return (new Date(b.approved_at||b.created_at||0)) - (new Date(a.approved_at||a.created_at||0));
+      if(s==="old") return (new Date(a.approved_at||a.created_at||0)) - (new Date(b.approved_at||b.created_at||0));
+      const ab = Number(a.blocks || a.block_count || 0);
+      const bb = Number(b.blocks || b.block_count || 0);
+      if(s==="blocks_desc") return bb-ab;
+      if(s==="blocks_asc") return ab-bb;
+      return 0;
+    });
 
-      if (list.length === 0){
-        grid.innerHTML = `<div style="color:var(--muted);">該当するユニットがありません。</div>`;
-        return;
+    return arr;
+  }
+
+  let ALL_ITEMS = [];
+
+  async function loadSubmissions(){
+    $grid.innerHTML = "";
+    const r = await fetch(ENDPOINT_LIST, { method:"GET", mode:"cors" });
+    const items = await r.json();
+    ALL_ITEMS = Array.isArray(items) ? items : (items.items || []);
+    render();
+  }
+
+  function render(){
+    $grid.innerHTML = "";
+    const items = filterSort(ALL_ITEMS);
+
+    for(const it of items){
+      $grid.appendChild(buildCard(it));
+    }
+    hydrateThumbs(items);
+  }
+
+  function clearThumbCache(){
+    try{
+      const keys = [];
+      for(let i=0;i<localStorage.length;i++){
+        const k = localStorage.key(i);
+        if(k && k.startsWith("thumb:"+THUMB_CACHE_VER+":")) keys.push(k);
       }
+      for(const k of keys) localStorage.removeItem(k);
+    }catch(e){}
+  }
 
-      grid.innerHTML = list.map(it => `
-        <a class="card item" href="#unit-${it.id}" title="${escapeHtml(it.name)}">
-          <div class="thumb">
-            <canvas class="thumb3d" data-id="${escapeHtml(it.id)}" width="360" height="140"
-              style="width:100%;height:140px;border-radius:0;"></canvas>
-            <div style="position:absolute;inset:auto 12px 12px 12px;display:flex;gap:8px;justify-content:space-between;">
-              <span class="badge">JSON</span>
-              <span class="badge">Forge ${escapeHtml(it.mod)}</span>
-            </div>
-          </div>
-          <div class="content">
-            <div class="name">${escapeHtml(it.name)}</div>
-            <p class="desc">${escapeHtml(it.desc)}</p>
-            <div class="meta">
-              <span>👤 ${escapeHtml(it.author)}</span>
-              <span>⬇ ${(it.dl || 0).toLocaleString()}</span>
-            </div>
-          </div>
-        </a>
-      `).join("");
+  // ====== events ======
+  $q.addEventListener("input", render);
+  $sort.addEventListener("change", render);
 
-      // ★HTMLでcanvas作った直後にサムネ生成（重いのでidle優先）
-      scheduleHydrate(list);
-    }
+  $yaw.addEventListener("change", () => {
+    localStorage.setItem(YAW_OFFSET_QUARTER_KEY, $yaw.value);
+    clearThumbCache();
+    render();
+  });
 
-    async function loadFromApi(){
-      hideError();
-      grid.innerHTML = `<div style="color:var(--muted);">読み込み中...</div>`;
+  $cache.addEventListener("change", () => {
+    clearThumbCache();
+    render();
+  });
 
-      try{
-        const resp = await fetch(API_LIST, { method:"GET" });
-        const text = await resp.text();
-        let data = null;
-        try { data = JSON.parse(text); } catch { data = { raw:text }; }
+  // boot
+  const savedYaw = localStorage.getItem(YAW_OFFSET_QUARTER_KEY);
+  if(savedYaw != null) $yaw.value = savedYaw;
 
-        if(!resp.ok){
-          showError("一覧取得に失敗しました。\nHTTP: " + resp.status + "\n" + JSON.stringify(data, null, 2));
-          grid.innerHTML = "";
-          return;
-        }
-
-        const rows = (data && data.items) ? data.items : [];
-
-        items = rows.map(r => ({
-          id: r.id,
-          name: r.title,
-          desc: r.description || "",
-          tags: normalizeTags(r.tags),
-          author: r.author_name || "unknown",
-          date: r.created_at || "",
-          mod: r.mod_version || "",
-          jsonUrl: API_DL(r.id),
-          dl: 0
-        }));
-
-        render();
-      }catch(e){
-        showError("一覧取得で例外が発生しました。\n" + String(e && e.message ? e.message : e));
-        grid.innerHTML = "";
-      }
-    }
-
-    q.addEventListener("input", render);
-    sort.addEventListener("change", render);
-
-    // =========================
-    // 3D thumbnail engine v3
-    // =========================
-
-    // 回転の“流派差”吸収用（0..3）
-    // 例：ここを 1 にすると「全作品を右90度」寄せる
-    const YAW_OFFSET_QUARTER = 2;
-
-    // キャッシュ更新
-    const THUMB_CACHE_VER = "v3";
-    const thumbCacheKey = (id)=> `mc_thumb_${THUMB_CACHE_VER}_${id}`;
-
-    function scheduleHydrate(list){
-      const run = ()=> hydrateThumbs(list);
-      if ("requestIdleCallback" in window) {
-        requestIdleCallback(run, { timeout: 1200 });
-      } else {
-        setTimeout(run, 0);
-      }
-    }
-
-    async function loadUnitJson(it){
-      if (!it.jsonUrl) return null;
-      try{
-        const r = await fetch(it.jsonUrl, { cache: "no-store" });
-        if(!r.ok) return null;
-        const ct = (r.headers.get("content-type") || "").toLowerCase();
-        // Workerの返しがjsonでもctが違うケースを許容（まずjsonとして読みに行く）
-        const txt = await r.text();
-        try{
-          const j = JSON.parse(txt);
-          if (!j || !Array.isArray(j.blocks)) return null;
-          return j;
-        }catch{
-          if(!ct.includes("application/json")) return null;
-          return null;
-        }
-      } catch{
-        return null;
-      }
-    }
-
-    function yawToQuarterTurns(frontYaw){
-      if(frontYaw == null) return null;
-      const y = Number(frontYaw);
-      if(!Number.isFinite(y)) return null;
-
-      let deg = y % 360;
-      if(deg < 0) deg += 360;
-
-      // 90度刻みへ
-      let q = (Math.round(deg / 90) % 4);
-
-      // サイト側補正（作品の流派差を吸収）
-      q = (q + YAW_OFFSET_QUARTER) % 4;
-
-      return q;
-    }
-
-    function rotateXZ(x, z, q){
-      switch(q){
-        case 1: return {x: z,  z: -x};
-        case 2: return {x: -x, z: -z};
-        case 3: return {x: -z, z: x};
-        default:return {x, z};
-      }
-    }
-
-    function analyzeBlocks(blocks){
-      let minX=Infinity,minY=Infinity,minZ=Infinity;
-      let maxX=-Infinity,maxY=-Infinity,maxZ=-Infinity;
-      for(const b of blocks){
-        minX=Math.min(minX,b.dx); minY=Math.min(minY,b.dy); minZ=Math.min(minZ,b.dz);
-        maxX=Math.max(maxX,b.dx); maxY=Math.max(maxY,b.dy); maxZ=Math.max(maxZ,b.dz);
-      }
-      return {minX,minY,minZ, maxX,maxY,maxZ, sizeX:maxX-minX+1, sizeY:maxY-minY+1, sizeZ:maxZ-minZ+1};
-    }
-
-    // ---- Minecraft “っぽい”雑パレット ----
-    // 文字列判定でカテゴリを決めて固定色にする（ハッシュ色より雰囲気が出る）
-    function pickBaseColor(blockId){
-      const id = String(blockId||"").toLowerCase();
-
-      // 透明系
-      if (id.includes("glass") || id.includes("ice")) return {r: 170, g: 210, b: 230};
-      // 植物
-      if (id.includes("leaves") || id.includes("leaf") || id.includes("moss") || id.includes("vine")) return {r: 90, g: 150, b: 90};
-      // 木材
-      if (id.includes("log") || id.includes("wood") || id.includes("planks") || id.includes("bamboo")) return {r: 160, g: 125, b: 85};
-      // 土・砂
-      if (id.includes("dirt") || id.includes("grass") || id.includes("sand") || id.includes("gravel") || id.includes("clay")) return {r: 160, g: 145, b: 110};
-      // 石
-      if (id.includes("stone") || id.includes("deepslate") || id.includes("andesite") || id.includes("diorite") || id.includes("granite") || id.includes("cobble") || id.includes("tuff")) return {r: 140, g: 145, b: 155};
-      // 金属
-      if (id.includes("iron") || id.includes("anvil") || id.includes("chain") || id.includes("rail")) return {r: 170, g: 175, b: 185};
-      if (id.includes("copper")) return {r: 190, g: 120, b: 80};
-      if (id.includes("gold")) return {r: 210, g: 185, b: 90};
-      // 宝石
-      if (id.includes("diamond")) return {r: 120, g: 210, b: 220};
-      if (id.includes("emerald")) return {r: 70, g: 200, b: 120};
-      if (id.includes("lapis")) return {r: 70, g: 110, b: 200};
-      if (id.includes("redstone")) return {r: 190, g: 70, b: 70};
-      // コンクリ/羊毛/テラコッタ（色名が入ってたら寄せる）
-      if (id.includes("wool") || id.includes("concrete") || id.includes("terracotta")) {
-        if (id.includes("white")) return {r: 220,g:220,b:220};
-        if (id.includes("black")) return {r: 60,g:60,b:65};
-        if (id.includes("gray")) return {r: 130,g:130,b:135};
-        if (id.includes("light_gray")) return {r: 180,g:180,b:185};
-        if (id.includes("red")) return {r: 190,g:75,b:75};
-        if (id.includes("blue")) return {r: 85,g:120,b:200};
-        if (id.includes("green")) return {r: 85,g:170,b:110};
-        if (id.includes("yellow")) return {r: 220,g:200,b:90};
-        if (id.includes("purple")) return {r: 150,g:95,b:190};
-        if (id.includes("pink")) return {r: 220,g:140,b:170};
-        if (id.includes("orange")) return {r: 220,g:150,b:80};
-        if (id.includes("cyan")) return {r: 95,g:190,b:190};
-        if (id.includes("magenta")) return {r: 200,g:110,b:190};
-        return {r: 180,g:160,b:150};
-      }
-
-      // fallback（ハッシュ色だけど控えめ）
-      let h=0;
-      for(let i=0;i<id.length;i++) h=(h*31 + id.charCodeAt(i))|0;
-      const r = 120 + (h & 70);
-      const g = 120 + ((h>>8)&70);
-      const b = 120 + ((h>>16)&70);
-      return {r,g,b};
-    }
-
-    function drawIsoCube(ctx, x, y, z, s, col, stroke){
-      const sx = (x - z) * s;
-      const sy = (x + z) * s * 0.5 - y * s;
-
-      const top = `rgb(${Math.min(255,col.r+30)},${Math.min(255,col.g+30)},${Math.min(255,col.b+30)})`;
-      const left= `rgb(${Math.max(0,col.r-10)},${Math.max(0,col.g-10)},${Math.max(0,col.b-10)})`;
-      const right=`rgb(${Math.max(0,col.r-25)},${Math.max(0,col.g-25)},${Math.max(0,col.b-25)})`;
-
-      // 上面
-      ctx.fillStyle = top;
-      ctx.beginPath();
-      ctx.moveTo(sx, sy - s*0.5);
-      ctx.lineTo(sx + s, sy);
-      ctx.lineTo(sx, sy + s*0.5);
-      ctx.lineTo(sx - s, sy);
-      ctx.closePath();
-      ctx.fill();
-
-      if (stroke){
-        ctx.strokeStyle = "rgba(15,23,42,.10)";
-        ctx.lineWidth = Math.max(1, s*0.06);
-        ctx.stroke();
-      }
-
-      // 左面
-      ctx.fillStyle = left;
-      ctx.beginPath();
-      ctx.moveTo(sx - s, sy);
-      ctx.lineTo(sx, sy + s*0.5);
-      ctx.lineTo(sx, sy + s*0.5 + s);
-      ctx.lineTo(sx - s, sy + s);
-      ctx.closePath();
-      ctx.fill();
-
-      // 右面
-      ctx.fillStyle = right;
-      ctx.beginPath();
-      ctx.moveTo(sx + s, sy);
-      ctx.lineTo(sx, sy + s*0.5);
-      ctx.lineTo(sx, sy + s*0.5 + s);
-      ctx.lineTo(sx + s, sy + s);
-      ctx.closePath();
-      ctx.fill();
-    }
-
-    // ---- 空間ビニングで集約（輪郭が残りやすい） ----
-    // bin=2なら 2x2x2 の小立方体ごとに1ブロックへ圧縮
-    function binBlocks(blocks, bin){
-      if(bin <= 1) return blocks;
-
-      const m = new Map();
-      for(const b of blocks){
-        const bx = Math.floor(b.dx / bin);
-        const by = Math.floor(b.dy / bin);
-        const bz = Math.floor(b.dz / bin);
-        const k = bx + "," + by + "," + bz;
-
-        // そのビン内で「一番上（dyが大）」を優先して残す（シルエットが崩れにくい）
-        const cur = m.get(k);
-        if(!cur || b.dy > cur.dy){
-          m.set(k, b);
-        }
-      }
-      return Array.from(m.values());
-    }
-
-    function chooseBinSize(blockCount, info){
-      // 目標点数（サムネ用）
-      const target = 16000;
-
-      if(blockCount <= target) return 1;
-
-      // バウンディング箱の体積っぽいものから荒く決める
-      const vol = Math.max(1, info.sizeX * info.sizeY * info.sizeZ);
-      const ratio = blockCount / target;
-
-      // だいたい ratio の立方根が縮小係数の目安
-      let bin = Math.ceil(Math.cbrt(ratio));
-
-      // 形が細い/薄い作品を潰しすぎないため上限は控えめに
-      bin = Math.min(6, Math.max(2, bin));
-      return bin;
-    }
-
-    function renderThumbToCanvas(canvas, unitJson){
-      const ctx = canvas.getContext("2d");
-      const w = canvas.width, h = canvas.height;
-
-      // 背景
-      ctx.clearRect(0,0,w,h);
-      const g = ctx.createLinearGradient(0,0,0,h);
-      g.addColorStop(0,"rgba(37,99,235,.10)");
-      g.addColorStop(1,"rgba(22,163,74,.08)");
-      ctx.fillStyle = g;
-      ctx.fillRect(0,0,w,h);
-
-      const blocks0 = unitJson.blocks;
-      const qTurns = yawToQuarterTurns(unitJson.frontYaw); // nullなら不明
-
-      // まず bbox を取って、bin を決める
-      const info0 = analyzeBlocks(blocks0);
-      const bin = chooseBinSize(blocks0.length, info0);
-
-      // 集約してから回転
-      const blocks = binBlocks(blocks0, bin);
-
-      function drawPass(turns, alpha){
-        // 回転後座標を作る
-        const transformed = blocks.map(b=>{
-          const r = rotateXZ(b.dx, b.dz, turns);
-          return {dx:r.x, dy:b.dy, dz:r.z, blockId:b.blockId};
-        });
-
-        const inf = analyzeBlocks(transformed);
-
-        const spanX = inf.sizeX + inf.sizeZ;
-        const spanY = inf.sizeY;
-
-        const s = Math.max(1.8, Math.min(w/(spanX+6), h/(spanY+10)) * 1.6);
-
-        const ox = w*0.5;
-        const oy = h*0.80;
-
-        // 描画順（奥→手前/下→上寄り）
-        transformed.sort((a,b)=>
-          (a.dx+a.dz) - (b.dx+b.dz) || (a.dy - b.dy)
-        );
-
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.translate(ox, oy);
-
-        const stroke = (s >= 3); // 小さすぎる時は線を消す
-        for(const b of transformed){
-          const x = (b.dx - inf.minX);
-          const y = (b.dy - inf.minY);
-          const z = (b.dz - inf.minZ);
-          const col = pickBaseColor(b.blockId);
-          drawIsoCube(ctx, x, y, z, s, col, stroke);
-        }
-
-        ctx.restore();
-      }
-
-      // frontYaw 無い → 両面（正面曖昧でも破綻しにくい）
-      if(qTurns == null){
-        drawPass(0, 1.0);
-        drawPass(2, 0.33);
-      }else{
-        drawPass(qTurns, 1.0);
-      }
-    }
-
-    async function hydrateThumbs(list){
-      const canvases = [...document.querySelectorAll("canvas.thumb3d")];
-
-      for(const c of canvases){
-        const id = c.dataset.id;
-
-        const cache = localStorage.getItem(thumbCacheKey(id));
-        if(cache){
-          const img = new Image();
-          img.onload = ()=> c.getContext("2d").drawImage(img,0,0,c.width,c.height);
-          img.src = cache;
-          continue;
-        }
-
-        const it = list.find(x=>String(x.id)===String(id));
-        if(!it) continue;
-
-        const unitJson = await loadUnitJson(it);
-        if(!unitJson) continue;
-
-        renderThumbToCanvas(c, unitJson);
-
-        try{
-          const png = c.toDataURL("image/png");
-          localStorage.setItem(thumbCacheKey(id), png);
-        }catch{}
-      }
-    }
-
-    // 初回ロード
-    loadFromApi();
-  </script>
+  // palette を先にロードしてから一覧へ（色の“確定”を優先）
+  loadPalette().finally(()=>loadSubmissions());
+})();
+</script>
 </body>
 </html>
