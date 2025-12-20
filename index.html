@@ -515,37 +515,64 @@
     const raw = String(blockId||"").toLowerCase();
     const id = raw.includes(":") ? raw.split(":")[1] : raw;
 
-    if (id.includes("glass") || id.includes("ice")) return {r: 170, g: 210, b: 230, a: 0.55};
-    if (id.includes("leaves") || id.includes("leaf") || id.includes("moss") || id.includes("vine") || id.includes("grass")) return {r: 90, g: 150, b: 90, a: 0.95};
-    if (id.includes("log") || id.includes("wood") || id.includes("planks") || id.includes("bamboo")) return {r: 160, g: 125, b: 85, a: 0.95};
-    if (id.includes("dirt") || id.includes("sand") || id.includes("gravel") || id.includes("clay") || id.includes("mud")) return {r: 160, g: 145, b: 110, a: 0.98};
-    if (id.includes("stone") || id.includes("deepslate") || id.includes("andesite") || id.includes("diorite") || id.includes("granite") || id.includes("cobble") || id.includes("tuff") || id.includes("slate")) return {r: 140, g: 145, b: 155, a: 0.98};
+function pickBaseColor(blockId){
+  const id = String(blockId||"").toLowerCase();
 
-    if (id.includes("iron") || id.includes("anvil") || id.includes("chain") || id.includes("rail") || id.includes("steel") || id.includes("machine") || id.includes("metal")) return {r: 170, g: 175, b: 185, a: 0.98};
-    if (id.includes("copper") || id.includes("bronze")) return {r: 190, g: 120, b: 80, a: 0.98};
-    if (id.includes("gold")) return {r: 210, g: 185, b: 90, a: 0.98};
+  // 透明系
+  if (id.includes("glass") || id.includes("ice")) return {r: 170, g: 210, b: 230};
+  // 植物
+  if (id.includes("leaves") || id.includes("leaf") || id.includes("moss") || id.includes("vine")) return {r: 90, g: 150, b: 90};
+  // 木材
+  if (id.includes("log") || id.includes("wood") || id.includes("planks") || id.includes("bamboo")) return {r: 160, g: 125, b: 85};
+  // 土・砂
+  if (id.includes("dirt") || id.includes("grass") || id.includes("sand") || id.includes("gravel") || id.includes("clay")) return {r: 160, g: 145, b: 110};
+  // 石
+  if (id.includes("stone") || id.includes("deepslate") || id.includes("andesite") || id.includes("diorite") || id.includes("granite") || id.includes("cobble") || id.includes("tuff")) return {r: 140, g: 145, b: 155};
+  // 金属
+  if (id.includes("iron") || id.includes("anvil") || id.includes("chain") || id.includes("rail")) return {r: 170, g: 175, b: 185};
+  if (id.includes("copper")) return {r: 190, g: 120, b: 80};
+  if (id.includes("gold")) return {r: 210, g: 185, b: 90};
+  // 宝石
+  if (id.includes("diamond")) return {r: 120, g: 210, b: 220};
+  if (id.includes("emerald")) return {r: 70, g: 200, b: 120};
+  if (id.includes("lapis")) return {r: 70, g: 110, b: 200};
+  if (id.includes("redstone")) return {r: 190, g: 70, b: 70};
 
-    if (id.includes("diamond")) return {r: 120, g: 210, b: 220, a: 0.98};
-    if (id.includes("emerald")) return {r: 70, g: 200, b: 120, a: 0.98};
-    if (id.includes("lapis")) return {r: 70, g: 110, b: 200, a: 0.98};
-    if (id.includes("redstone") || id.includes("ruby")) return {r: 190, g: 70, b: 70, a: 0.98};
+  // コンクリ/羊毛/テラコッタ（色名が入ってたら寄せる）
+  // ★ 重要：包含関係があるものは「長い方を先」に判定する（light_gray が gray に食われない等）
+  if (id.includes("wool") || id.includes("concrete") || id.includes("terracotta")) {
+    if (id.includes("white")) return {r: 220,g:220,b:220};
+    if (id.includes("black")) return {r: 60,g:60,b:65};
 
-    if (id.includes("wool") || id.includes("concrete") || id.includes("terracotta")) {
-      if (id.includes("white")) return {r: 220,g:220,b:220,a:0.98};
-      if (id.includes("black")) return {r: 60,g:60,b:65,a:0.98};
-      if (id.includes("gray")) return {r: 130,g:130,b:135,a:0.98};
-      if (id.includes("light_gray")) return {r: 180,g:180,b:185,a:0.98};
-      if (id.includes("red")) return {r: 190,g:75,b:75,a:0.98};
-      if (id.includes("blue")) return {r: 85,g:120,b:200,a:0.98};
-      if (id.includes("green")) return {r: 85,g:170,b:110,a:0.98};
-      if (id.includes("yellow")) return {r: 220,g:200,b:90,a:0.98};
-      if (id.includes("purple")) return {r: 150,g:95,b:190,a:0.98};
-      if (id.includes("pink")) return {r: 220,g:140,b:170,a:0.98};
-      if (id.includes("orange")) return {r: 220,g:150,b:80,a:0.98};
-      if (id.includes("cyan")) return {r: 95,g:190,b:190,a:0.98};
-      if (id.includes("magenta")) return {r: 200,g:110,b:190,a:0.98};
-      return {r: 180,g:160,b:150,a:0.98};
-    }
+    if (id.includes("light_gray") || id.includes("lightgrey") || id.includes("silver")) return {r: 180,g:180,b:185};
+    if (id.includes("gray") || id.includes("grey")) return {r: 130,g:130,b:135};
+
+    if (id.includes("light_blue") || id.includes("lightblue")) return {r: 140,g:190,b:230};
+    if (id.includes("blue")) return {r: 85,g:120,b:200};
+
+    // ★ lime 対応（omoide の主材）
+    if (id.includes("lime")) return {r: 140,g:200,b:85};
+    if (id.includes("green")) return {r: 85,g:170,b:110};
+
+    if (id.includes("yellow")) return {r: 220,g:200,b:90};
+
+    if (id.includes("light_purple") || id.includes("lightpurple")) return {r: 210,g:150,b:220};
+    if (id.includes("purple")) return {r: 150,g:95,b:190};
+
+    if (id.includes("pink")) return {r: 220,g:140,b:170};
+    if (id.includes("orange")) return {r: 220,g:150,b:80};
+
+    if (id.includes("cyan")) return {r: 95,g:190,b:190};
+    if (id.includes("magenta")) return {r: 200,g:110,b:190};
+
+    if (id.includes("brown")) return {r: 120,g:90,b:60};
+    return {r: 180,g:160,b:150};
+  }
+
+  // それ以外（不明ブロックはニュートラルに）
+  return {r: 170, g: 170, b: 175};
+}
+
 
     // 3) fallback（控えめ）
     let h=0;
