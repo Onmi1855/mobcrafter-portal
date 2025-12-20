@@ -391,7 +391,7 @@
         date: r.created_at || "",
         mod: r.mod_version || "",
         jsonUrl: API_DL(r.id),
-        dl: Number(r.downloads || r.dl || 0)
+        dl: Number(r.download_count || 0)
       }));
 
       render();
