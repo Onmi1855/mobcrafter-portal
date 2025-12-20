@@ -659,38 +659,43 @@ function binBlocks(blocks, bin){
 
     const cur = m.get(k);
 
-    // ★「見え方」優先：同じbin内なら
-    // 1) まず“暗い色”を残しやすくする（目の奥の黒など）
-    // 2) ただし暗さが同程度なら、従来通り上のdyを優先
     const colB = pickBaseColor(b.blockId);
     const lumB = luminance(colB);
 
+    // 視線方向の奥行き指標（等角なので dx+dz が効く）
+    const depthB = b.dx + b.dz;
+
     if(!cur){
-      m.set(k, { ...b, _lum: lumB });
+      m.set(k, { ...b, _lum: lumB, _depth: depthB });
       continue;
     }
 
     const lumC = cur._lum;
+    const depthC = cur._depth;
 
-    // 暗い方を優先（差が大きい時だけ）
-    if(lumB + 8 < lumC){
-      m.set(k, { ...b, _lum: lumB });
+    // ① 明確に暗い方を優先（目の奥の黒）
+    if(lumB + 10 < lumC){
+      m.set(k, { ...b, _lum: lumB, _depth: depthB });
       continue;
     }
 
-    // 明るさがほぼ同じなら上を優先（元の挙動維持）
-    if(Math.abs(lumB - lumC) <= 8){
-      if(b.dy > cur.dy){
-        m.set(k, { ...b, _lum: lumB });
+    // ② 暗さが近いなら「奥」を優先
+    if(Math.abs(lumB - lumC) <= 10){
+      if(depthB > depthC){
+        m.set(k, { ...b, _lum: lumB, _depth: depthB });
+        continue;
       }
-      continue;
     }
 
-    // それ以外は今の代表を維持
+    // ③ それでも同等なら上（従来互換）
+    if(Math.abs(lumB - lumC) <= 10 && depthB === depthC){
+      if(b.dy > cur.dy){
+        m.set(k, { ...b, _lum: lumB, _depth: depthB });
+      }
+    }
   }
 
-  // _lum は捨てる
-  return Array.from(m.values()).map(({_lum, ...rest}) => rest);
+  return Array.from(m.values()).map(({_lum,_depth,...rest})=>rest);
 }
 
   function chooseBinSize(blockCount){
