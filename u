@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MobCrafter Portal - Unit</title>
+  <style>
+    :root{
+      --bg:#f6f8fb; --card:#fff; --text:#0f172a; --muted:#64748b; --line:#e5e7eb;
+      --brand:#2563eb; --danger:#dc2626; --shadow:0 10px 25px rgba(15,23,42,.08);
+      --radius:16px;
+    }
+    body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;background:var(--bg);color:var(--text);}
+    header{position:sticky;top:0;background:rgba(246,248,251,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);z-index:10;}
+    .wrap{max-width:1100px;margin:0 auto;padding:16px;}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .brand{display:flex;align-items:center;gap:10px;}
+    .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#dbeafe,#f0f9ff);}
+    .brand h1{font-size:16px;margin:0;}
+    .brand p{font-size:12px;margin:0;color:var(--muted);}
+    a.btn,button.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--card);color:var(--text);padding:10px 12px;border-radius:999px;text-decoration:none;cursor:pointer;}
+    a.btn.primary,button.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;}
+    button.btn.danger{background:var(--danger);border-color:var(--danger);color:#fff;}
+    main .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;margin-top:16px;}
+    @media (max-width: 980px){ main .grid{grid-template-columns:1fr;} }
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;}
+    .title{font-size:22px;margin:0 0 6px;}
+    .meta{display:flex;flex-wrap:wrap;gap:10px;color:var(--muted);font-size:13px;}
+    .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+    .tag{font-size:12px;background:#f1f5f9;border:1px solid var(--line);padding:4px 10px;border-radius:999px;color:#334155;}
+    .kv{display:grid;grid-template-columns:120px 1fr;gap:8px 12px;margin-top:12px;font-size:14px;}
+    .kv div{padding:6px 0;border-bottom:1px dashed var(--line);}
+    .kv .k{color:var(--muted);}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;}
+    pre{background:#0b1020;color:#dbeafe;border-radius:14px;padding:14px;overflow:auto;font-size:12px;line-height:1.45;}
+    .muted{color:var(--muted);}
+    .err{color:#b91c1c;background:#fee2e2;border:1px solid #fecaca;padding:12px;border-radius:14px;}
+    details{margin-top:12px;}
+    details summary{cursor:pointer;color:var(--brand);font-weight:600;}
+    .ownerBox{display:none;margin-top:14px;border-top:1px solid var(--line);padding-top:14px;}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    @media (max-width: 980px){ .row{grid-template-columns:1fr;} }
+    input,textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;}
+    textarea{min-height:90px;resize:vertical;}
+    .hint{font-size:12px;color:var(--muted);margin-top:6px;}
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <h1>MobCrafter Portal</h1>
+          <p>ユニットJSON共有</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <a class="btn" href="/">一覧へ戻る</a>
+        <a class="btn" href="/submit.html">投稿</a>
+        <a class="btn" href="/admin.html">管理</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="status"></div>
+
+  <div class="grid">
+    <section class="card">
+      <h2 class="title" id="title">読み込み中...</h2>
+      <div class="meta" id="meta"></div>
+      <div class="tags" id="tags"></div>
+
+      <div class="kv" id="kv"></div>
+
+      <div class="actions">
+        <a id="downloadBtn" class="btn primary" href="#" download>Download JSON</a>
+        <button id="copyBtn" class="btn" type="button">使い方をコピー</button>
+      </div>
+
+      <details>
+        <summary>JSONプレビュー（折りたたみ）</summary>
+        <pre id="jsonPreview">...</pre>
+      </details>
+
+      <details>
+        <summary>ゲームでの使い方（コピペ）</summary>
+        <pre id="howto"></pre>
+      </details>
+
+      <div class="ownerBox" id="ownerBox">
+        <h3 style="margin:0 0 8px;">投稿者メニュー（編集/差し替え/削除）</h3>
+
+        <div class="row">
+          <div>
+            <label class="muted">タイトル</label>
+            <input id="editTitle" />
+          </div>
+          <div>
+            <label class="muted">タグ（カンマ区切り）</label>
+            <input id="editTags" />
+          </div>
+        </div>
+        <div style="margin-top:10px;">
+          <label class="muted">説明</label>
+          <textarea id="editDesc"></textarea>
+          <div class="hint">※ unitId は固定で変わりません（仕様）。</div>
+        </div>
+
+        <div class="actions">
+          <button id="saveMetaBtn" class="btn primary" type="button">メタ情報を保存</button>
+          <button id="replaceJsonBtn" class="btn" type="button">JSON差し替え（ファイル選択）</button>
+          <input id="jsonFile" type="file" accept="application/json" style="display:none;">
+          <button id="deleteBtn" class="btn danger" type="button">削除</button>
+        </div>
+
+        <div id="ownerMsg" class="hint"></div>
+      </div>
+    </section>
+
+    <aside class="card">
+      <h3 style="margin:0 0 10px;">サムネ</h3>
+      <div class="muted" style="font-size:13px;">
+        MVP方針により、一覧は軽量維持。詳細では今後スクショ/3D切替を実装します。<br>
+        （現時点はこの枠は説明のみ。スクショ対応フェーズでここに表示を追加）
+      </div>
+    </aside>
+  </div>
+</main>
+
+<script>
+  // ★あなたのAPIドメインに合わせてください
+  const API_BASE = "https://api.mobcrafter.net";
+
+  function getSubmissionNoFromPath() {
+    // /u/123 から 123 を取り出す
+    const m = location.pathname.match(/^\/u\/(\d+)/);
+    if (!m) return null;
+    return Number(m[1]);
+  }
+
+  function el(id){ return document.getElementById(id); }
+
+  function setStatus(html){
+    const s = el("status");
+    s.innerHTML = html || "";
+  }
+
+  function safeJsonPretty(obj){
+    try { return JSON.stringify(obj, null, 2); } catch { return ""; }
+  }
+
+  function parseTags(tagsText){
+    const arr = String(tagsText||"").split(",").map(s=>s.trim()).filter(Boolean);
+    return arr;
+  }
+
+  async function apiGet(path){
+    const r = await fetch(API_BASE + path, { method:"GET", credentials:"include" });
+    const t = await r.text();
+    let j = null;
+    try { j = JSON.parse(t); } catch {}
+    if (!r.ok) {
+      const msg = j && j.error ? j.error : (t || ("HTTP_"+r.status));
+      throw new Error(msg);
+    }
+    return j;
+  }
+
+  async function apiJson(method, path, bodyObj){
+    const r = await fetch(API_BASE + path, {
+      method,
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify(bodyObj),
+      credentials:"include"
+    });
+    const t = await r.text();
+    let j = null;
+    try { j = JSON.parse(t); } catch {}
+    if (!r.ok) {
+      const msg = j && j.error ? j.error : (t || ("HTTP_"+r.status));
+      throw new Error(msg);
+    }
+    return j;
+  }
+
+  function buildHowTo(unitId){
+    return [
+      "1) ダウンロードした JSON を MobCrafter の unit データフォルダへ入れる",
+      "2) MobCrafter で unitId を指定して召喚（ゲーム内の手順に従ってください）",
+      "",
+      "このユニットの unitId:",
+      unitId || "(unknown)"
+    ].join("\\n");
+  }
+
+  async function main(){
+    const no = getSubmissionNoFromPath();
+    if (!no) {
+      setStatus(`<div class="err">URLが不正です（/u/123 の形式でアクセスしてください）</div>`);
+      return;
+    }
+
+    // 詳細メタ取得（approvedのみ返る）
+    let item;
+    try {
+      const res = await apiGet(`/api/public/u/${no}`);
+      item = res.item;
+    } catch (e) {
+      // deleted は 404/410 のどちらでも来得る
+      setStatus(`<div class="err">詳細の取得に失敗しました: ${String(e.message || e)}</div>`);
+      return;
+    }
+
+    // 表示
+    el("title").textContent = item.title || "(no title)";
+    const created = item.created_at ? new Date(item.created_at).toLocaleString() : "";
+    const updated = item.updated_at ? new Date(item.updated_at).toLocaleString() : "";
+    el("meta").innerHTML = [
+      `<span>投稿: ${created}</span>`,
+      updated ? `<span>更新: ${updated}</span>` : "",
+      `<span>DL: ${item.download_count ?? 0}</span>`,
+      item.mod_version ? `<span>Mod: ${item.mod_version}</span>` : "",
+      item.mc_version ? `<span>MC: ${item.mc_version}</span>` : ""
+    ].filter(Boolean).join(" · ");
+
+    // tags
+    let tags = [];
+    try { tags = JSON.parse(item.tags || "[]"); } catch {}
+    el("tags").innerHTML = tags.map(t=>`<span class="tag">${escapeHtml(String(t))}</span>`).join("");
+
+    // kv
+    el("kv").innerHTML = [
+      kvRow("submission_no", item.submission_no),
+      kvRow("unit_id", item.unit_id),
+      kvRow("作者", item.author_name || "unknown"),
+    ].join("");
+
+    // DLリンク（UUIDでDL）
+    const dl = `${API_BASE}/api/public/submissions/${item.id}/download`;
+    const dlBtn = el("downloadBtn");
+    dlBtn.href = dl;
+
+    // howto / preview
+    el("howto").textContent = buildHowTo(item.unit_id);
+    el("jsonPreview").textContent = "（ダウンロードしたJSONをここに表示したい場合は、後でAPI拡張します。MVPでは重くしない方針）";
+
+    // copy howto
+    el("copyBtn").onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(buildHowTo(item.unit_id));
+        setStatus(`<div class="card" style="margin-top:12px;">コピーしました。</div>`);
+        setTimeout(()=>setStatus(""), 1500);
+      } catch {
+        setStatus(`<div class="err">コピーに失敗しました。</div>`);
+      }
+    };
+
+    // ---- owner check（whoami が必要）----
+    // ここは Worker 側に /api/whoami を追加して完成させます（次のセクション参照）
+    try {
+      const who = await apiGet(`/api/whoami`);
+      const me = who.email || "";
+      if (me && item.author_email && me === item.author_email) {
+        enableOwnerUI(item);
+      }
+    } catch (_) {
+      // ログインしてない/Access未設定なら何もしない
+    }
+  }
+
+  function enableOwnerUI(item){
+    const box = el("ownerBox");
+    box.style.display = "block";
+
+    el("editTitle").value = item.title || "";
+    el("editDesc").value = item.description || "";
+    let tags = [];
+    try { tags = JSON.parse(item.tags || "[]"); } catch {}
+    el("editTags").value = tags.join(", ");
+
+    el("saveMetaBtn").onclick = async () => {
+      el("ownerMsg").textContent = "保存中...";
+      try {
+        await apiJson("PUT", `/api/submissions/${item.id}`, {
+          title: el("editTitle").value,
+          description: el("editDesc").value,
+          tags: parseTags(el("editTags").value),
+        });
+        el("ownerMsg").textContent = "保存しました。リロードで反映されます。";
+      } catch (e) {
+        el("ownerMsg").textContent = "保存失敗: " + String(e.message || e);
+      }
+    };
+
+    el("replaceJsonBtn").onclick = () => el("jsonFile").click();
+    el("jsonFile").addEventListener("change", async (ev) => {
+      const f = ev.target.files && ev.target.files[0];
+      if (!f) return;
+      el("ownerMsg").textContent = "差し替え中...";
+      try {
+        const text = await f.text();
+        const parsed = JSON.parse(text);
+        await apiJson("PUT", `/api/submissions/${item.id}/json`, { json: parsed });
+        el("ownerMsg").textContent = "差し替えしました。";
+      } catch (e) {
+        el("ownerMsg").textContent = "差し替え失敗: " + String(e.message || e);
+      } finally {
+        ev.target.value = "";
+      }
+    });
+
+    el("deleteBtn").onclick = async () => {
+      if (!confirm("本当に削除しますか？（一覧/詳細/DLから消えます）")) return;
+      el("ownerMsg").textContent = "削除中...";
+      try {
+        const r = await fetch(API_BASE + `/api/submissions/${item.id}`, {
+          method:"DELETE", credentials:"include"
+        });
+        const t = await r.text();
+        if (!r.ok) throw new Error(t || ("HTTP_"+r.status));
+        el("ownerMsg").textContent = "削除しました。一覧へ戻ります...";
+        setTimeout(()=>location.href="/", 800);
+      } catch (e) {
+        el("ownerMsg").textContent = "削除失敗: " + String(e.message || e);
+      }
+    };
+  }
+
+  function kvRow(k,v){
+    return `<div class="k">${escapeHtml(String(k))}</div><div>${escapeHtml(String(v ?? ""))}</div>`;
+  }
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;").replaceAll("'","&#39;");
+  }
+
+  main();
+</script>
+</body>
+</html>
