@@ -684,9 +684,6 @@ function binBlocks(blocks, bin){
   return Array.from(m.values()).map(({_lum, ...rest}) => rest);
 }
 
-    return Array.from(m.values());
-  }
-
   function chooseBinSize(blockCount){
     const target = 16000;
     if(blockCount <= target) return 1;
