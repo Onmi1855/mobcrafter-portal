@@ -550,6 +550,7 @@ function pickBaseColor(blockId){
 
   // wool / concrete / terracotta（色名判定）
   if (name.includes("wool") || name.includes("concrete") || name.includes("terracotta")) {
+    if (name.includes("red")) return {r: 190, g: 70, b: 70, a: 0.98};
     if (name.includes("white")) return {r: 220,g:220,b:220,a:0.98};
     if (name.includes("black")) return {r: 60,g:60,b:65,a:0.98};
 
