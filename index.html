@@ -519,7 +519,10 @@ function pickBaseColor(blockId){
   if (name.includes("red_nether") || name.includes("rednether")) return {r: 150, g: 60, b: 60, a: 0.98};
   if (name.includes("nether_brick") || name.includes("netherbrick") || name.includes("netherrack"))
     return {r: 120, g: 55, b: 55, a: 0.98};
-
+{
+  "minecraft:red_wool": "#B02E26",
+  "minecraft:smooth_quartz": "#F2F2F2"
+}
   // brick 系（赤レンガっぽく）
   if (name.includes("brick")) {
     if (name.includes("red")) return {r: 170, g: 70, b: 70, a: 0.98};
