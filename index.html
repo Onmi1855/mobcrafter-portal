@@ -588,6 +588,11 @@ function pickBaseColor(blockId){
   const b = 120 + ((h>>16)&70);
   return {r,g,b,a:0.98};
 }
+  function luminance(col){
+  // col: {r,g,b,a}
+  return 0.2126*col.r + 0.7152*col.g + 0.0722*col.b;
+}
+
 
   function drawIsoCube(ctx, x, y, z, s, col, stroke){
     const sx = (x - z) * s;
@@ -632,19 +637,53 @@ function pickBaseColor(blockId){
     ctx.fill();
   }
 
-  function binBlocks(blocks, bin){
-    if(bin <= 1) return blocks;
-    const m = new Map();
-    for(const b of blocks){
-      const bx = Math.floor(b.dx / bin);
-      const by = Math.floor(b.dy / bin);
-      const bz = Math.floor(b.dz / bin);
-      const k = bx + "," + by + "," + bz;
-      const cur = m.get(k);
-      if(!cur || b.dy > cur.dy){
-        m.set(k, b);
-      }
+function binBlocks(blocks, bin){
+  if(bin <= 1) return blocks;
+
+  const m = new Map();
+
+  for(const b of blocks){
+    const bx = Math.floor(b.dx / bin);
+    const by = Math.floor(b.dy / bin);
+    const bz = Math.floor(b.dz / bin);
+    const k = bx + "," + by + "," + bz;
+
+    const cur = m.get(k);
+
+    // ★「見え方」優先：同じbin内なら
+    // 1) まず“暗い色”を残しやすくする（目の奥の黒など）
+    // 2) ただし暗さが同程度なら、従来通り上のdyを優先
+    const colB = pickBaseColor(b.blockId);
+    const lumB = luminance(colB);
+
+    if(!cur){
+      m.set(k, { ...b, _lum: lumB });
+      continue;
     }
+
+    const lumC = cur._lum;
+
+    // 暗い方を優先（差が大きい時だけ）
+    if(lumB + 8 < lumC){
+      m.set(k, { ...b, _lum: lumB });
+      continue;
+    }
+
+    // 明るさがほぼ同じなら上を優先（元の挙動維持）
+    if(Math.abs(lumB - lumC) <= 8){
+      if(b.dy > cur.dy){
+        m.set(k, { ...b, _lum: lumB });
+      }
+      continue;
+    }
+
+    // それ以外は今の代表を維持
+  }
+
+  // _lum は捨てる
+  return Array.from(m.values()).map(({_lum, ...rest}) => rest);
+}
+
     return Array.from(m.values());
   }
 
