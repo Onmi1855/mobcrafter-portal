@@ -513,6 +513,19 @@ function pickBaseColor(blockId){
 
   const id = String(blockId||"").toLowerCase();
   const name = id.includes(":") ? id.split(":")[1] : id;
+    // クォーツ系は白（smooth_quartz / quartz_block / quartz_pillar 等）
+  if (name.includes("quartz")) return {r: 235, g: 235, b: 235, a: 0.98};
+  // ネザー・レンガ系（赤がグレーに落ちるのを防ぐ）
+  if (name.includes("red_nether") || name.includes("rednether")) return {r: 150, g: 60, b: 60, a: 0.98};
+  if (name.includes("nether_brick") || name.includes("netherbrick") || name.includes("netherrack"))
+    return {r: 120, g: 55, b: 55, a: 0.98};
+
+  // brick 系（赤レンガっぽく）
+  if (name.includes("brick")) {
+    if (name.includes("red")) return {r: 170, g: 70, b: 70, a: 0.98};
+    return {r: 150, g: 95, b: 75, a: 0.98};
+  }
+
 
   // 透明系
   if (name.includes("glass") || name.includes("ice")) return {r: 170, g: 210, b: 230, a: 0.55};
