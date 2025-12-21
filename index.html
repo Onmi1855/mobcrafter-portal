@@ -20,248 +20,285 @@
     *{ box-sizing:border-box; }
     body{
       margin:0;
-      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+      background:var(--bg);
+      color:var(--text);
     }
-    a{ color: inherit; text-decoration: none; }
     header{
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      background: rgba(246,248,251,.92);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid var(--line);
+      position:sticky;
+      top:0;
+      z-index:50;
+      background:rgba(246,248,251,.85);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--line);
     }
-    .headerIn{
+    .wrap{
       max-width: 1120px;
       margin: 0 auto;
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
+      padding: 16px 16px;
+    }
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
     }
     .brand{
-      display:flex; align-items:center; gap:10px;
-      font-weight:800;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      text-decoration:none;
+      color:inherit;
     }
     .logo{
-      width:34px; height:34px; border-radius:12px;
-      background: linear-gradient(135deg, rgba(37,99,235,.25), rgba(22,163,74,.25));
-      border: 1px solid var(--line);
-      box-shadow: 0 8px 18px rgba(15,23,42,.08);
+      width:28px;height:28px;border-radius:10px;
+      background:linear-gradient(135deg,#60a5fa,#a78bfa);
+      box-shadow:0 6px 16px rgba(37,99,235,.25);
     }
-    .brand small{ display:block; font-weight:600; color:var(--muted); margin-top:2px; }
-    .nav{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-    .btn{
-      display:inline-flex; align-items:center; justify-content:center;
-      border: 1px solid var(--line);
-      background: #fff;
-      padding: 9px 12px;
-      border-radius: 12px;
-      font-size: 13px;
-      cursor: pointer;
-      box-shadow: 0 1px 0 rgba(15,23,42,.03);
+    .brand b{ font-size:15px; }
+    .brand small{ display:block; font-size:12px; color:var(--muted); margin-top:1px; }
+
+    .nav{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
     }
-    .btn.primary{
-      background: var(--brand);
-      border-color: var(--brand);
-      color: #fff;
+    .pill{
+      border:1px solid var(--line);
+      background:#fff;
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:13px;
+      cursor:pointer;
+      text-decoration:none;
+      color:inherit;
+    }
+    .pill.primary{
+      background:var(--brand);
+      border-color:var(--brand);
+      color:#fff;
     }
 
-    main{ max-width:1120px; margin:0 auto; padding: 14px 18px 28px; }
+    main{ padding: 18px 0 40px; }
 
     .hero{
-      margin-top: 10px;
       display:grid;
-      grid-template-columns: 1.3fr 1fr;
-      gap: 14px;
+      grid-template-columns: 1.2fr .8fr;
+      gap:14px;
+      margin-top: 8px;
+      align-items:start;
     }
-    @media (max-width: 980px){ .hero{ grid-template-columns: 1fr; } }
-
     .panel{
-      background: var(--card);
-      border: 1px solid var(--line);
+      background:var(--card);
+      border:1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       padding: 14px;
     }
-    .panel h2{ margin: 0 0 6px; font-size: 16px; }
-    .panel p{ margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .panel h2{
+      margin:0 0 10px;
+      font-size:14px;
+    }
+    .muted{ color:var(--muted); font-size:12px; line-height:1.5; }
 
     .controls{
-      margin-top: 12px;
-      display:flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
+      display:grid;
+      grid-template-columns: 1fr 140px;
+      gap:10px;
+      margin-top:10px;
     }
-    input[type="text"], select{
-      padding: 10px 12px;
-      border: 1px solid var(--line);
+    input[type="search"], select{
+      width:100%;
+      border:1px solid var(--line);
       border-radius: 12px;
+      padding:10px 12px;
+      font-size:14px;
+      outline:none;
       background:#fff;
-      font-size: 14px;
-      outline: none;
-      box-shadow: 0 1px 0 rgba(15,23,42,.03);
     }
-    #q{ flex:1; min-width: 240px; }
-    #sort{ min-width: 160px; }
-    #yaw{ min-width: 190px; }
-
-    #err{
-      display:none;
-      margin-top: 12px;
-      padding: 10px 12px;
-      border: 1px solid #fecaca;
-      background: #fff1f2;
-      color: #991b1b;
-      border-radius: 12px;
-      font-size: 13px;
-      white-space: pre-wrap;
+    .row2{
+      display:grid;
+      grid-template-columns: 140px 1fr;
+      gap:10px;
+      margin-top:10px;
     }
 
     .grid{
       margin-top: 14px;
       display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap:14px;
     }
-    @media (max-width: 980px){ .grid{ grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 640px){ .grid{ grid-template-columns: 1fr; } }
+    @media(max-width: 980px){
+      .hero{ grid-template-columns: 1fr; }
+      .grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+    @media(max-width: 640px){
+      .grid{ grid-template-columns: 1fr; }
+      .controls{ grid-template-columns: 1fr; }
+      .row2{ grid-template-columns: 1fr; }
+    }
 
     .card{
-      background: var(--card);
-      border: 1px solid var(--line);
+      background:var(--card);
+      border:1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      min-height: 240px;
-      cursor: pointer;
+      overflow:hidden;
     }
     .thumb{
-      position: relative;
+      position:relative;
       height: 140px;
-      background: linear-gradient(180deg, rgba(37,99,235,.10), rgba(22,163,74,.08));
-      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg,#dbeafe, #f8fafc);
     }
-    .thumb canvas{
-      display:block;
-      width:100%;
-      height:140px;
-    }
-    .badgeRow{
+    .thumb canvas, .thumb img{
       position:absolute;
-      inset: auto 12px 12px 12px;
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      gap: 10px;
-      pointer-events: none; /* ← ここ重要：カードクリックを邪魔しない */
+      inset:0;
+      width:100%;
+      height:100%;
+      display:block;
     }
     .badge{
-      pointer-events: auto; /* ただしDownloadだけはクリック可能にする */
-      display:inline-flex;
-      align-items:center;
-      gap: 6px;
-      font-size: 12px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.92);
-      color: var(--text);
-      box-shadow: 0 8px 18px rgba(15,23,42,.08);
+      position:absolute;
+      top:10px;
+      left:10px;
+      font-size:12px;
+      padding:4px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.9);
+      border:1px solid var(--line);
+      color: #1f2937;
     }
-    .badgeLink{
-      pointer-events: auto;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      font-size: 12px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: var(--brand);
+    .btn-dl{
+      position:absolute;
+      top:10px;
+      right:10px;
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(37,99,235,.95);
       color:#fff;
-      border: 1px solid var(--brand);
-      box-shadow: 0 8px 18px rgba(15,23,42,.10);
+      text-decoration:none;
+      box-shadow: 0 10px 20px rgba(37,99,235,.25);
     }
-    .content{ padding: 12px 12px 14px; display:flex; flex-direction: column; gap: 8px; }
-    .name{ font-size: 15px; font-weight: 800; }
-    .desc{ margin:0; color: var(--muted); font-size: 13px; line-height: 1.45; min-height: 38px; }
-    .meta{ display:flex; gap: 10px; flex-wrap:wrap; color: var(--muted); font-size: 12px; }
+    .card-body{
+      padding: 12px 12px 10px;
+    }
+    .title{
+      font-weight:700;
+      font-size:14px;
+      margin:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .meta{
+      margin-top:8px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .meta .left{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
+    .meta .author{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      min-width:0;
+    }
+    .meta .author span{
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      max-width: 130px;
+    }
+
+    .error{
+      margin-top: 10px;
+      background:#fee2e2;
+      border:1px solid #fecaca;
+      color:#7f1d1d;
+      border-radius: 12px;
+      padding:10px 12px;
+      white-space:pre-wrap;
+      display:none;
+    }
+
     footer{
-      margin-top: 18px;
-      color: var(--muted);
-      font-size: 12px;
-      text-align: center;
-      padding: 10px 0 2px;
+      margin-top: 20px;
+      color:var(--muted);
+      font-size:12px;
+      text-align:center;
     }
   </style>
 </head>
 <body>
-
 <header>
-  <div class="headerIn">
-    <div class="brand">
-      <div class="logo"></div>
-      <div>
-        <div>MobCrafter Portal</div>
-        <small>ユニットJSON共有</small>
-      </div>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="brand" href="/">
+        <div class="logo"></div>
+        <div>
+          <b>MobCrafter Portal</b>
+          <small>ユニットJSON共有</small>
+        </div>
+      </a>
+      <nav class="nav">
+        <a class="pill" href="/">新着</a>
+        <a class="pill" href="/popular.html">人気</a>
+        <a class="pill" href="/submit.html">投稿</a>
+        <a class="pill primary" href="/howto.html">使い方</a>
+      </nav>
     </div>
-    <nav class="nav">
-      <a class="btn" href="#latest">新着</a>
-      <a class="btn" href="#popular">人気</a>
-      <a class="btn" href="/submit">投稿</a>
-      <a class="btn primary" href="#guide">使い方</a>
-    </nav>
   </div>
 </header>
 
-<main>
-  <section class="hero">
-    <div class="panel">
+<main class="wrap">
+  <div class="hero">
+    <section class="panel">
       <h2>探す</h2>
-      <p>タイトル / 説明 / タグで検索できます。サムネは簡易3D描画（色は palette 辞書優先）。</p>
-
+      <div class="muted">
+        タイトル / 説明 / タグで検索できます。サムネは簡易3D描画（色は palette 辞書優先）。
+      </div>
       <div class="controls">
-        <input id="q" type="text" placeholder="検索（例：sephiroth / boss / sword）" />
+        <input id="q" type="search" placeholder="検索（例：sephiroth / boss / sword）" />
         <select id="sort">
-          <option value="new">新着順</option>
-          <option value="old">古い順</option>
-          <option value="dl">DL多い順</option>
-        </select>
-
-        <select id="yaw" title="作品ごとの正面ズレ補正（90度刻み）">
-          <option value="0">Yaw補正 0°</option>
-          <option value="1">Yaw補正 +90°</option>
-          <option value="2">Yaw補正 +180°</option>
-          <option value="3">Yaw補正 +270°</option>
+          <option value="new" selected>新着順</option>
+          <option value="popular">人気順</option>
         </select>
       </div>
+      <div class="row2">
+        <select id="yaw">
+          <option value="270" selected>Yaw補正 +270°</option>
+          <option value="0">Yaw補正 0°</option>
+          <option value="90">Yaw補正 +90°</option>
+          <option value="180">Yaw補正 +180°</option>
+        </select>
+        <div class="muted">クリックで詳細ページへ（/u/:id）</div>
+      </div>
+      <div id="err" class="error"></div>
+    </section>
 
-      <div id="err"></div>
-    </div>
-
-    <div class="panel">
+    <aside class="panel">
       <h2>色が“ちゃんとする”仕組み</h2>
-      <p>
-        <b>/assets/palette.v1.json</b>（BlockId→色）を最優先で使用します。<br/>
+      <div class="muted">
+        <code>/assets/palette.v1.json</code>（BlockId→色）を最優先で使用します。<br/>
         辞書に無いブロックはカテゴリ色→控えめハッシュ色で破綻を防ぎます。
-      </p>
-    </div>
-  </section>
+      </div>
+    </aside>
+  </div>
 
-  <section style="margin-top:14px;">
-    <div id="grid" class="grid"></div>
-  </section>
+  <section id="grid" class="grid"></section>
 
-  <footer>
-    © <span id="y"></span> MobCrafter Portal — MVP
-  </footer>
+  <footer>© 2025 MobCrafter Portal — MVP</footer>
 </main>
 
 <script>
@@ -277,23 +314,15 @@
   const q = document.getElementById("q");
   const sort = document.getElementById("sort");
   const yawUi = document.getElementById("yaw");
-  const errBox = document.getElementById("err");
-  document.getElementById("y").textContent = new Date().getFullYear();
+  const err = document.getElementById("err");
 
   function showError(msg){
-    errBox.style.display = "block";
-    errBox.textContent = msg;
+    err.style.display = "block";
+    err.textContent = msg;
   }
   function hideError(){
-    errBox.style.display = "none";
-    errBox.textContent = "";
-  }
-
-  function normalizeTags(tags){
-    if(!tags) return [];
-    if(Array.isArray(tags)) return tags.filter(Boolean).map(String);
-    if(typeof tags === "string") return tags.split(",").map(s=>s.trim()).filter(Boolean);
-    return [];
+    err.style.display = "none";
+    err.textContent = "";
   }
 
   function escapeHtml(s){
@@ -302,68 +331,78 @@
       .replaceAll("<","&lt;")
       .replaceAll(">","&gt;")
       .replaceAll('"',"&quot;")
-      .replaceAll("'","&#39;");
+      .replaceAll("'","&#039;");
+  }
+
+  function normalizeTags(tags){
+    if(!tags) return [];
+    if(Array.isArray(tags)) return tags.map(t=>String(t).trim()).filter(Boolean);
+    return String(tags).split(/[,\s]+/).map(t=>t.trim()).filter(Boolean);
+  }
+
+  function getYawFix(){
+    const v = Number(yawUi.value || 270);
+    return isFinite(v) ? v : 270;
+  }
+
+  function sortItems(list){
+    const mode = sort.value;
+    if(mode === "popular"){
+      return [...list].sort((a,b)=> (b.downloads||0) - (a.downloads||0));
+    }
+    return [...list].sort((a,b)=> (b.ts||0) - (a.ts||0));
+  }
+
+  function filterItems(list){
+    const query = (q.value || "").trim().toLowerCase();
+    if(!query) return list;
+    const terms = query.split(/\s+/).filter(Boolean);
+    return list.filter(it=>{
+      const hay = (it.name + " " + it.desc + " " + it.tags.join(" ")).toLowerCase();
+      return terms.every(t=> hay.includes(t));
+    });
   }
 
   function render(){
-    const query = (q.value || "").trim().toLowerCase();
-
-    let list = items.filter(it => {
-      if (!query) return true;
-      const name = (it.name || "").toLowerCase();
-      const desc = (it.desc || "").toLowerCase();
-      const author = (it.author || "").toLowerCase();
-      const tags = (it.tags || []).join(" ").toLowerCase();
-      return name.includes(query) || desc.includes(query) || author.includes(query) || tags.includes(query);
-    });
-
-    if (sort.value === "new"){
-      list.sort((a,b) => (new Date(b.date||0)) - (new Date(a.date||0)));
-    }else if (sort.value === "old"){
-      list.sort((a,b) => (new Date(a.date||0)) - (new Date(b.date||0)));
-    }else if (sort.value === "dl"){
-      list.sort((a,b) => (b.dl||0) - (a.dl||0));
-    }
-
-    if (list.length === 0){
-      grid.innerHTML = `<div style="color:var(--muted);">該当するユニットがありません。</div>`;
+    const list = sortItems(filterItems(items));
+    if(list.length === 0){
+      grid.innerHTML = "";
       return;
     }
 
-    // ※ 元の <a class="card"> をやめて <div class="card"> にする（Downloadリンクを合法に置くため）
+    // カード内に余計な <a> を増やさない（リンクを合法に置くため）
     grid.innerHTML = list.map(it => `
-      <div class="card item" data-id="${escapeHtml(it.id)}" title="${escapeHtml(it.name)}">
+      <div class="card item" data-id="${escapeHtml(it.id)}" data-no="${escapeHtml(String(it.no || ""))}" title="${escapeHtml(it.name)}">
         <div class="thumb">
           <canvas class="thumb3d" data-id="${escapeHtml(it.id)}" width="360" height="140"
-            style="width:100%;height:140px;border-radius:0;"></canvas>
-
-          <div class="badgeRow">
-            <span class="badge">Forge ${escapeHtml(it.mod)}</span>
-            <a class="badgeLink" href="${escapeHtml(it.jsonUrl)}" target="_blank" rel="noopener"
-               title="JSONをダウンロード">Download</a>
-          </div>
+            style="image-rendering:auto"></canvas>
+          <span class="badge">${escapeHtml(it.mod || "Forge")}</span>
+          <a class="btn-dl" href="${escapeHtml(API_DL(it.id))}" download>Download</a>
         </div>
-
-        <div class="content">
-          <div class="name">${escapeHtml(it.name)}</div>
-          <p class="desc">${escapeHtml(it.desc)}</p>
+        <div class="card-body">
+          <p class="title">${escapeHtml(it.name)}</p>
           <div class="meta">
-            <span>👤 ${escapeHtml(it.author)}</span>
-            <span>⬇ ${(it.dl || 0).toLocaleString()}</span>
-            <span>🏷 ${(it.tags||[]).slice(0,3).map(escapeHtml).join(", ")}</span>
+            <div class="left">
+              <div class="author">👤 <span>${escapeHtml(it.author)}</span></div>
+              <div>⬇︎ ${escapeHtml(it.downloads || 0)}</div>
+            </div>
+            <div title="${escapeHtml(it.date)}">🕒</div>
           </div>
         </div>
       </div>
     `).join("");
 
-    // カードクリックで詳細ハッシュへ（元の挙動の代替）
+    // クリックで詳細へ
     grid.querySelectorAll(".card.item").forEach(card=>{
       card.addEventListener("click", (ev)=>{
         // Downloadクリックはカード遷移させない
         const a = ev.target && ev.target.closest ? ev.target.closest("a") : null;
         if(a) return;
+
         const id = card.getAttribute("data-id");
-        if(id) location.hash = `unit-${id}`;
+        const no = Number(card.getAttribute("data-no") || 0);
+        if(no) location.href = `/u/${no}`;
+        else if(id) location.hash = `unit-${id}`; // フォールバック
       });
     });
 
@@ -384,14 +423,16 @@
 
       items = arr.map(r => ({
         id: String(r.id),
+        // 詳細ページURL用の通し番号（/u/:no）。APIが返す submission_no を使う
+        no: Number(r.submission_no ?? r.submissionNo ?? r.no ?? 0),
         name: r.title || r.name || "Untitled",
         desc: r.description || "",
         tags: normalizeTags(r.tags),
         author: r.author_name || "unknown",
         date: r.created_at || "",
-        mod: r.mod_version || "",
-        jsonUrl: API_DL(r.id),
-        dl: Number(r.download_count || 0)
+        ts: Date.parse(r.created_at || "") || 0,
+        mod: r.mod_version || "Forge",
+        downloads: Number(r.download_count || 0),
       }));
 
       render();
@@ -403,457 +444,235 @@
 
   q.addEventListener("input", render);
   sort.addEventListener("change", render);
+  yawUi.addEventListener("change", () => {
+    // yaw変更は描画だけ更新
+    scheduleHydrate(sortItems(filterItems(items)));
+  });
 
   // =========================
   // 3D thumb (index engine v3 + palette)
   // =========================
 
-  // 作品ごとの正面ズレ補正（90度刻み）
-  const YAW_OFFSET_QUARTER_KEY = "mcYawOffsetQuarter";
-
-  // キャッシュ更新
-  const THUMB_CACHE_VER = "v9";
-  const thumbCacheKey = (id)=> `mc_thumb_${THUMB_CACHE_VER}_${id}_yaw${localStorage.getItem(YAW_OFFSET_QUARTER_KEY)||0}`;
-
-  // ---- Palette (BlockId -> color) ----
-  const PALETTE_URL = "/assets/palette.v1.json";
-  const PALETTE_VER = "v1";
-  const PALETTE_LS_KEY = `mcPalette:${PALETTE_VER}`;
-  let PALETTE_MAP = null;
-
-  function parseColorString(s){
-    if(!s) return null;
-    const v = String(s).trim();
-    const hex = /^#([0-9a-f]{6})$/i.exec(v);
-    if(hex){
-      const n = parseInt(hex[1], 16);
-      return { r:(n>>16)&255, g:(n>>8)&255, b:n&255, a:1 };
-    }
-    const rgba = /^rgba?\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})(?:\s*,\s*([0-9]*\.?[0-9]+))?\s*\)$/i.exec(v);
-    if(rgba){
-      const r = Math.max(0, Math.min(255, parseInt(rgba[1],10)));
-      const g = Math.max(0, Math.min(255, parseInt(rgba[2],10)));
-      const b = Math.max(0, Math.min(255, parseInt(rgba[3],10)));
-      const a = rgba[4] == null ? 1 : Math.max(0, Math.min(1, parseFloat(rgba[4])));
-      return {r,g,b,a};
-    }
-    return null;
-  }
-
-  async function loadPalette(){
-    if(PALETTE_MAP) return PALETTE_MAP;
-    try{
-      const cached = localStorage.getItem(PALETTE_LS_KEY);
-      if(cached){
-        const obj = JSON.parse(cached);
-        if(obj && typeof obj === "object"){
-          PALETTE_MAP = obj;
-          return PALETTE_MAP;
-        }
-      }
-    }catch(e){}
-    try{
-      const url = `${PALETTE_URL}?v=${encodeURIComponent(PALETTE_VER)}`;
-      const r = await fetch(url, { method:"GET", cache:"no-store", mode:"same-origin" });
-      if(r.ok){
-        const obj = await r.json();
-        if(obj && typeof obj === "object"){
-          PALETTE_MAP = obj;
-          try{ localStorage.setItem(PALETTE_LS_KEY, JSON.stringify(obj)); }catch(e){}
-          return PALETTE_MAP;
-        }
-      }
-    }catch(e){}
-    PALETTE_MAP = {};
-    return PALETTE_MAP;
-  }
-
-  function paletteLookup(blockId){
-    if(!PALETTE_MAP) return null;
-    const k = String(blockId||"").trim().toLowerCase();
-    return parseColorString(PALETTE_MAP[k]);
-  }
-
-  function yawToQuarterTurns(frontYaw){
-    if(frontYaw == null) return null;
-    const y = Number(frontYaw);
-    if(!Number.isFinite(y)) return null;
-    let deg = y % 360;
-    if(deg < 0) deg += 360;
-    let q = (Math.round(deg / 90) % 4);
-
-    const off = Number(localStorage.getItem(YAW_OFFSET_QUARTER_KEY) || "0");
-    q = (q + (Number.isFinite(off)? off : 0)) % 4;
-    return q;
-  }
-
-  function rotateXZ(x, z, q){
-    switch(q){
-      case 1: return {x: z,  z: -x};
-      case 2: return {x: -x, z: -z};
-      case 3: return {x: -z, z: x};
-      default:return {x, z};
-    }
-  }
-
-  function analyzeBlocks(blocks){
-    let minX=Infinity,minY=Infinity,minZ=Infinity;
-    let maxX=-Infinity,maxY=-Infinity,maxZ=-Infinity;
-    for(const b of blocks){
-      minX=Math.min(minX,b.dx); minY=Math.min(minY,b.dy); minZ=Math.min(minZ,b.dz);
-      maxX=Math.max(maxX,b.dx); maxY=Math.max(maxY,b.dy); maxZ=Math.max(maxZ,b.dz);
-    }
-    return {minX,minY,minZ, maxX,maxY,maxZ, sizeX:maxX-minX+1, sizeY:maxY-minY+1, sizeZ:maxZ-minZ+1};
-  }
-
-function pickBaseColor(blockId){
-  // 1) palette 辞書最優先
-  const p = paletteLookup(blockId);
-  if(p) return p;
-
-  const id = String(blockId||"").toLowerCase();
-  const name = id.includes(":") ? id.split(":")[1] : id;
-    // クォーツ系は白（smooth_quartz / quartz_block / quartz_pillar 等）
-  if (name.includes("quartz")) return {r: 235, g: 235, b: 235, a: 0.98};
-  // ネザー・レンガ系（赤がグレーに落ちるのを防ぐ）
-  if (name.includes("red_nether") || name.includes("rednether")) return {r: 150, g: 60, b: 60, a: 0.98};
-  if (name.includes("nether_brick") || name.includes("netherbrick") || name.includes("netherrack"))
-    return {r: 120, g: 55, b: 55, a: 0.98};
-  // brick 系（赤レンガっぽく）
-  if (name.includes("brick")) {
-    if (name.includes("red")) return {r: 170, g: 70, b: 70, a: 0.98};
-    return {r: 150, g: 95, b: 75, a: 0.98};
-  }
-
-
-  // 透明系
-  if (name.includes("glass") || name.includes("ice")) return {r: 170, g: 210, b: 230, a: 0.55};
-  // 植物
-  if (name.includes("leaves") || name.includes("leaf") || name.includes("moss") || name.includes("vine")) return {r: 90, g: 150, b: 90, a: 0.95};
-  // 木材
-  if (name.includes("log") || name.includes("wood") || name.includes("planks") || name.includes("bamboo")) return {r: 160, g: 125, b: 85, a: 0.95};
-  // 土・砂
-  if (name.includes("dirt") || name.includes("grass") || name.includes("sand") || name.includes("gravel") || name.includes("clay")) return {r: 160, g: 145, b: 110, a: 0.98};
-  // 石
-  if (name.includes("stone") || name.includes("deepslate") || name.includes("andesite") || name.includes("diorite") || name.includes("granite") || name.includes("cobble") || name.includes("tuff")) return {r: 140, g: 145, b: 155, a: 0.98};
-
-  // 金属
-  if (name.includes("iron") || name.includes("anvil") || name.includes("chain") || name.includes("rail")) return {r: 170, g: 175, b: 185, a: 0.98};
-  if (name.includes("copper")) return {r: 190, g: 120, b: 80, a: 0.98};
-  if (name.includes("gold")) return {r: 210, g: 185, b: 90, a: 0.98};
-
-  // 宝石
-  if (name.includes("diamond")) return {r: 120, g: 210, b: 220, a: 0.98};
-  if (name.includes("emerald")) return {r: 70, g: 200, b: 120, a: 0.98};
-  if (name.includes("lapis")) return {r: 70, g: 110, b: 200, a: 0.98};
-  if (name.includes("redstone")) return {r: 190, g: 70, b: 70, a: 0.98};
-
-  // wool / concrete / terracotta（色名判定）
-  if (name.includes("wool") || name.includes("concrete") || name.includes("terracotta")) {
-    if (name.includes("red")) return {r: 190, g: 70, b: 70, a: 0.98};
-    if (name.includes("white")) return {r: 220,g:220,b:220,a:0.98};
-    if (name.includes("black")) return {r: 25,g:25,b:28,a:0.98};
-
-    // ★包含バグ対策：light_gray → gray の順
-    if (name.includes("light_gray") || name.includes("lightgrey") || name.includes("silver")) return {r: 180,g:180,b:185,a:0.98};
-    if (name.includes("gray") || name.includes("grey")) return {r: 130,g:130,b:135,a:0.98};
-
-    if (name.includes("light_blue") || name.includes("lightblue")) return {r: 140,g:190,b:230,a:0.98};
-    if (name.includes("blue")) return {r: 85,g:120,b:200,a:0.98};
-
-    // ★ omoide 対応：lime
-    if (name.includes("lime")) return {r: 140,g:200,b:85,a:0.98};
-    if (name.includes("green")) return {r: 85,g:170,b:110,a:0.98};
-
-    if (name.includes("yellow")) return {r: 220,g:200,b:90,a:0.98};
-
-    if (name.includes("light_purple") || name.includes("lightpurple")) return {r: 210,g:150,b:220,a:0.98};
-    if (name.includes("purple")) return {r: 150,g:95,b:190,a:0.98};
-
-    if (name.includes("pink")) return {r: 220,g:140,b:170,a:0.98};
-    if (name.includes("orange")) return {r: 220,g:150,b:80,a:0.98};
-
-    if (name.includes("cyan")) return {r: 95,g:190,b:190,a:0.98};
-    if (name.includes("magenta")) return {r: 200,g:110,b:190,a:0.98};
-
-    if (name.includes("brown")) return {r: 120,g:90,b:60,a:0.98};
-    return {r: 180,g:160,b:150,a:0.98};
-  }
-
-  // 3) fallback（控えめハッシュ）
-  let h=0;
-  for(let i=0;i<id.length;i++) h=(h*31 + id.charCodeAt(i))|0;
-  const r = 120 + (h & 70);
-  const g = 120 + ((h>>8)&70);
-  const b = 120 + ((h>>16)&70);
-  return {r,g,b,a:0.98};
-}
-  function luminance(col){
-  // col: {r,g,b,a}
-  return 0.2126*col.r + 0.7152*col.g + 0.0722*col.b;
-}
-
-
-function shade(col, k){
-  const a = (col.a == null ? 1 : col.a);
-  const r = Math.max(0, Math.min(255, Math.round(col.r * k)));
-  const g = Math.max(0, Math.min(255, Math.round(col.g * k)));
-  const b = Math.max(0, Math.min(255, Math.round(col.b * k)));
-  return `rgba(${r},${g},${b},${a})`;
-}
-
-function drawIsoCube(ctx, x, y, z, s, col, stroke){
-  const sx = (x - z) * s;
-  const sy = (x + z) * s * 0.5 - y * s;
-
-  // ★黒が持ち上がらない陰影（乗算）
-  const top   = shade(col, 1.08);
-  const left  = shade(col, 0.92);
-  const right = shade(col, 0.78);
-
-  ctx.fillStyle = top;
-  ctx.beginPath();
-  ctx.moveTo(sx, sy - s*0.5);
-  ctx.lineTo(sx + s, sy);
-  ctx.lineTo(sx, sy + s*0.5);
-  ctx.lineTo(sx - s, sy);
-  ctx.closePath();
-  ctx.fill();
-
-  if (stroke){
-    ctx.strokeStyle = "rgba(15,23,42,.10)";
-    ctx.lineWidth = Math.max(1, s*0.06);
-    ctx.stroke();
-  }
-
-  ctx.fillStyle = left;
-  ctx.beginPath();
-  ctx.moveTo(sx - s, sy);
-  ctx.lineTo(sx, sy + s*0.5);
-  ctx.lineTo(sx, sy + s*0.5 + s);
-  ctx.lineTo(sx - s, sy + s);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.fillStyle = right;
-  ctx.beginPath();
-  ctx.moveTo(sx + s, sy);
-  ctx.lineTo(sx, sy + s*0.5);
-  ctx.lineTo(sx, sy + s*0.5 + s);
-  ctx.lineTo(sx + s, sy + s);
-  ctx.closePath();
-  ctx.fill();
-}
-
-
-function binBlocks(blocks, bin){
-  if(bin <= 1) return blocks;
-
-  const m = new Map();
-
-  for(const b of blocks){
-    const bx = Math.floor(b.dx / bin);
-    const by = Math.floor(b.dy / bin);
-    const bz = Math.floor(b.dz / bin);
-    const k = bx + "," + by + "," + bz;
-
-    const cur = m.get(k);
-
-    const colB = pickBaseColor(b.blockId);
-    const lumB = luminance(colB);
-
-    // 視線方向の奥行き指標（等角なので dx+dz が効く）
-    const depthB = b.dx + b.dz;
-
-    if(!cur){
-      m.set(k, { ...b, _lum: lumB, _depth: depthB });
-      continue;
-    }
-
-    const lumC = cur._lum;
-    const depthC = cur._depth;
-
-    // ① 明確に暗い方を優先（目の奥の黒）
-    if(lumB + 10 < lumC){
-      m.set(k, { ...b, _lum: lumB, _depth: depthB });
-      continue;
-    }
-
-    // ② 暗さが近いなら「奥」を優先
-    if(Math.abs(lumB - lumC) <= 10){
-      if(depthB > depthC){
-        m.set(k, { ...b, _lum: lumB, _depth: depthB });
-        continue;
-      }
-    }
-
-    // ③ それでも同等なら上（従来互換）
-    if(Math.abs(lumB - lumC) <= 10 && depthB === depthC){
-      if(b.dy > cur.dy){
-        m.set(k, { ...b, _lum: lumB, _depth: depthB });
-      }
-    }
-  }
-
-  return Array.from(m.values()).map(({_lum,_depth,...rest})=>rest);
-}
-
-  function chooseBinSize(blockCount){
-    const target = 16000;
-    if(blockCount <= target) return 1;
-    const ratio = blockCount / target;
-    let bin = Math.ceil(Math.cbrt(ratio));
-    bin = Math.min(6, Math.max(2, bin));
-    return bin;
-  }
-
-  async function loadUnitJson(it){
-    // ★元のindexと同じ思想：一覧にはJSON本体が無いので jsonUrl を fetch して読む
-    if (!it.jsonUrl) return null;
-    try{
-      const r = await fetch(it.jsonUrl, { cache: "no-store" });
-      if(!r.ok) return null;
-      const txt = await r.text();
-      const j = JSON.parse(txt);
-      if(!j || !Array.isArray(j.blocks)) return null;
-      return j;
-    }catch(e){
-      return null;
-    }
-  }
-
-  function renderThumbToCanvas(canvas, unitJson){
-    const ctx = canvas.getContext("2d");
-    const w = canvas.width, h = canvas.height;
-
-    ctx.clearRect(0,0,w,h);
-    const g = ctx.createLinearGradient(0,0,0,h);
-    g.addColorStop(0,"rgba(37,99,235,.10)");
-    g.addColorStop(1,"rgba(22,163,74,.08)");
-    ctx.fillStyle = g;
-    ctx.fillRect(0,0,w,h);
-
-    const blocks0 = unitJson.blocks || [];
-    if(!blocks0.length) return;
-
-    const qTurns = yawToQuarterTurns(unitJson.frontYaw);
-    const bin = chooseBinSize(blocks0.length);
-    const blocks = binBlocks(blocks0, bin);
-
-    function drawPass(turns, alpha){
-      const transformed = blocks.map(b=>{
-        const r = rotateXZ(b.dx, b.dz, turns);
-        return {dx:r.x, dy:b.dy, dz:r.z, blockId:b.blockId};
-      });
-
-      const inf = analyzeBlocks(transformed);
-      const spanX = inf.sizeX + inf.sizeZ;
-      const spanY = inf.sizeY;
-
-      const s = Math.max(1.6, Math.min(w/(spanX+6), h/(spanY+10)) * 1.6);
-      const ox = w*0.5;
-      const oy = h*0.80;
-
-      transformed.sort((a,b)=>
-        (a.dx+a.dz) - (b.dx+b.dz) || (a.dy - b.dy)
-      );
-
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.translate(ox, oy);
-
-      const stroke = (s >= 3);
-      for(const b of transformed){
-        const x = (b.dx - inf.minX);
-        const y = (b.dy - inf.minY);
-        const z = (b.dz - inf.minZ);
-        const col = pickBaseColor(b.blockId);
-        drawIsoCube(ctx, x, y, z, s, col, stroke);
-      }
-      ctx.restore();
-    }
-
-    if(qTurns == null){
-      drawPass(0, 1.0);
-      drawPass(2, 0.33);
-    }else{
-      drawPass(qTurns, 1.0);
-    }
-  }
-
-  function getCachedThumb(id){
-    try{ return localStorage.getItem(thumbCacheKey(id)); }catch(e){ return null; }
-  }
-  function setCachedThumb(id, dataUrl){
-    try{ localStorage.setItem(thumbCacheKey(id), dataUrl); }catch(e){}
-  }
-  function clearThumbCache(){
-    try{
-      const keys = [];
-      for(let i=0;i<localStorage.length;i++){
-        const k = localStorage.key(i);
-        if(k && k.startsWith("mc_thumb_"+THUMB_CACHE_VER+"_")) keys.push(k);
-      }
-      for(const k of keys) localStorage.removeItem(k);
-    }catch(e){}
-  }
-
-  async function hydrateThumbs(list){
-    // paletteが未ロードだと色がブレるので先に読む
-    await loadPalette();
-
-    const canvases = Array.from(document.querySelectorAll("canvas.thumb3d"));
-    for(const c of canvases){
-      const id = c.getAttribute("data-id");
-      const it = list.find(x => String(x.id) === String(id));
-      if(!it) continue;
-
-      const cached = getCachedThumb(it.id);
-      if(cached){
-        const img = new Image();
-        img.onload = () => {
-          const ctx = c.getContext("2d");
-          ctx.clearRect(0,0,c.width,c.height);
-          ctx.drawImage(img, 0, 0, c.width, c.height);
-        };
-        img.src = cached;
-        continue;
-      }
-
-      const unitJson = await loadUnitJson(it);
-      if(!unitJson) continue;
-
-      renderThumbToCanvas(c, unitJson);
-      try{
-        const url = c.toDataURL("image/png");
-        setCachedThumb(it.id, url);
-      }catch(e){}
-    }
-  }
+  // 軽量：1フレームに描画しすぎない
+  let hydrateQueue = [];
+  let hydrating = false;
 
   function scheduleHydrate(list){
-    if ("requestIdleCallback" in window){
-      requestIdleCallback(()=>hydrateThumbs(list), { timeout: 800 });
-    }else{
-      setTimeout(()=>hydrateThumbs(list), 50);
+    hydrateQueue = list.map(it=>it.id);
+    if(!hydrating){
+      hydrating = true;
+      requestIdleCallback?.(hydrateTick, { timeout: 800 }) || setTimeout(hydrateTick, 30);
     }
   }
 
-  // yaw補正UI
-  yawUi.addEventListener("change", ()=>{
-    localStorage.setItem(YAW_OFFSET_QUARTER_KEY, yawUi.value);
-    clearThumbCache();
-    render();
-  });
+  async function hydrateTick(){
+    try{
+      const ids = hydrateQueue.splice(0, 6); // 1回あたり最大6枚
+      if(ids.length === 0){
+        hydrating = false;
+        return;
+      }
+      const yawFix = getYawFix();
+      for(const id of ids){
+        const canvas = document.querySelector(`canvas.thumb3d[data-id="${CSS.escape(id)}"]`);
+        if(!canvas) continue;
+        await renderThumb(canvas, id, yawFix);
+      }
+    }finally{
+      // 次
+      requestIdleCallback?.(hydrateTick, { timeout: 800 }) || setTimeout(hydrateTick, 30);
+    }
+  }
 
-  // boot
-  const savedYaw = localStorage.getItem(YAW_OFFSET_QUARTER_KEY);
-  if(savedYaw != null) yawUi.value = savedYaw;
+  // ----- palette -----
+  let palette = null;
+  async function loadPalette(){
+    if(palette) return palette;
+    try{
+      const r = await fetch("/assets/palette.v1.json", { cache: "force-cache" });
+      if(r.ok){
+        palette = await r.json();
+      }else{
+        palette = {};
+      }
+    }catch(_){
+      palette = {};
+    }
+    return palette;
+  }
 
-  // 一覧読み込み（paletteはhydrateで先に保証）
+  function hexToRgb(hex){
+    const s = String(hex||"").replace("#","");
+    if(s.length === 3){
+      const r = parseInt(s[0]+s[0],16);
+      const g = parseInt(s[1]+s[1],16);
+      const b = parseInt(s[2]+s[2],16);
+      return [r,g,b,255];
+    }
+    if(s.length === 6){
+      const r = parseInt(s.slice(0,2),16);
+      const g = parseInt(s.slice(2,4),16);
+      const b = parseInt(s.slice(4,6),16);
+      return [r,g,b,255];
+    }
+    return [120,120,120,255];
+  }
+
+  function hashColor(str){
+    // 安定した控えめ色
+    let h=2166136261;
+    for(let i=0;i<str.length;i++){
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h,16777619);
+    }
+    const r = 80 + (h & 0x7F);
+    const g = 80 + ((h>>>8) & 0x7F);
+    const b = 80 + ((h>>>16) & 0x7F);
+    return [r,g,b,255];
+  }
+
+  function isTransparentBlockId(blockId){
+    const s = String(blockId||"").toLowerCase();
+    // MVP：厳密再現しない。軽量のため「見た目が透けそう」だけ半透明
+    return s.includes("glass") || s.includes("pane") || s.includes("slab") || s.includes("stairs");
+  }
+
+  function colorForBlock(blockId, pal){
+    const key = String(blockId||"");
+    const found = pal && (pal[key] || pal[key.toLowerCase()]);
+    if(found) return hexToRgb(found);
+    return hashColor(key);
+  }
+
+  // ----- blocks fetch -----
+  async function fetchUnitJson(id){
+    // いまは download API から取る（軽量）
+    const r = await fetch(API_DL(id), { cache: "no-store" });
+    if(!r.ok) throw new Error("download HTTP " + r.status);
+    return await r.json();
+  }
+
+  // ----- render engine (簡易アイソメ) -----
+  async function renderThumb(canvas, id, yawFix){
+    const ctx2 = canvas.getContext("2d");
+    if(!ctx2) return;
+
+    const pal = await loadPalette();
+    const unit = await fetchUnitJson(id);
+    const blocks = Array.isArray(unit.blocks) ? unit.blocks : [];
+    if(blocks.length === 0){
+      ctx2.clearRect(0,0,canvas.width,canvas.height);
+      return;
+    }
+
+    // bbox
+    let minX=1e9,minY=1e9,minZ=1e9;
+    let maxX=-1e9,maxY=-1e9,maxZ=-1e9;
+    for(const b of blocks){
+      const x = b.dx|0, y=b.dy|0, z=b.dz|0;
+      if(x<minX) minX=x; if(y<minY) minY=y; if(z<minZ) minZ=z;
+      if(x>maxX) maxX=x; if(y>maxY) maxY=y; if(z>maxZ) maxZ=z;
+    }
+    const sizeX = (maxX-minX+1);
+    const sizeY = (maxY-minY+1);
+    const sizeZ = (maxZ-minZ+1);
+
+    // --- scale stabilize（あなたの方針に沿って軽量に） ---
+    const padX = 6;
+    const padY = 10;
+    const spanXZ = sizeX + sizeZ;
+    const spanY  = sizeY;
+
+    const k = 6.2; // 係数（描画品質は変えずに視認性を確保）
+    const s = Math.min(
+      canvas.width  / (spanXZ + padX),
+      canvas.height / (spanY  + padY)
+    ) * k;
+
+    // iso basis
+    const yaw = ((yawFix % 360) + 360) % 360;
+
+    function rot(x,z){
+      // 90度刻みのみ（軽量）
+      const t = ((yaw/90)|0) % 4;
+      if(t===0) return [x,z];
+      if(t===1) return [-z,x];
+      if(t===2) return [-x,-z];
+      return [z,-x];
+    }
+
+    // projected positions
+    const ox = canvas.width/2;
+    const oy = canvas.height*0.72;
+
+    function proj(x,y,z){
+      // 簡易アイソメ
+      const [rx,rz] = rot(x,z);
+      const px = (rx - rz) * 0.9;
+      const py = (rx + rz) * 0.45 - y*1.2;
+      return [ox + px*s, oy + py*s];
+    }
+
+    ctx2.clearRect(0,0,canvas.width,canvas.height);
+
+    // sort: y -> x+z for stable
+    const sorted = blocks.slice().sort((a,b)=>{
+      const ay=a.dy|0, by=b.dy|0;
+      if(ay!==by) return ay-by;
+      const as=(a.dx|0)+(a.dz|0);
+      const bs=(b.dx|0)+(b.dz|0);
+      return as-bs;
+    });
+
+    // draw blocks as 2D cubes (very simplified)
+    for(const b of sorted){
+      const x=(b.dx|0)-minX;
+      const y=(b.dy|0)-minY;
+      const z=(b.dz|0)-minZ;
+      const blockId = b.blockId || b.block_id || b.id || "";
+      const col = colorForBlock(blockId, pal);
+      const alpha = isTransparentBlockId(blockId) ? 160 : 255;
+
+      const [cx,cy] = proj(x,y,z);
+      // cube faces (2D fake)
+      const w = s*0.95;
+      const h = s*0.55;
+
+      // top
+      ctx2.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${alpha/255})`;
+      ctx2.beginPath();
+      ctx2.moveTo(cx, cy - h);
+      ctx2.lineTo(cx + w, cy - h*0.2);
+      ctx2.lineTo(cx, cy + h*0.6);
+      ctx2.lineTo(cx - w, cy - h*0.2);
+      ctx2.closePath();
+      ctx2.fill();
+
+      // side
+      ctx2.fillStyle = `rgba(${Math.max(0,col[0]-20)},${Math.max(0,col[1]-20)},${Math.max(0,col[2]-20)},${alpha/255})`;
+      ctx2.beginPath();
+      ctx2.moveTo(cx, cy + h*0.6);
+      ctx2.lineTo(cx + w, cy - h*0.2);
+      ctx2.lineTo(cx + w, cy + h*1.4);
+      ctx2.lineTo(cx, cy + h*2.2);
+      ctx2.closePath();
+      ctx2.fill();
+
+      // other side
+      ctx2.fillStyle = `rgba(${Math.max(0,col[0]-35)},${Math.max(0,col[1]-35)},${Math.max(0,col[2]-35)},${alpha/255})`;
+      ctx2.beginPath();
+      ctx2.moveTo(cx, cy + h*0.6);
+      ctx2.lineTo(cx - w, cy - h*0.2);
+      ctx2.lineTo(cx - w, cy + h*1.4);
+      ctx2.lineTo(cx, cy + h*2.2);
+      ctx2.closePath();
+      ctx2.fill();
+    }
+  }
+
+  // start
   loadList();
 })();
 </script>
-
 </body>
 </html>
