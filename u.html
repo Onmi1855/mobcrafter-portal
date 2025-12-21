@@ -28,33 +28,12 @@
       padding:18px 16px 10px;
       text-align:center;
     }
-    header a{
-      color:inherit;
-      text-decoration:none;
-    }
-    header h1{
-      margin:0;
-      font-size:18px;
-      letter-spacing:.4px;
-    }
-    header p{
-      margin:6px 0 0;
-      color:var(--muted);
-      font-size:12px;
-    }
-    main{
-      max-width:1060px;
-      margin:0 auto;
-      padding:10px 16px 40px;
-    }
-    .wrap{
-      display:grid;
-      grid-template-columns: 1.15fr .85fr;
-      gap:14px;
-    }
-    @media (max-width: 900px){
-      .wrap{ grid-template-columns: 1fr; }
-    }
+    header a{ color:inherit; text-decoration:none; }
+    header h1{ margin:0; font-size:18px; letter-spacing:.4px; }
+    header p{ margin:6px 0 0; color:var(--muted); font-size:12px; }
+    main{ max-width:1060px; margin:0 auto; padding:10px 16px 40px; }
+    .wrap{ display:grid; grid-template-columns: 1.15fr .85fr; gap:14px; }
+    @media (max-width: 900px){ .wrap{ grid-template-columns: 1fr; } }
     .card{
       background:var(--card);
       border:1px solid var(--line);
@@ -62,19 +41,9 @@
       box-shadow:var(--shadow);
       padding:14px;
     }
-    .title{
-      margin:0;
-      font-size:18px;
-      font-weight:800;
-      line-height:1.25;
-    }
+    .title{ margin:0; font-size:18px; font-weight:800; line-height:1.25; }
     .muted{ color:var(--muted); font-size:12px; }
-    .tags{
-      margin-top:10px;
-      display:flex;
-      flex-wrap:wrap;
-      gap:6px;
-    }
+    .tags{ margin-top:10px; display:flex; flex-wrap:wrap; gap:6px; }
     .tag{
       font-size:12px;
       padding:4px 10px;
@@ -82,21 +51,9 @@
       border:1px solid rgba(148,163,184,.35);
       background:rgba(255,255,255,.8);
     }
-    .kv{
-      margin-top:12px;
-      display:grid;
-      grid-template-columns: 160px 1fr;
-      gap:8px 10px;
-      font-size:13px;
-    }
+    .kv{ margin-top:12px; display:grid; grid-template-columns: 160px 1fr; gap:8px 10px; font-size:13px; }
     .kv .k{ color:var(--muted); }
-    .actions{
-      margin-top:12px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
+    .actions{ margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .btn{
       border:1px solid var(--line);
       border-radius:12px;
@@ -135,39 +92,6 @@
       border-radius:12px;
       white-space:pre-wrap;
     }
-    .ownerBox{
-      margin-top:14px;
-      border-top:1px dashed var(--line);
-      padding-top:14px;
-    }
-    .row{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:flex-end;
-      margin-top:10px;
-    }
-    input[type="text"], textarea{
-      width:100%;
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:10px 12px;
-      font-size:14px;
-      outline:none;
-      background:#fff;
-    }
-    textarea{ min-height:92px; resize:vertical; }
-    .danger{
-      background:rgba(220,38,38,.95);
-      border-color:rgba(220,38,38,.10);
-      color:#fff;
-    }
-    .hint{
-      margin-top:8px;
-      font-size:12px;
-      color:var(--muted);
-      white-space:pre-wrap;
-    }
   </style>
 </head>
 <body>
@@ -180,10 +104,9 @@
   <div class="wrap">
     <section class="card">
       <h2 class="title" id="title">読み込み中...</h2>
-      <div class="muted" id="sub"> </div>
+      <div class="muted" id="sub"></div>
 
       <div class="tags" id="tags"></div>
-
       <div class="kv" id="kv"></div>
 
       <div class="actions">
@@ -201,79 +124,25 @@
         <pre id="howto"></pre>
       </details>
 
-      <div class="ownerBox" id="ownerBox">
-        <h3 style="margin:0 0 8px;">投稿者メニュー（編集/差し替え/削除）</h3>
-
-        <div class="row">
-          <div style="flex:1; min-width:220px;">
-            <label class="muted">タイトル</label>
-            <input id="editTitle" type="text" placeholder="タイトル" />
-          </div>
-          <div style="flex:1; min-width:220px;">
-            <label class="muted">タグ（スペース区切り）</label>
-            <input id="editTags" type="text" placeholder="tag1 tag2 ..." />
-          </div>
-        </div>
-
-        <div class="row">
-          <div style="flex:1; min-width:220px;">
-            <label class="muted">説明</label>
-            <textarea id="editDesc" placeholder="説明"></textarea>
-          </div>
-        </div>
-
-        <div class="row">
-          <button id="saveMetaBtn" class="btn" type="button">メタ更新</button>
-          <button id="replaceJsonBtn" class="btn" type="button">JSON差し替え（ファイル選択）</button>
-          <input id="jsonFile" type="file" accept="application/json" style="display:none;">
-          <button id="deleteBtn" class="btn danger" type="button">削除</button>
-        </div>
-
-        <div id="ownerMsg" class="hint"></div>
-      </div>
+      <div id="msg"></div>
     </section>
 
     <aside class="card">
       <h3 style="margin:0 0 8px;">サムネ（MVP）</h3>
       <div class="muted" style="font-size:13px;">
-        MVP方針により、一覧は軽量維持。詳細では今後スクショ/3D切替を実装します。<br>
-        （現時点はこの枠は説明のみ。スクショ対応フェーズでここに表示を追加）
+        MVP方針：一覧は軽量。詳細は情報集約（次フェーズでスクショ/3D切替）。
       </div>
-      <div id="status" style="margin-top:12px;"></div>
     </aside>
   </div>
 </main>
 
 <script>
-  // ★確定構成：同一オリジン（mobcrafter.net/api）
-  const API_BASE = ""; // 同一オリジン（mobcrafter.net/api）
-  const API_JSON = (id) => `${API_BASE}/api/public/submissions/${id}/json`;
-  const API_DL   = (id) => `${API_BASE}/api/public/submissions/${id}/download`;
+(() => {
+  const API_LIST = "/api/public/submissions"; // approved一覧
+  const API_JSON = (id) => `/api/public/submissions/${id}/json`;      // DLカウントしない
+  const API_DL   = (id) => `/api/public/submissions/${id}/download`;  // DLカウントする
 
-  function getSubmissionNoFromPath() {
-    // 1) 正規パス: /u/123
-    let m = location.pathname.match(/^\/u\/(\d+)/);
-    if (m) return Number(m[1]);
-    // 2) 404.html リダイレクト: /u/index.html?p=/u/123
-    const p = new URLSearchParams(location.search);
-    const path = p.get("p") || "";
-    m = path.match(/^\/u\/(\d+)/);
-    if (m) return Number(m[1]);
-    // 3) 直接 no=123 の形式でもOK
-    const no = p.get("no");
-    if (no && /^\d+$/.test(no)) return Number(no);
-    // 4) 404.html が sessionStorage に入れた場合
-    try {
-      const ss = sessionStorage.getItem("mc_redirect_path") || "";
-      m = ss.match(/^\/u\/(\d+)/);
-      if (m) return Number(m[1]);
-    } catch {}
-    return null;
-  }
-
-  function el(id){ return document.getElementById(id); }
-
-  function setStatus(html){ el("status").innerHTML = html || ""; }
+  const el = (id) => document.getElementById(id);
 
   function escapeHtml(s){
     return String(s ?? "")
@@ -298,196 +167,114 @@
     const id = String(unitId || "").trim();
     return [
       "【MobCrafterでの使い方】",
-      "1) ダウンロードしたJSONファイル名が unitId と一致していることを確認",
+      "1) Download JSON を押して取得",
+      "2) ファイル名とJSON内 id/unitId は必ず一致しています",
       "   例: " + id + ".json",
-      "2) MobCrafter の指定フォルダに配置（あなたの環境の手順に従ってください）",
-      "3) ゲーム内で読み込み/召喚",
+      "3) MobCrafter の指定フォルダへ配置 → ゲーム内で読み込み/召喚",
       "",
-      "※このポータルは、MobCrafter本体仕様により",
-      "  ファイル名とJSON内の id/unitId を必ず一致させて配布します。",
-    ].join("\n");
+      "※ポータル側で unitId を強制一致させています（MobCrafter本体仕様対策）。"
+    ].join("\\n");
   }
 
-  async function apiGet(path){
-    const res = await fetch(`${API_BASE}${path}`, { cache:"no-store" });
-    if(!res.ok){
-      const t = await res.text().catch(()=> "");
-      throw new Error(`HTTP ${res.status}\n${t}`);
-    }
-    return await res.json();
+  function getKeyFromUrl(){
+    // 正規: /u/13 または /u/<uuid>
+    let m = location.pathname.match(/^\/u\/([^\/?#]+)/);
+    if (m) return decodeURIComponent(m[1]);
+
+    // 404ルーティング: /u/index.html?p=/u/13
+    const p = new URLSearchParams(location.search).get("p") || "";
+    m = p.match(/^\/u\/([^\/?#]+)/);
+    if (m) return decodeURIComponent(m[1]);
+
+    return null;
   }
 
-  async function whoami(){
-    try{
-      const w = await apiGet(`/api/whoami`);
-      return w;
-    }catch{
-      return { ok:false, email:null, is_admin:false };
-    }
+  async function fetchApprovedList(){
+    const r = await fetch(API_LIST, { cache:"no-store" });
+    if(!r.ok) throw new Error("list HTTP " + r.status);
+    const data = await r.json();
+    return Array.isArray(data.items) ? data.items : [];
   }
 
   async function load(){
-    setStatus(`<div class="muted">読み込み中...</div>`);
-
-    const no = getSubmissionNoFromPath();
-    if (!no) {
-      setStatus(`<div class="err">URLが不正です。\n一覧からクリックして開いてください。</div>`);
+    const key = getKeyFromUrl();
+    if(!key){
+      el("msg").innerHTML = `<div class="err">URLが不正です。一覧からクリックして開いてください。</div>`;
       return;
     }
 
-    // 詳細メタ取得（approvedのみ返る）
-    let item;
-    try {
-      const res = await apiGet(`/api/public/u/${no}`);
-      item = res.item;
-    } catch (e) {
-      setStatus(`<div class="err">詳細の取得に失敗しました:\n${escapeHtml(String(e.message || e))}</div>`);
+    // key が数字なら submission_no、数字以外なら UUID とみなす
+    const isNo = /^\d+$/.test(key);
+    const list = await fetchApprovedList();
+
+    let item = null;
+    if(isNo){
+      const no = Number(key);
+      item = list.find(x => Number(x.submission_no ?? x.submissionNo ?? 0) === no) || null;
+    }else{
+      item = list.find(x => String(x.id) === key) || null;
+    }
+
+    if(!item){
+      el("msg").innerHTML = `<div class="err">対象が見つかりませんでした。\n（承認済み一覧に無い、または削除済みの可能性）</div>`;
       return;
     }
 
     // 表示
-    el("title").textContent = item.title || "Untitled";
-    el("sub").textContent = `#${item.submission_no} / ${item.unit_id || ""}`;
+    el("title").textContent = item.title || item.name || "Untitled";
+    el("sub").textContent = `#${item.submission_no ?? "?"} / ${item.unit_id ?? ""}`;
 
     const tags = normalizeTags(item.tags);
     el("tags").innerHTML = tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join("");
 
     el("kv").innerHTML = [
-      kvRow("投稿日", item.created_at),
-      kvRow("更新", item.updated_at || ""),
+      kvRow("投稿日", item.created_at || ""),
       kvRow("DL数", item.download_count ?? 0),
-      kvRow("mc_version", item.mc_version || ""),
-      kvRow("mod_version", item.mod_version || ""),
-      kvRow("submission_no", item.submission_no),
-      kvRow("unit_id", item.unit_id),
-      kvRow("作者", item.author_name || "unknown"),
+      kvRow("mod_version", item.mod_version || "Forge"),
+      kvRow("submission_no", item.submission_no ?? ""),
+      kvRow("unit_id", item.unit_id ?? ""),
+      kvRow("作者", item.author_name || "unknown")
     ].join("");
 
-    // DLリンク（UUIDでDL）
-    const dlBtn = el("downloadBtn");
-    dlBtn.href = API_DL(item.id);
+    // DLリンク（ここだけがDLカウント増える）
+    el("downloadBtn").href = API_DL(item.id);
 
-    // howto / preview
+    // howto
     el("howto").textContent = buildHowTo(item.unit_id);
-    el("jsonPreview").textContent = "（開いたときに取得します）";
 
-    // JSONプレビューは折りたたみを開いた時だけ取得（DLカウントしない）
+    // JSONプレビュー（開いた時だけ取得、DLカウントしない）
     let jsonLoaded = false;
     const jsonDetails = el("jsonDetails");
     jsonDetails.addEventListener("toggle", async () => {
-      if (!jsonDetails.open) return;
-      if (jsonLoaded) return;
+      if(!jsonDetails.open) return;
+      if(jsonLoaded) return;
       jsonLoaded = true;
-      try {
-        const res = await fetch(API_JSON(item.id), { cache: "no-store" });
-        if (!res.ok) throw new Error("json HTTP " + res.status);
-        const text = await res.text();
+      try{
+        const r = await fetch(API_JSON(item.id), { cache:"no-store" });
+        if(!r.ok) throw new Error("json HTTP " + r.status);
+        const text = await r.text();
         el("jsonPreview").textContent = text;
-      } catch (e) {
+      }catch(e){
         el("jsonPreview").textContent = "取得失敗: " + String(e.message || e);
       }
     });
 
     // copy howto
     el("copyBtn").onclick = async () => {
-      try {
+      try{
         await navigator.clipboard.writeText(buildHowTo(item.unit_id));
-        setStatus(`<div class="card" style="margin-top:12px;">コピーしました。</div>`);
-        setTimeout(()=>setStatus(""), 1500);
-      } catch {
-        setStatus(`<div class="err">コピーできませんでした。</div>`);
+        el("msg").innerHTML = `<div class="muted" style="margin-top:12px;">コピーしました。</div>`;
+        setTimeout(()=> el("msg").innerHTML = "", 1500);
+      }catch{
+        el("msg").innerHTML = `<div class="err">コピーできませんでした。</div>`;
       }
     };
-
-    // 投稿者メニュー（Cloudflare Access の email / admin 判定）
-    const me = await whoami();
-    const isOwner = me.email && item.author_email && String(me.email).toLowerCase() === String(item.author_email).toLowerCase();
-    const canEdit = Boolean(me.is_admin || isOwner);
-
-    const ownerBox = el("ownerBox");
-    if (!canEdit) {
-      ownerBox.style.display = "none";
-      return;
-    }
-
-    // 初期値反映
-    el("editTitle").value = item.title || "";
-    el("editDesc").value = item.description || "";
-    el("editTags").value = String(item.tags || "");
-
-    function setOwnerMsg(msg){ el("ownerMsg").textContent = msg || ""; }
-
-    // メタ更新
-    el("saveMetaBtn").onclick = async () => {
-      setOwnerMsg("更新中...");
-      try{
-        const body = {
-          title: el("editTitle").value,
-          description: el("editDesc").value,
-          tags: el("editTags").value
-        };
-        const res = await fetch(`/api/submissions/${item.id}`, {
-          method: "PUT",
-          headers: { "Content-Type":"application/json" },
-          body: JSON.stringify(body)
-        });
-        const t = await res.text();
-        if(!res.ok) throw new Error(t);
-        setOwnerMsg("メタ更新しました。ページを更新すると反映されます。");
-      }catch(e){
-        setOwnerMsg("失敗: " + String(e.message || e));
-      }
-    };
-
-    // JSON差し替え
-    el("replaceJsonBtn").onclick = () => el("jsonFile").click();
-    el("jsonFile").onchange = async () => {
-      const f = el("jsonFile").files && el("jsonFile").files[0];
-      if(!f) return;
-
-      setOwnerMsg("JSON差し替え中...");
-      try{
-        const text = await f.text();
-        const j = JSON.parse(text);
-
-        const res = await fetch(`/api/submissions/${item.id}/json`, {
-          method: "PUT",
-          headers: { "Content-Type":"application/json" },
-          body: JSON.stringify({ json: j })
-        });
-        const t = await res.text();
-        if(!res.ok) throw new Error(t);
-
-        setOwnerMsg("差し替え完了。Downloadボタンから新しいJSONを取れます。");
-        // プレビューは次回開いたときに取得し直し
-        jsonLoaded = false;
-        el("jsonPreview").textContent = "（開いたときに取得します）";
-      }catch(e){
-        setOwnerMsg("失敗: " + String(e.message || e));
-      }finally{
-        el("jsonFile").value = "";
-      }
-    };
-
-    // 削除（ソフトデリート）
-    el("deleteBtn").onclick = async () => {
-      if(!confirm("この投稿を削除します（復元不可）。よろしいですか？")) return;
-      setOwnerMsg("削除中...");
-      try{
-        const res = await fetch(`/api/submissions/${item.id}`, { method:"DELETE" });
-        const t = await res.text();
-        if(!res.ok) throw new Error(t);
-        setOwnerMsg("削除しました。トップへ戻ります。");
-        setTimeout(()=>location.href="/", 800);
-      }catch(e){
-        setOwnerMsg("失敗: " + String(e.message || e));
-      }
-    };
-
-    setStatus("");
   }
 
-  load();
+  load().catch(e => {
+    el("msg").innerHTML = `<div class="err">読み込みに失敗しました:\n${escapeHtml(String(e.message || e))}</div>`;
+  });
+})();
 </script>
 </body>
 </html>
