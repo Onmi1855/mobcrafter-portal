@@ -11,7 +11,8 @@
     h1 { margin: 0 0 8px; }
     .row { display:flex; gap: 12px; flex-wrap: wrap; align-items: center; }
     .row > * { flex: 0 0 auto; }
-    select, button, input { padding: 10px; border-radius: 10px; border: 1px solid #ccc; }
+    select, button, input, textarea { padding: 10px; border-radius: 10px; border: 1px solid #ccc; }
+    textarea { width: 100%; min-height: 200px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
     button { cursor: pointer; }
     button.primary { background:#111; color:#fff; border: 0; }
     button.danger { background:#b00020; color:#fff; border: 0; }
@@ -22,17 +23,25 @@
     th { text-align: left; color:#444; font-size: 13px; }
     .muted { color:#666; font-size: 13px; }
     .pill { display:inline-block; padding: 2px 8px; border-radius: 999px; background:#eee; font-size: 12px; }
+    .pill.red { background:#ffe3e3; }
     .tags { display:flex; flex-wrap: wrap; gap: 6px; }
     .tag { background:#eef; border:1px solid #dde; padding:2px 8px; border-radius: 999px; font-size: 12px; }
     a { color: #0b57d0; }
     .btnlink { display:inline-flex; align-items:center; gap:6px; text-decoration:none; padding:8px 10px; border-radius:10px; border:1px solid #ccc; }
+    dialog { border: 1px solid #ddd; border-radius: 12px; padding: 14px; width: min(820px, 96vw); }
+    dialog::backdrop { background: rgba(0,0,0,.25); }
+    .dlghead { display:flex; justify-content: space-between; align-items:center; gap: 10px; }
+    .dlgtitle { font-weight: 800; }
+    .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+    .mini { font-size: 12px; color:#666; }
   </style>
 </head>
 <body>
 <div class="wrap">
   <h1>MobCrafter 管理画面</h1>
   <div class="muted">
-    ※ このページは管理者のみ。APIは <code>/api/admin/*</code> を叩きます（同一オリジン）。<br>
+    ※ 管理者のみ。APIは <code>/api/admin/*</code> を叩きます（同一オリジン）。<br>
     ※ Cloudflare Access（Google OAuth）で <code>mobcrafter.net/api/admin*</code> を保護している前提です。
   </div>
 
@@ -47,14 +56,21 @@
         </select>
       </label>
 
+      <label>
+        <input id="includeDeleted" type="checkbox" />
+        削除済みも含める
+      </label>
+
       <button id="reload" class="primary">再読み込み</button>
 
       <label>
-        検索（タイトル/作者/タグ）：
-        <input id="q" type="text" placeholder="例: ff7 / Sephiroth" />
+        検索（サーバー）：<input id="q" type="text" placeholder="例: ff7 / Sephiroth" />
       </label>
 
       <span class="pill" id="count">0件</span>
+    </div>
+    <div class="mini" style="margin-top:8px;">
+      ※ 検索は Worker の <code>?query=</code> を使用（大量でも軽い）。削除済み表示は <code>?include_deleted=1</code>。
     </div>
   </div>
 
@@ -69,6 +85,43 @@
   </div>
 </div>
 
+<!-- 編集ダイアログ -->
+<dialog id="dlgEdit">
+  <div class="dlghead">
+    <div class="dlgtitle">編集</div>
+    <button id="dlgClose">閉じる</button>
+  </div>
+  <div class="mini" id="dlgInfo" style="margin:6px 0 10px;"></div>
+
+  <div class="grid2">
+    <div>
+      <div class="mini">タイトル（最大80）</div>
+      <input id="editTitle" type="text" />
+    </div>
+    <div>
+      <div class="mini">タグ（空白/カンマ区切り）</div>
+      <input id="editTags" type="text" />
+    </div>
+  </div>
+
+  <div style="margin-top:10px;">
+    <div class="mini">説明（最大2000）</div>
+    <input id="editDesc" type="text" />
+  </div>
+
+  <div style="margin-top:12px;">
+    <div class="mini">JSON差し替え（貼り付け）</div>
+    <textarea id="editJson" placeholder='{"blocks":[...]} だけでもOK'></textarea>
+    <div class="mini">※ unitId/id はサーバー側で固定に上書きされます。</div>
+  </div>
+
+  <div class="row" style="margin-top:12px;">
+    <button id="btnSaveMeta" class="primary">メタ保存</button>
+    <button id="btnSaveJson" class="primary">JSON保存</button>
+    <span class="pill" id="dlgStatus">-</span>
+  </div>
+</dialog>
+
 <script>
 (() => {
   const API_BASE = "/api/admin";
@@ -76,11 +129,24 @@
   const $status = document.getElementById("status");
   const $reload = document.getElementById("reload");
   const $q = document.getElementById("q");
+  const $includeDeleted = document.getElementById("includeDeleted");
   const $count = document.getElementById("count");
   const $log = document.getElementById("log");
   const $list = document.getElementById("list");
 
+  const $dlg = document.getElementById("dlgEdit");
+  const $dlgClose = document.getElementById("dlgClose");
+  const $dlgInfo = document.getElementById("dlgInfo");
+  const $editTitle = document.getElementById("editTitle");
+  const $editTags  = document.getElementById("editTags");
+  const $editDesc  = document.getElementById("editDesc");
+  const $editJson  = document.getElementById("editJson");
+  const $btnSaveMeta = document.getElementById("btnSaveMeta");
+  const $btnSaveJson = document.getElementById("btnSaveJson");
+  const $dlgStatus = document.getElementById("dlgStatus");
+
   let items = [];
+  let currentEdit = null; // {id, item}
 
   function log(v) {
     $log.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
@@ -99,72 +165,48 @@
         const t = tags.trim();
         if (!t) return [];
         if (t.startsWith("[") && t.endsWith("]")) return JSON.parse(t);
-        // "a b c" / "a,b,c" の揺れ吸収
         return t.split(/[, \t\r\n]+/).map(s=>s.trim()).filter(Boolean);
       }
     } catch {}
     return [];
   }
 
-  async function apiGet(path) {
-    const url = API_BASE.replace(/\/+$/,"") + "/" + String(path).replace(/^\/+/,"");
-    const r = await fetch(url, {
-      method: "GET",
+  function buildListQuery() {
+    const status = ($status.value || "pending").trim();
+    const q = ($q.value || "").trim();
+    const includeDeleted = $includeDeleted.checked ? "1" : "0";
+
+    const params = new URLSearchParams();
+    params.set("status", status);
+    if (includeDeleted === "1") params.set("include_deleted", "1");
+    if (q) params.set("query", q);
+
+    return `submissions?${params.toString()}`;
+  }
+
+  async function api(path, method, body) {
+    const u = API_BASE.replace(/\/+$/,"") + "/" + String(path).replace(/^\/+/,"");
+    const init = {
+      method,
       credentials: "include",
       headers: { "Accept": "application/json" }
-    });
+    };
+    if (body !== undefined) {
+      init.headers["Content-Type"] = "application/json";
+      init.body = JSON.stringify(body);
+    }
+    const r = await fetch(u, init);
     const text = await r.text();
     let data;
     try { data = JSON.parse(text); } catch { data = { raw: text }; }
     if (!r.ok) throw { http: r.status, data };
     return data;
-  }
-
-  async function apiPost(path) {
-    const url = API_BASE.replace(/\/+$/,"") + "/" + String(path).replace(/^\/+/,"");
-    const r = await fetch(url, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: "{}"
-    });
-    const text = await r.text();
-    let data;
-    try { data = JSON.parse(text); } catch { data = { raw: text }; }
-    if (!r.ok) throw { http: r.status, data };
-    return data;
-  }
-
-  async function apiDelete(path) {
-    const url = API_BASE.replace(/\/+$/,"") + "/" + String(path).replace(/^\/+/,"");
-    const r = await fetch(url, {
-      method: "DELETE",
-      credentials: "include",
-      headers: { "Accept": "application/json" }
-    });
-    const text = await r.text();
-    let data;
-    try { data = JSON.parse(text); } catch { data = { raw: text }; }
-    if (!r.ok) throw { http: r.status, data };
-    return data;
-  }
-
-  function filterItems(list) {
-    const q = ($q.value || "").trim().toLowerCase();
-    if (!q) return list;
-    return list.filter(it => {
-      const title = String(it.title || "").toLowerCase();
-      const author = String(it.author_name || it.author_email || "").toLowerCase();
-      const tags = parseTags(it.tags).join(" ").toLowerCase();
-      return title.includes(q) || author.includes(q) || tags.includes(q);
-    });
   }
 
   function render() {
-    const view = filterItems(items);
-    $count.textContent = `${view.length}件`;
+    $count.textContent = `${items.length}件`;
 
-    if (view.length === 0) {
+    if (items.length === 0) {
       $list.innerHTML = `<div class="muted">該当なし</div>`;
       return;
     }
@@ -178,11 +220,11 @@
           <tr>
             <th style="width: 180px;">作成日時</th>
             <th>内容</th>
-            <th style="width: 260px;">操作</th>
+            <th style="width: 320px;">操作</th>
           </tr>
         </thead>
         <tbody>
-          ${view.map(it => {
+          ${items.map(it => {
             const tags = parseTags(it.tags);
             const created = esc(it.created_at || "");
             const title = esc(it.title || "");
@@ -191,12 +233,14 @@
             const mv = esc(it.mod_version || "");
             const id = esc(it.id || "");
             const no = it.submission_no != null ? String(it.submission_no) : "";
+            const deleted = it.deleted_at ? true : false;
 
             const tagHtml = tags.length
               ? `<div class="tags">${tags.slice(0, 12).map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>`
               : `<span class="muted">タグなし</span>`;
 
-            const detailLink = no ? `<a class="btnlink" href="/u/${encodeURIComponent(no)}" target="_blank">管理（詳細へ）</a>` : "";
+            const detailLink = no ? `<a class="btnlink" href="/u/${encodeURIComponent(no)}" target="_blank">公開詳細</a>` : "";
+            const delPill = deleted ? `<span class="pill red">deleted</span>` : "";
 
             return `
               <tr>
@@ -204,6 +248,7 @@
                   <div>${created || "-"}</div>
                   <div class="muted">id: ${id}</div>
                   ${no ? `<div class="muted">no: ${esc(no)}</div>` : ""}
+                  ${delPill ? `<div style="margin-top:6px;">${delPill}</div>` : ""}
                 </td>
                 <td>
                   <div style="font-weight:700;">${title || "(no title)"}</div>
@@ -215,12 +260,14 @@
                 <td>
                   <div class="row" style="gap:8px;">
                     ${detailLink}
-                    <button class="primary" data-act="approve" data-id="${id}" ${canModerate ? "" : "disabled"}>承認</button>
-                    <button class="danger"  data-act="reject"  data-id="${id}" ${canModerate ? "" : "disabled"}>却下</button>
-                    <button class="danger"  data-act="delete"  data-id="${id}">削除</button>
+                    <button data-act="edit" data-id="${id}">編集</button>
+                    <button class="primary" data-act="approve" data-id="${id}" ${(!canModerate || deleted) ? "disabled" : ""}>承認</button>
+                    <button class="danger"  data-act="reject"  data-id="${id}" ${(!canModerate || deleted) ? "disabled" : ""}>却下</button>
+                    <button class="danger"  data-act="delete"  data-id="${id}" ${deleted ? "disabled" : ""}>削除</button>
+                    <button class="primary" data-act="restore" data-id="${id}" ${deleted ? "" : "disabled"}>復元</button>
                   </div>
                   <div class="muted" style="margin-top:8px;">
-                    ※ 削除は仕様：一覧/詳細/DLから消え、復元不可（R2物理削除はしません）
+                    ※ 削除は論理削除。復元ボタンで戻せます。
                   </div>
                 </td>
               </tr>
@@ -232,13 +279,11 @@
   }
 
   async function load() {
-    const status = $status.value;
-    log(`loading... status=${status}`);
-
+    log(`loading...`);
     try {
-      const data = await apiGet(`submissions?status=${encodeURIComponent(status)}`);
+      const data = await api(buildListQuery(), "GET");
       items = Array.isArray(data.items) ? data.items : [];
-      log({ ok: true, loaded: items.length, status });
+      log({ ok: true, loaded: items.length });
       render();
     } catch (e) {
       log({
@@ -250,6 +295,45 @@
     }
   }
 
+  function openEdit(item) {
+    currentEdit = { id: item.id, item };
+    $dlgInfo.textContent = `id=${item.id} / no=${item.submission_no ?? "-"} / unit_id=${item.unit_id ?? "-"}`;
+    $editTitle.value = item.title || "";
+    $editDesc.value  = item.description || "";
+    $editTags.value  = parseTags(item.tags).join(" ");
+    $editJson.value  = "";
+    $dlgStatus.textContent = "-";
+    $dlg.showModal();
+  }
+
+  async function doApprove(id) {
+    const ok = confirm(`承認します。\nID: ${id}\nよろしいですか？`);
+    if (!ok) return;
+    log(`approve... ${id}`);
+    await api(`submissions/${encodeURIComponent(id)}/approve`, "POST", {});
+  }
+
+  async function doReject(id) {
+    const ok = confirm(`却下します。\nID: ${id}\nよろしいですか？`);
+    if (!ok) return;
+    log(`reject... ${id}`);
+    await api(`submissions/${encodeURIComponent(id)}/reject`, "POST", {});
+  }
+
+  async function doDelete(id) {
+    const ok = confirm(`削除（論理削除）します。\nID: ${id}\nよろしいですか？`);
+    if (!ok) return;
+    log(`delete... ${id}`);
+    await api(`submissions/${encodeURIComponent(id)}`, "DELETE");
+  }
+
+  async function doRestore(id) {
+    const ok = confirm(`復元します。\nID: ${id}\nよろしいですか？`);
+    if (!ok) return;
+    log(`restore... ${id}`);
+    await api(`submissions/${encodeURIComponent(id)}/restore`, "POST", {});
+  }
+
   $list.addEventListener("click", async (ev) => {
     const btn = ev.target.closest("button[data-act]");
     if (!btn) return;
@@ -258,54 +342,95 @@
     const id = btn.getAttribute("data-id");
     if (!act || !id) return;
 
-    if (act === "approve" || act === "reject") {
-      const ok = confirm(`${act === "approve" ? "承認" : "却下"}します。\nID: ${id}\nよろしいですか？`);
-      if (!ok) return;
-
+    try {
       btn.disabled = true;
-      log(`${act}... ${id}`);
 
-      try {
-        const path = act === "approve"
-          ? `submissions/${encodeURIComponent(id)}/approve`
-          : `submissions/${encodeURIComponent(id)}/reject`;
-
-        const r = await apiPost(path);
-        log({ ok: true, action: act, id, response: r });
-
-        items = items.filter(x => x.id !== id);
-        render();
-      } catch (e) {
-        log({ ok: false, action: act, id, error: e });
-        btn.disabled = false;
+      if (act === "edit") {
+        const it = items.find(x => String(x.id) === String(id));
+        if (!it) throw { msg: "not_found_in_view" };
+        openEdit(it);
+        return;
       }
+      if (act === "approve") await doApprove(id);
+      if (act === "reject")  await doReject(id);
+      if (act === "delete")  await doDelete(id);
+      if (act === "restore") await doRestore(id);
+
+      await load();
+    } catch (e) {
+      log({ ok: false, action: act, id, error: e });
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $dlgClose.addEventListener("click", () => $dlg.close());
+
+  $btnSaveMeta.addEventListener("click", async () => {
+    if (!currentEdit) return;
+    const id = currentEdit.id;
+    const ok = confirm(`メタ情報を保存します。\nID: ${id}\nよろしいですか？`);
+    if (!ok) return;
+
+    $btnSaveMeta.disabled = true;
+    $dlgStatus.textContent = "saving meta...";
+    try {
+      const body = {
+        title: $editTitle.value,
+        description: $editDesc.value,
+        tags: $editTags.value
+      };
+      const r = await api(`submissions/${encodeURIComponent(id)}`, "PUT", body); // /api/admin/submissions/:id
+      $dlgStatus.textContent = "meta saved";
+      log({ ok: true, action: "admin_meta_update", id, response: r });
+      await load();
+    } catch (e) {
+      $dlgStatus.textContent = "meta failed";
+      log({ ok: false, action: "admin_meta_update", id, error: e });
+    } finally {
+      $btnSaveMeta.disabled = false;
+    }
+  });
+
+  $btnSaveJson.addEventListener("click", async () => {
+    if (!currentEdit) return;
+    const id = currentEdit.id;
+
+    let obj = null;
+    try {
+      obj = JSON.parse($editJson.value || "");
+    } catch {
+      alert("JSONが壊れています（貼り付け内容を確認）");
       return;
     }
+    const ok = confirm(`JSONを差し替えます。\nID: ${id}\nよろしいですか？`);
+    if (!ok) return;
 
-    if (act === "delete") {
-      const ok = confirm(`削除（論理削除）します。\nID: ${id}\nよろしいですか？`);
-      if (!ok) return;
-
-      btn.disabled = true;
-      log(`delete... ${id}`);
-
-      try {
-        const r = await apiDelete(`submissions/${encodeURIComponent(id)}`);
-        log({ ok: true, action: "delete", id, response: r });
-
-        items = items.filter(x => x.id !== id);
-        render();
-      } catch (e) {
-        log({ ok: false, action: "delete", id, error: e });
-        btn.disabled = false;
-      }
-      return;
+    $btnSaveJson.disabled = true;
+    $dlgStatus.textContent = "saving json...";
+    try {
+      const r = await api(`submissions/${encodeURIComponent(id)}/json`, "PUT", { json: obj }); // /api/admin/submissions/:id/json
+      $dlgStatus.textContent = "json saved";
+      log({ ok: true, action: "admin_json_replace", id, response: r });
+      await load();
+    } catch (e) {
+      $dlgStatus.textContent = "json failed";
+      log({ ok: false, action: "admin_json_replace", id, error: e });
+    } finally {
+      $btnSaveJson.disabled = false;
     }
   });
 
   $reload.addEventListener("click", load);
   $status.addEventListener("change", load);
-  $q.addEventListener("input", render);
+
+  // 入力のたびに即サーバー検索だと重くなるので 300ms デバウンス
+  let t = null;
+  $q.addEventListener("input", () => {
+    clearTimeout(t);
+    t = setTimeout(load, 300);
+  });
+  $includeDeleted.addEventListener("change", load);
 
   load();
 })();
