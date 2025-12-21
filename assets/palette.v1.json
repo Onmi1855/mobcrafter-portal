@@ -1,65 +1,5 @@
 {
   "minecraft:air": "#000000",
-
-  "minecraft:stone": "#7d7d7d",
-  "minecraft:cobblestone": "#7a7a7a",
-  "minecraft:deepslate": "#4b4b4b",
-  "minecraft:cobbled_deepslate": "#515151",
-  "minecraft:andesite": "#8a8a8a",
-  "minecraft:diorite": "#d9d9d9",
-  "minecraft:granite": "#9a6a5c",
-  "minecraft:netherrack": "#7e3a3a",
-  "minecraft:end_stone": "#d7d39a",
-  "minecraft:obsidian": "#1b1426",
-
-  "minecraft:dirt": "#8b6a45",
-  "minecraft:coarse_dirt": "#7a5a3a",
-  "minecraft:grass_block": "#6aa84f",
-  "minecraft:sand": "#d9d2a6",
-  "minecraft:gravel": "#8a8a8a",
-  "minecraft:clay": "#aab7c6",
-
-  "minecraft:oak_log": "#6b4f2a",
-  "minecraft:spruce_log": "#4a3721",
-  "minecraft:birch_log": "#d8d2c4",
-  "minecraft:jungle_log": "#6b4a2e",
-  "minecraft:acacia_log": "#6b3c2a",
-  "minecraft:dark_oak_log": "#3b2a1a",
-  "minecraft:oak_planks": "#b38a5a",
-  "minecraft:spruce_planks": "#7a5a3a",
-  "minecraft:birch_planks": "#d7c58a",
-  "minecraft:jungle_planks": "#b07a4a",
-  "minecraft:acacia_planks": "#c06a3a",
-  "minecraft:dark_oak_planks": "#4a3524",
-
-  "minecraft:glass": "#cfe8ff",
-  "minecraft:white_wool": "#eaeaea",
-  "minecraft:black_wool": "#1f1f1f",
-  "minecraft:red_wool": "#b02e26",
-  "minecraft:blue_wool": "#2e3aa8",
-  "minecraft:green_wool": "#3a7a3a",
-  "minecraft:yellow_wool": "#d7c44a",
-  "minecraft:cyan_wool": "#3aa8a8",
-  "minecraft:magenta_wool": "#a83aa8",
-  "minecraft:purple_wool": "#5a2a7a",
-  "minecraft:pink_wool": "#f0a0a0",
-  "minecraft:orange_wool": "#d87a2a",
-
-  "minecraft:water": "#3a5fd7",
-  "minecraft:lava": "#d75f2a",
-
-  "minecraft:prismarine": "#6aa8a8",
-  "minecraft:prismarine_bricks": "#5aa0a0",
-  "minecraft:dark_prismarine": "#2a5a5a",
-  "minecraft:sea_lantern": "#d7f0ea",
-
-  "minecraft:iron_block": "#d8d8d8",
-  "minecraft:gold_block": "#f0d84a",
-  "minecraft:diamond_block": "#4ad7c8",
-  "minecraft:emerald_block": "#2ad75a",
-  "minecraft:copper_block": "#c07a5a",
-  "minecraft:amethyst_block": "#8a5ad7"
-  "minecraft:air": "#000000",
   "minecraft:water": "#3a5fd7",
   "minecraft:lava": "#d75f2a",
   "minecraft:ice": "#a8d7ff",
@@ -269,6 +209,4 @@
   "minecraft:purple_glazed_terracotta": "#5a3a7a",
   "minecraft:magenta_glazed_terracotta": "#a85a7a",
   "minecraft:pink_glazed_terracotta": "#d79aa0"
-
 }
-
