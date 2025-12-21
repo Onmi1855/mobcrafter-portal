@@ -8,22 +8,26 @@
 <body>
 <script>
 (() => {
-  // GitHub Pages の 404 をルーターとして利用する。
-  // /u/13 のようなパスは静的ファイルが無いので 404 になる → /u/index.html?p=/u/13 に転送して表示する。
+  // GitHub Pages 404 を SPA ルーターとして使う
+  // /u/<no> や /u/<uuid> → /u/index.html?p=/u/<...> に転送
+  // ループ防止を最優先
 
   const path = location.pathname || "/";
   const search = location.search || "";
   const hash = location.hash || "";
 
-  // 既に /u/index.html なら何もしない
+  // ここに居るなら絶対何もしない（ループ防止）
   if (path === "/u/index.html") return;
 
-  // /u/数字 のときだけ拾う（それ以外はトップへ戻す）
-  if (/^\/u\/\d+/.test(path)) {
-    try {
-      sessionStorage.setItem("mc_redirect_path", path);
-    } catch {}
+  // /u だけは不正扱い（トップへ）
+  if (path === "/u" || path === "/u/") {
+    location.replace("/");
+    return;
+  }
 
+  // /u/<something> は全部拾う（数字でもUUIDでもOK）
+  const m = path.match(/^\/u\/([^\/?#]+)$/);
+  if (m) {
     const p = encodeURIComponent(path + search + hash);
     location.replace("/u/index.html?p=" + p);
     return;
