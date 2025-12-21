@@ -25,6 +25,7 @@
     .tags { display:flex; flex-wrap: wrap; gap: 6px; }
     .tag { background:#eef; border:1px solid #dde; padding:2px 8px; border-radius: 999px; font-size: 12px; }
     a { color: #0b57d0; }
+    .btnlink { display:inline-flex; align-items:center; gap:6px; text-decoration:none; padding:8px 10px; border-radius:10px; border:1px solid #ccc; }
   </style>
 </head>
 <body>
@@ -70,7 +71,6 @@
 
 <script>
 (() => {
-  // ✅ 同一オリジン（CORS回避）
   const API_BASE = "/api/admin";
 
   const $status = document.getElementById("status");
@@ -93,30 +93,26 @@
   }
 
   function parseTags(tags) {
-    if (!tags) return [];
-    if (Array.isArray(tags)) return tags.map(t => String(t).trim()).filter(Boolean);
-
-    // tags が "a b c" / "a,b,c" / JSON文字列 など混在しても壊れないようにする
-    const s = String(tags).trim();
-    if (!s) return [];
     try {
-      const j = JSON.parse(s);
-      if (Array.isArray(j)) return j.map(t => String(t).trim()).filter(Boolean);
+      if (Array.isArray(tags)) return tags;
+      if (typeof tags === "string") {
+        const t = tags.trim();
+        if (!t) return [];
+        if (t.startsWith("[") && t.endsWith("]")) return JSON.parse(t);
+        // "a b c" / "a,b,c" の揺れ吸収
+        return t.split(/[, \t\r\n]+/).map(s=>s.trim()).filter(Boolean);
+      }
     } catch {}
-    return s.split(/[,\s]+/).map(t => t.trim()).filter(Boolean);
+    return [];
   }
 
-  async function apiReq(method, path, body) {
-    const opt = {
-      method,
+  async function apiGet(path) {
+    const url = API_BASE.replace(/\/+$/,"") + "/" + String(path).replace(/^\/+/,"");
+    const r = await fetch(url, {
+      method: "GET",
       credentials: "include",
-      headers: {}
-    };
-    if (body !== undefined) {
-      opt.headers["Content-Type"] = "application/json";
-      opt.body = JSON.stringify(body);
-    }
-    const r = await fetch(API_BASE + "/" + path, opt);
+      headers: { "Accept": "application/json" }
+    });
     const text = await r.text();
     let data;
     try { data = JSON.parse(text); } catch { data = { raw: text }; }
@@ -124,9 +120,34 @@
     return data;
   }
 
-  const apiGet = (path) => apiReq("GET", path);
-  const apiPost = (path, body) => apiReq("POST", path, body);
-  const apiDelete = (path) => apiReq("DELETE", path);
+  async function apiPost(path) {
+    const url = API_BASE.replace(/\/+$/,"") + "/" + String(path).replace(/^\/+/,"");
+    const r = await fetch(url, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: "{}"
+    });
+    const text = await r.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = { raw: text }; }
+    if (!r.ok) throw { http: r.status, data };
+    return data;
+  }
+
+  async function apiDelete(path) {
+    const url = API_BASE.replace(/\/+$/,"") + "/" + String(path).replace(/^\/+/,"");
+    const r = await fetch(url, {
+      method: "DELETE",
+      credentials: "include",
+      headers: { "Accept": "application/json" }
+    });
+    const text = await r.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = { raw: text }; }
+    if (!r.ok) throw { http: r.status, data };
+    return data;
+  }
 
   function filterItems(list) {
     const q = ($q.value || "").trim().toLowerCase();
@@ -149,6 +170,7 @@
     }
 
     const status = $status.value;
+    const canModerate = (status === "pending");
 
     $list.innerHTML = `
       <table>
@@ -156,7 +178,7 @@
           <tr>
             <th style="width: 180px;">作成日時</th>
             <th>内容</th>
-            <th style="width: 240px;">操作</th>
+            <th style="width: 260px;">操作</th>
           </tr>
         </thead>
         <tbody>
@@ -168,18 +190,20 @@
             const author = esc(it.author_name || it.author_email || "");
             const mv = esc(it.mod_version || "");
             const id = esc(it.id || "");
+            const no = it.submission_no != null ? String(it.submission_no) : "";
 
             const tagHtml = tags.length
               ? `<div class="tags">${tags.slice(0, 12).map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>`
               : `<span class="muted">タグなし</span>`;
 
-            const canAct = (status === "pending");
+            const detailLink = no ? `<a class="btnlink" href="/u/${encodeURIComponent(no)}" target="_blank">管理（詳細へ）</a>` : "";
 
             return `
               <tr>
                 <td>
                   <div>${created || "-"}</div>
                   <div class="muted">id: ${id}</div>
+                  ${no ? `<div class="muted">no: ${esc(no)}</div>` : ""}
                 </td>
                 <td>
                   <div style="font-weight:700;">${title || "(no title)"}</div>
@@ -190,12 +214,13 @@
                 </td>
                 <td>
                   <div class="row" style="gap:8px;">
-                    <button class="primary" data-act="approve" data-id="${id}" ${canAct ? "" : "disabled"}>承認</button>
-                    <button class="danger"  data-act="reject"  data-id="${id}" ${canAct ? "" : "disabled"}>却下</button>
+                    ${detailLink}
+                    <button class="primary" data-act="approve" data-id="${id}" ${canModerate ? "" : "disabled"}>承認</button>
+                    <button class="danger"  data-act="reject"  data-id="${id}" ${canModerate ? "" : "disabled"}>却下</button>
                     <button class="danger"  data-act="delete"  data-id="${id}">削除</button>
                   </div>
                   <div class="muted" style="margin-top:8px;">
-                    ※ 削除は A 仕様：一覧/詳細/DL から消え、復活不可（R2物理削除はしません）
+                    ※ 削除は仕様：一覧/詳細/DLから消え、復元不可（R2物理削除はしません）
                   </div>
                 </td>
               </tr>
@@ -211,7 +236,6 @@
     log(`loading... status=${status}`);
 
     try {
-      // ✅ "/api/admin/..." ではなく "submissions?..." にする（API_BASEが /api/admin のため）
       const data = await apiGet(`submissions?status=${encodeURIComponent(status)}`);
       items = Array.isArray(data.items) ? data.items : [];
       log({ ok: true, loaded: items.length, status });
@@ -234,36 +258,48 @@
     const id = btn.getAttribute("data-id");
     if (!act || !id) return;
 
-    const label =
-      act === "approve" ? "承認" :
-      act === "reject"  ? "却下" :
-      act === "delete"  ? "削除" : act;
+    if (act === "approve" || act === "reject") {
+      const ok = confirm(`${act === "approve" ? "承認" : "却下"}します。\nID: ${id}\nよろしいですか？`);
+      if (!ok) return;
 
-    const ok = confirm(`${label}します。\nID: ${id}\nよろしいですか？`);
-    if (!ok) return;
+      btn.disabled = true;
+      log(`${act}... ${id}`);
 
-    btn.disabled = true;
-    log(`${act}... ${id}`);
+      try {
+        const path = act === "approve"
+          ? `submissions/${encodeURIComponent(id)}/approve`
+          : `submissions/${encodeURIComponent(id)}/reject`;
 
-    try {
-      if (act === "approve") {
-        await apiPost(`submissions/${encodeURIComponent(id)}/approve`);
-      } else if (act === "reject") {
-        await apiPost(`submissions/${encodeURIComponent(id)}/reject`);
-      } else if (act === "delete") {
-        await apiDelete(`submissions/${encodeURIComponent(id)}`);
-      } else {
-        throw { error: "unknown_action", act };
+        const r = await apiPost(path);
+        log({ ok: true, action: act, id, response: r });
+
+        items = items.filter(x => x.id !== id);
+        render();
+      } catch (e) {
+        log({ ok: false, action: act, id, error: e });
+        btn.disabled = false;
       }
+      return;
+    }
 
-      // 即時反映（今画面にある配列から消す）
-      items = items.filter(x => x.id !== id);
-      render();
-      log({ ok: true, action: act, id });
-    } catch (e) {
-      log({ ok: false, action: act, id, error: e });
-      btn.disabled = false;
-      alert("失敗しました。ログを確認してください。");
+    if (act === "delete") {
+      const ok = confirm(`削除（論理削除）します。\nID: ${id}\nよろしいですか？`);
+      if (!ok) return;
+
+      btn.disabled = true;
+      log(`delete... ${id}`);
+
+      try {
+        const r = await apiDelete(`submissions/${encodeURIComponent(id)}`);
+        log({ ok: true, action: "delete", id, response: r });
+
+        items = items.filter(x => x.id !== id);
+        render();
+      } catch (e) {
+        log({ ok: false, action: "delete", id, error: e });
+        btn.disabled = false;
+      }
+      return;
     }
   });
 
