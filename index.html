@@ -584,10 +584,13 @@
     const spanY  = sizeY;
 
     const k = 6.2; // 係数（描画品質は変えずに視認性を確保）
-    const s = Math.min(
-      canvas.width  / (spanXZ + padX),
-      canvas.height / (spanY  + padY)
-    ) * k;
+// --- scale stabilize（拡大しすぎ防止） ---
+const w = canvas.width;
+const h = canvas.height;
+
+// spanXZ / spanY はあなたの現状コードのままでOK
+// （const spanXZ = sizeX + sizeZ; const spanY = sizeY;）
+const s = Math.max(1.6, Math.min(w/(spanXZ+6), h/(spanY+10)) * 1.6);
 
     // iso basis
     const yaw = ((yawFix % 360) + 360) % 360;
