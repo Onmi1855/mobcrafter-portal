@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MobCrafter Portal</title>
+</head>
+<body>
+<script>
+(() => {
+  // GitHub Pages の 404 をルーターとして利用する。
+  // /u/13 のようなパスは静的ファイルが無いので 404 になる → /u/index.html?p=/u/13 に転送して表示する。
+
+  const path = location.pathname || "/";
+  const search = location.search || "";
+  const hash = location.hash || "";
+
+  // 既に /u/index.html なら何もしない
+  if (path === "/u/index.html") return;
+
+  // /u/数字 のときだけ拾う（それ以外はトップへ戻す）
+  if (/^\/u\/\d+/.test(path)) {
+    try {
+      sessionStorage.setItem("mc_redirect_path", path);
+    } catch {}
+
+    const p = encodeURIComponent(path + search + hash);
+    location.replace("/u/index.html?p=" + p);
+    return;
+  }
+
+  // その他はトップへ
+  location.replace("/");
+})();
+</script>
+</body>
+</html>
