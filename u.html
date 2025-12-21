@@ -43,11 +43,6 @@
     input,textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;}
     textarea{min-height:90px;resize:vertical;}
     .hint{font-size:12px;color:var(--muted);margin-top:6px;}
-    .thumbBox{display:flex;flex-direction:column;gap:10px;}
-    .thumbTabs{display:flex;gap:8px;flex-wrap:wrap;}
-    .thumbTabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 10px;cursor:pointer;}
-    .thumbFrame{border:1px solid var(--line);border-radius:14px;background:#fff;min-height:240px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-    .thumbFrame .muted{padding:12px;}
   </style>
 </head>
 <body>
@@ -87,7 +82,7 @@
       </div>
 
       <details id="previewDetails">
-        <summary>JSONプレビュー（折りたたみ）</summary>
+        <summary>JSONプレビュー（開いた時だけ取得）</summary>
         <pre id="jsonPreview">（開くと読み込みます）</pre>
       </details>
 
@@ -97,7 +92,7 @@
       </details>
 
       <div class="ownerBox" id="ownerBox">
-        <h3 style="margin:0 0 8px;">投稿者メニュー（編集/差し替え/削除）</h3>
+        <h3 style="margin:0 0 8px;">投稿者/管理者メニュー（編集/差し替え/削除）</h3>
 
         <div class="row">
           <div>
@@ -128,25 +123,16 @@
 
     <aside class="card">
       <h3 style="margin:0 0 10px;">サムネ</h3>
-      <div class="thumbBox">
-        <div class="thumbTabs">
-          <button type="button" id="tab3d">3D（予定）</button>
-          <button type="button" id="tabShot">スクショ（予定）</button>
-        </div>
-        <div class="thumbFrame" id="thumbFrame">
-          <div class="muted">
-            MVP方針により、詳細ページのサムネはフェーズ③で実装します。<br>
-            （今は枠のみ）
-          </div>
-        </div>
+      <div class="muted" style="font-size:13px;">
+        MVP方針により、一覧は軽量維持。詳細では今後スクショ/3D切替を実装します。<br>
+        （現時点はこの枠は説明のみ。スクショ対応フェーズでここに表示を追加）
       </div>
     </aside>
   </div>
 </main>
 
 <script>
-  // ★ 正式: mobcrafter.net/api 配下に統一（同一オリジン）
-  // GitHub Pages 上でも location.origin は mobcrafter.net になる前提
+  // ✅ 正式構成に統一：mobcrafter.net /api を同一オリジンで叩く
   const API_BASE = "";
 
   function getSubmissionNoFromPath() {
@@ -171,7 +157,6 @@
     if (Array.isArray(v)) return v.map(x=>String(x)).filter(Boolean);
     const s = String(v || "").trim();
     if (!s) return [];
-    // JSON配列っぽい場合
     if (s.startsWith("[") && s.endsWith("]")) {
       try {
         const j = JSON.parse(s);
@@ -241,7 +226,7 @@
       return;
     }
 
-    // 詳細メタ取得（approvedのみ）
+    // 詳細取得
     let item;
     try {
       const res = await apiGet(`/api/public/u/${no}`);
@@ -263,7 +248,7 @@
       item.mc_version ? `<span>MC: ${escapeHtml(item.mc_version)}</span>` : ""
     ].filter(Boolean).join(" · ");
 
-    const tags = parseTagsFromAny(item.tags_array || item.tags);
+    const tags = parseTagsFromAny(item.tags);
     el("tags").innerHTML = tags.map(t=>`<span class="tag">${escapeHtml(String(t))}</span>`).join("");
 
     el("kv").innerHTML = [
@@ -272,9 +257,8 @@
       kvRow("作者", item.author_name || "unknown"),
     ].join("");
 
-    // DLリンク（UUIDでDL）
-    const dl = `/api/public/submissions/${item.id}/download`;
-    el("downloadBtn").href = dl;
+    // DLリンク
+    el("downloadBtn").href = `/api/public/submissions/${item.id}/download`;
 
     // howto
     el("howto").textContent = buildHowTo(item.unit_id);
@@ -290,16 +274,14 @@
       }
     };
 
-    // JSONプレビュー：折りたたみを開いた時だけ取得（MVPで重くしない）
+    // JSONプレビュー：開いたときだけ取得（DL数増やさない）
     el("previewDetails").addEventListener("toggle", async (ev) => {
       if (!ev.target.open) return;
-      if (!currentItem) return;
       const pre = el("jsonPreview");
       if (pre.dataset.loaded === "1") return;
-
       pre.textContent = "読み込み中...";
       try {
-        const r = await fetch(`/api/public/submissions/${currentItem.id}/json`, { credentials:"include" });
+        const r = await fetch(`/api/public/submissions/${item.id}/json`, { credentials:"include" });
         const t = await r.text();
         if (!r.ok) throw new Error(t || ("HTTP_"+r.status));
         pre.textContent = t;
@@ -309,12 +291,14 @@
       }
     });
 
-    // ---- owner check（whoami）----
+    // ---- owner/admin check（whoami）----
     try {
       const who = await apiGet(`/api/whoami`);
-      const me = who.email || "";
+      const me = (who.email || "").toLowerCase();
       const isAdmin = !!who.is_admin;
-      if (me && (isAdmin || (item.author_email && me === String(item.author_email).toLowerCase()))) {
+      const author = (item.author_email || "").toLowerCase();
+
+      if (me && (isAdmin || (author && me === author))) {
         enableOwnerUI(item);
       }
     } catch (_) {
@@ -328,7 +312,7 @@
 
     el("editTitle").value = item.title || "";
     el("editDesc").value = item.description || "";
-    const tags = parseTagsFromAny(item.tags_array || item.tags);
+    const tags = parseTagsFromAny(item.tags);
     el("editTags").value = tags.join(", ");
 
     el("saveMetaBtn").onclick = async () => {
