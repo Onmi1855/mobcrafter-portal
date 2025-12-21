@@ -20,155 +20,126 @@
     *{ box-sizing:border-box; }
     body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
-      background:var(--bg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
       color:var(--text);
+      background:var(--bg);
     }
     header{
-      position:sticky;
-      top:0;
-      z-index:50;
-      background:rgba(246,248,251,.85);
-      backdrop-filter: blur(10px);
-      border-bottom:1px solid var(--line);
+      padding:24px 16px 10px;
+      text-align:center;
     }
-    .wrap{
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 16px 16px;
+    header h1{
+      margin:0;
+      font-size:20px;
+      letter-spacing:.4px;
+    }
+    header p{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:12px;
+    }
+    main{
+      max-width:1060px;
+      margin:0 auto;
+      padding:10px 16px 40px;
     }
     .topbar{
       display:flex;
-      align-items:center;
-      justify-content:space-between;
       gap:12px;
-    }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      text-decoration:none;
-      color:inherit;
-    }
-    .logo{
-      width:28px;height:28px;border-radius:10px;
-      background:linear-gradient(135deg,#60a5fa,#a78bfa);
-      box-shadow:0 6px 16px rgba(37,99,235,.25);
-    }
-    .brand b{ font-size:15px; }
-    .brand small{ display:block; font-size:12px; color:var(--muted); margin-top:1px; }
-
-    .nav{
-      display:flex;
-      gap:8px;
-      align-items:center;
+      align-items:flex-end理解;
+      justify-content:space-between;
       flex-wrap:wrap;
-    }
-    .pill{
-      border:1px solid var(--line);
-      background:#fff;
-      padding:8px 12px;
-      border-radius:999px;
-      font-size:13px;
-      cursor:pointer;
-      text-decoration:none;
-      color:inherit;
-    }
-    .pill.primary{
-      background:var(--brand);
-      border-color:var(--brand);
-      color:#fff;
-    }
-
-    main{ padding: 18px 0 40px; }
-
-    .hero{
-      display:grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap:14px;
-      margin-top: 8px;
-      align-items:start;
-    }
-    .panel{
       background:var(--card);
       border:1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 14px;
+      border-radius:var(--radius);
+      padding:14px 14px;
+      box-shadow:var(--shadow);
     }
-    .panel h2{
-      margin:0 0 10px;
-      font-size:14px;
+    .leftbox{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:flex-end;
     }
-    .muted{ color:var(--muted); font-size:12px; line-height:1.5; }
-
-    .controls{
-      display:grid;
-      grid-template-columns: 1fr 140px;
-      gap:10px;
-      margin-top:10px;
+    .field label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:6px;
     }
-    input[type="search"], select{
-      width:100%;
+    input[type="text"], select{
       border:1px solid var(--line);
-      border-radius: 12px;
+      border-radius:12px;
       padding:10px 12px;
       font-size:14px;
+      min-width:260px;
       outline:none;
       background:#fff;
     }
-    .row2{
-      display:grid;
-      grid-template-columns: 140px 1fr;
-      gap:10px;
-      margin-top:10px;
+    select{ min-width:180px; }
+    .muted{
+      color:var(--muted);
+      font-size:12px;
     }
-
+    .error{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      background:#fff1f2;
+      border:1px solid #fecdd3;
+      color:#9f1239;
+      display:none;
+      white-space:pre-wrap;
+    }
     .grid{
-      margin-top: 14px;
+      margin-top:14px;
       display:grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
       gap:14px;
     }
-    @media(max-width: 980px){
-      .hero{ grid-template-columns: 1fr; }
-      .grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
-    }
-    @media(max-width: 640px){
-      .grid{ grid-template-columns: 1fr; }
-      .controls{ grid-template-columns: 1fr; }
-      .row2{ grid-template-columns: 1fr; }
-    }
-
     .card{
       background:var(--card);
       border:1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
       overflow:hidden;
-    }
-    .thumb{
+      cursor:pointer;
+      transition: transform .08s ease, box-shadow .08s ease;
       position:relative;
-      height: 140px;
-      background: linear-gradient(180deg,#dbeafe, #f8fafc);
     }
-    .thumb canvas, .thumb img{
-      position:absolute;
-      inset:0;
+    .card:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 14px 30px rgba(15,23,42,.10);
+    }
+    .thumbwrap{
+      height:140px;
+      background: linear-gradient(180deg, #e6f0ff, #f5f9ff);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+    }
+    canvas.thumb{
       width:100%;
-      height:100%;
-      display:block;
+      height:140px;
+      image-rendering:pixelated;
     }
-    .badge{
+    .pill{
       position:absolute;
       top:10px;
       left:10px;
-      font-size:12px;
-      padding:4px 10px;
+      display:flex;
+      gap:6px;
+      align-items:center;
+    }
+    .badge{
+      font-size:11px;
+      padding:4px 8px;
       border-radius:999px;
-      background:rgba(255,255,255,.9);
-      border:1px solid var(--line);
-      color: #1f2937;
+      background:rgba(255,255,255,.78);
+      border:1px solid rgba(148,163,184,.35);
+      color:#0f172a;
+      backdrop-filter: blur(6px);
     }
     .btn-dl{
       position:absolute;
@@ -177,123 +148,107 @@
       font-size:12px;
       padding:6px 10px;
       border-radius:999px;
-      background: rgba(37,99,235,.95);
+      background:rgba(37,99,235,.92);
       color:#fff;
+      border:1px solid rgba(37,99,235,.10);
       text-decoration:none;
-      box-shadow: 0 10px 20px rgba(37,99,235,.25);
+      backdrop-filter: blur(6px);
     }
     .card-body{
-      padding: 12px 12px 10px;
+      padding:12px 12px 14px;
     }
     .title{
-      font-weight:700;
-      font-size:14px;
       margin:0;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
+      font-size:15px;
+      font-weight:700;
+      line-height:1.25;
     }
     .meta{
       margin-top:8px;
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:8px;
-      color:var(--muted);
+      gap:10px;
       font-size:12px;
+      color:var(--muted);
     }
     .meta .left{
       display:flex;
-      align-items:center;
       gap:10px;
+      align-items:center;
       min-width:0;
     }
     .meta .author{
       display:flex;
-      align-items:center;
       gap:6px;
+      align-items:center;
       min-width:0;
     }
     .meta .author span{
       overflow:hidden;
       text-overflow:ellipsis;
       white-space:nowrap;
-      max-width: 130px;
+      max-width:120px;
+      display:block;
     }
-
-    .error{
-      margin-top: 10px;
-      background:#fee2e2;
-      border:1px solid #fecaca;
-      color:#7f1d1d;
-      border-radius: 12px;
-      padding:10px 12px;
-      white-space:pre-wrap;
-      display:none;
+    .meta .dl{
+      display:flex;
+      gap:6px;
+      align-items:center;
     }
-
-    footer{
-      margin-top: 20px;
-      color:var(--muted);
+    .tagline{
+      margin-top:8px;
       font-size:12px;
+      color:var(--muted);
+      overflow:hidden;
+      white-space:nowrap;
+      text-overflow:ellipsis;
+    }
+    footer{
+      margin-top:26px;
       text-align:center;
+      font-size:12px;
+      color:var(--muted);
     }
   </style>
 </head>
 <body>
 <header>
-  <div class="wrap">
-    <div class="topbar">
-      <a class="brand" href="/">
-        <div class="logo"></div>
-        <div>
-          <b>MobCrafter Portal</b>
-          <small>ユニットJSON共有</small>
-        </div>
-      </a>
-      <nav class="nav">
-        <a class="pill" href="/">新着</a>
-        <a class="pill" href="/popular.html">人気</a>
-        <a class="pill" href="/submit.html">投稿</a>
-        <a class="pill primary" href="/howto.html">使い方</a>
-      </nav>
-    </div>
-  </div>
+  <h1>MobCrafter Portal</h1>
+  <p>ユニットJSON共有（MVP）</p>
 </header>
 
-<main class="wrap">
-  <div class="hero">
-    <section class="panel">
-      <h2>探す</h2>
-      <div class="muted">
-        タイトル / 説明 / タグで検索できます。サムネは簡易3D描画（色は palette 辞書優先）。
+<main>
+  <div class="topbar">
+    <div class="leftbox">
+      <div class="field">
+        <label>探す</label>
+        <input id="q" type="text" placeholder="検索（例：sephiroth / boss / sword）" />
+        <div class="muted">タイトル / 説明 / タグで検索できます。サムネは簡易3D描画。</div>
       </div>
-      <div class="controls">
-        <input id="q" type="search" placeholder="検索（例：sephiroth / boss / sword）" />
-        <select id="sort">
-          <option value="new" selected>新着順</option>
-          <option value="popular">人気順</option>
-        </select>
-      </div>
-      <div class="row2">
+
+      <div class="field">
+        <label>Yaw補正</label>
         <select id="yaw">
-          <option value="270" selected>Yaw補正 +270°</option>
-          <option value="0">Yaw補正 0°</option>
-          <option value="90">Yaw補正 +90°</option>
+          <option value="270">Yaw補正 +270°</option>
           <option value="180">Yaw補正 +180°</option>
+          <option value="90">Yaw補正 +90°</option>
+          <option value="0">Yaw補正 なし</option>
         </select>
         <div class="muted">クリックで詳細ページへ（/u/:id）</div>
       </div>
-      <div id="err" class="error"></div>
-    </section>
+    </div>
 
-    <aside class="panel">
-      <h2>色が“ちゃんとする”仕組み</h2>
-      <div class="muted">
-        <code>/assets/palette.v1.json</code>（BlockId→色）を最優先で使用します。<br/>
-        辞書に無いブロックはカテゴリ色→控えめハッシュ色で破綻を防ぎます。
-      </div>
-    </aside>
+    <div class="field">
+      <label>並び替え</label>
+      <select id="sort">
+        <option value="new">新着順</option>
+        <option value="dl">DL多い順</option>
+        <option value="name">名前順</option>
+      </select>
+    </div>
+
+    <div id="err" class="error"></div>
   </div>
 
   <section id="grid" class="grid"></section>
@@ -304,8 +259,10 @@
 <script>
 (() => {
   // ====== API (approved only) ======
-  const API_LIST = "https://api.mobcrafter.net/api/public/submissions";
-  const API_DL   = (id) => `https://api.mobcrafter.net/api/public/submissions/${id}/download`;
+  // ★確定構成：同一オリジン（mobcrafter.net/api）
+  const API_LIST = "/api/public/submissions";
+  const API_JSON = (id) => `/api/public/submissions/${id}/json`;      // DLカウントしない
+  const API_DL   = (id) => `/api/public/submissions/${id}/download`;  // DLカウントする（Downloadボタン用）
 
   // 画面側の状態
   let items = [];
@@ -331,350 +288,222 @@
       .replaceAll("<","&lt;")
       .replaceAll(">","&gt;")
       .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
+      .replaceAll("'","&#39;");
   }
 
-  function normalizeTags(tags){
-    if(!tags) return [];
-    if(Array.isArray(tags)) return tags.map(t=>String(t).trim()).filter(Boolean);
-    return String(tags).split(/[,\s]+/).map(t=>t.trim()).filter(Boolean);
+  function normalizeTags(t){
+    if(!t) return [];
+    if(Array.isArray(t)) return t.map(x=>String(x).trim()).filter(Boolean);
+    return String(t).split(/[\s,]+/).map(x=>x.trim()).filter(Boolean);
   }
 
-  function getYawFix(){
-    const v = Number(yawUi.value || 270);
-    return isFinite(v) ? v : 270;
-  }
-
-  function sortItems(list){
-    const mode = sort.value;
-    if(mode === "popular"){
-      return [...list].sort((a,b)=> (b.downloads||0) - (a.downloads||0));
-    }
-    return [...list].sort((a,b)=> (b.ts||0) - (a.ts||0));
-  }
-
-  function filterItems(list){
-    const query = (q.value || "").trim().toLowerCase();
-    if(!query) return list;
-    const terms = query.split(/\s+/).filter(Boolean);
-    return list.filter(it=>{
-      const hay = (it.name + " " + it.desc + " " + it.tags.join(" ")).toLowerCase();
-      return terms.every(t=> hay.includes(t));
-    });
-  }
-
-  function render(){
-    const list = sortItems(filterItems(items));
-    if(list.length === 0){
-      grid.innerHTML = "";
-      return;
-    }
-
-    // カード内に余計な <a> を増やさない（リンクを合法に置くため）
-    grid.innerHTML = list.map(it => `
-      <div class="card item" data-id="${escapeHtml(it.id)}" data-no="${escapeHtml(String(it.no || ""))}" title="${escapeHtml(it.name)}">
-        <div class="thumb">
-          <canvas class="thumb3d" data-id="${escapeHtml(it.id)}" width="360" height="140"
-            style="image-rendering:auto"></canvas>
-          <span class="badge">${escapeHtml(it.mod || "Forge")}</span>
-          <a class="btn-dl" href="${escapeHtml(API_DL(it.id))}" download>Download</a>
-        </div>
-        <div class="card-body">
-          <p class="title">${escapeHtml(it.name)}</p>
-          <div class="meta">
-            <div class="left">
-              <div class="author">👤 <span>${escapeHtml(it.author)}</span></div>
-              <div>⬇︎ ${escapeHtml(it.downloads || 0)}</div>
-            </div>
-            <div title="${escapeHtml(it.date)}">🕒</div>
-          </div>
-        </div>
-      </div>
-    `).join("");
-
-    // クリックで詳細へ
-    grid.querySelectorAll(".card.item").forEach(card=>{
-      card.addEventListener("click", (ev)=>{
-        // Downloadクリックはカード遷移させない
-        const a = ev.target && ev.target.closest ? ev.target.closest("a") : null;
-        if(a) return;
-
-        const id = card.getAttribute("data-id");
-        const no = Number(card.getAttribute("data-no") || 0);
-        if(no) location.href = `/u/${no}`;
-        else if(id) location.hash = `unit-${id}`; // フォールバック
-      });
-    });
-
-    // ★HTMLでcanvas作った直後にサムネ生成（重いのでidle優先）
-    scheduleHydrate(list);
-  }
-
-  async function loadList(){
-    hideError();
+  function asDateIso(s){
     try{
-      const r = await fetch(API_LIST, { cache: "no-store" });
-      if(!r.ok){
-        showError("一覧取得に失敗しました。\nHTTP " + r.status);
-        return;
-      }
-      const data = await r.json();
-      const arr = Array.isArray(data) ? data : (data.items || []);
-
-      items = arr.map(r => ({
-        id: String(r.id),
-        // 詳細ページURL用の通し番号（/u/:no）。APIが返す submission_no を使う
-        no: Number(r.submission_no ?? r.submissionNo ?? r.no ?? 0),
-        name: r.title || r.name || "Untitled",
-        desc: r.description || "",
-        tags: normalizeTags(r.tags),
-        author: r.author_name || "unknown",
-        date: r.created_at || "",
-        ts: Date.parse(r.created_at || "") || 0,
-        mod: r.mod_version || "Forge",
-        downloads: Number(r.download_count || 0),
-      }));
-
-      render();
-    }catch(e){
-      showError("一覧取得で例外が発生しました。\n" + String(e && e.message ? e.message : e));
-      grid.innerHTML = "";
+      const d = new Date(s);
+      if(Number.isNaN(d.getTime())) return null;
+      return d.toISOString();
+    }catch{
+      return null;
     }
   }
 
-  q.addEventListener("input", render);
-  sort.addEventListener("change", render);
-  yawUi.addEventListener("change", () => {
-    // yaw変更は描画だけ更新
-    scheduleHydrate(sortItems(filterItems(items)));
-  });
-
-  // =========================
-  // 3D thumb (index engine v3 + palette)
-  // =========================
-
-  // 軽量：1フレームに描画しすぎない
-  let hydrateQueue = [];
-  let hydrating = false;
-
-  function scheduleHydrate(list){
-    hydrateQueue = list.map(it=>it.id);
-    if(!hydrating){
-      hydrating = true;
-      requestIdleCallback?.(hydrateTick, { timeout: 800 }) || setTimeout(hydrateTick, 30);
-    }
-  }
-
-  async function hydrateTick(){
-    try{
-      const ids = hydrateQueue.splice(0, 6); // 1回あたり最大6枚
-      if(ids.length === 0){
-        hydrating = false;
-        return;
-      }
-      const yawFix = getYawFix();
-      for(const id of ids){
-        const canvas = document.querySelector(`canvas.thumb3d[data-id="${CSS.escape(id)}"]`);
-        if(!canvas) continue;
-        await renderThumb(canvas, id, yawFix);
-      }
-    }finally{
-      // 次
-      requestIdleCallback?.(hydrateTick, { timeout: 800 }) || setTimeout(hydrateTick, 30);
-    }
-  }
-
-  // ----- palette -----
-  let palette = null;
-  async function loadPalette(){
-    if(palette) return palette;
-    try{
-      const r = await fetch("/assets/palette.v1.json", { cache: "force-cache" });
-      if(r.ok){
-        palette = await r.json();
-      }else{
-        palette = {};
-      }
-    }catch(_){
-      palette = {};
-    }
-    return palette;
-  }
-
-  function hexToRgb(hex){
-    const s = String(hex||"").replace("#","");
-    if(s.length === 3){
-      const r = parseInt(s[0]+s[0],16);
-      const g = parseInt(s[1]+s[1],16);
-      const b = parseInt(s[2]+s[2],16);
-      return [r,g,b,255];
-    }
-    if(s.length === 6){
-      const r = parseInt(s.slice(0,2),16);
-      const g = parseInt(s.slice(2,4),16);
-      const b = parseInt(s.slice(4,6),16);
-      return [r,g,b,255];
-    }
-    return [120,120,120,255];
-  }
-
-  function hashColor(str){
-    // 安定した控えめ色
-    let h=2166136261;
-    for(let i=0;i<str.length;i++){
-      h ^= str.charCodeAt(i);
-      h = Math.imul(h,16777619);
-    }
-    const r = 80 + (h & 0x7F);
-    const g = 80 + ((h>>>8) & 0x7F);
-    const b = 80 + ((h>>>16) & 0x7F);
-    return [r,g,b,255];
-  }
-
-  function isTransparentBlockId(blockId){
-    const s = String(blockId||"").toLowerCase();
-    // MVP：厳密再現しない。軽量のため「見た目が透けそう」だけ半透明
-    return s.includes("glass") || s.includes("pane") || s.includes("slab") || s.includes("stairs");
-  }
-
-  function colorForBlock(blockId, pal){
-    const key = String(blockId||"");
-    const found = pal && (pal[key] || pal[key.toLowerCase()]);
-    if(found) return hexToRgb(found);
-    return hashColor(key);
+  function resolveNo(row){
+    // submission_no が無い古いデータ救済：unit_id が unit_13 形式なら 13 を使う
+    const n = Number(row.submission_no ?? row.submissionNo ?? row.no ?? 0);
+    if (n) return n;
+    const u = String(row.unit_id ?? row.unitId ?? "");
+    const m = u.match(/^unit_(\d+)$/);
+    return m ? Number(m[1]) : 0;
   }
 
   // ----- blocks fetch -----
   async function fetchUnitJson(id){
-    // いまは download API から取る（軽量）
-    const r = await fetch(API_DL(id), { cache: "no-store" });
-    if(!r.ok) throw new Error("download HTTP " + r.status);
+    // サムネ用：DLカウントしない JSON API を使う
+    const r = await fetch(API_JSON(id), { cache: "no-store" });
+    if(!r.ok) throw new Error("json HTTP " + r.status);
     return await r.json();
   }
 
   // ----- render engine (簡易アイソメ) -----
-  async function renderThumb(canvas, id, yawFix){
-    const ctx2 = canvas.getContext("2d");
-    if(!ctx2) return;
+  // ここは「雰囲気重視 / 軽量」のまま（MVP方針）
+  function drawIso(canvas, blocks, yawDeg){
+    const ctx = canvas.getContext("2d");
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0,0,w,h);
 
-    const pal = await loadPalette();
-    const unit = await fetchUnitJson(id);
-    const blocks = Array.isArray(unit.blocks) ? unit.blocks : [];
-    if(blocks.length === 0){
-      ctx2.clearRect(0,0,canvas.width,canvas.height);
+    if(!Array.isArray(blocks) || blocks.length === 0){
+      ctx.fillStyle = "rgba(15,23,42,.35)";
+      ctx.font = "12px sans-serif";
+      ctx.fillText("No blocks", 10, 20);
       return;
     }
 
-    // bbox
-    let minX=1e9,minY=1e9,minZ=1e9;
-    let maxX=-1e9,maxY=-1e9,maxZ=-1e9;
-    for(const b of blocks){
-      const x = b.dx|0, y=b.dy|0, z=b.dz|0;
-      if(x<minX) minX=x; if(y<minY) minY=y; if(z<minZ) minZ=z;
-      if(x>maxX) maxX=x; if(y>maxY) maxY=y; if(z>maxZ) maxZ=z;
-    }
-    const sizeX = (maxX-minX+1);
-    const sizeY = (maxY-minY+1);
-    const sizeZ = (maxZ-minZ+1);
+    // ブロックを単純投影（色は blockId をハッシュして暫定）
+    const yaw = (yawDeg||0) * Math.PI/180;
 
-    // --- scale stabilize（あなたの方針に沿って軽量に） ---
-    const padX = 6;
-    const padY = 10;
-    const spanXZ = sizeX + sizeZ;
-    const spanY  = sizeY;
-
-    const k = 6.2; // 係数（描画品質は変えずに視認性を確保）
-// --- scale stabilize（拡大しすぎ防止） ---
-const w = canvas.width;
-const h = canvas.height;
-
-// spanXZ / spanY はあなたの現状コードのままでOK
-// （const spanXZ = sizeX + sizeZ; const spanY = sizeY;）
-const s = Math.max(1.6, Math.min(w/(spanXZ+6), h/(spanY+10)) * 1.6);
-
-    // iso basis
-    const yaw = ((yawFix % 360) + 360) % 360;
-
-    function rot(x,z){
-      // 90度刻みのみ（軽量）
-      const t = ((yaw/90)|0) % 4;
-      if(t===0) return [x,z];
-      if(t===1) return [-z,x];
-      if(t===2) return [-x,-z];
-      return [z,-x];
-    }
-
-    // projected positions
-    const ox = canvas.width/2;
-    const oy = canvas.height*0.72;
-
-    function proj(x,y,z){
-      // 簡易アイソメ
-      const [rx,rz] = rot(x,z);
-      const px = (rx - rz) * 0.9;
-      const py = (rx + rz) * 0.45 - y*1.2;
-      return [ox + px*s, oy + py*s];
-    }
-
-    ctx2.clearRect(0,0,canvas.width,canvas.height);
-
-    // sort: y -> x+z for stable
-    const sorted = blocks.slice().sort((a,b)=>{
-      const ay=a.dy|0, by=b.dy|0;
-      if(ay!==by) return ay-by;
-      const as=(a.dx|0)+(a.dz|0);
-      const bs=(b.dx|0)+(b.dz|0);
-      return as-bs;
+    const pts = blocks.map(b => {
+      const x = Number(b.dx||0), y=Number(b.dy||0), z=Number(b.dz||0);
+      const rx =  x*Math.cos(yaw) - z*Math.sin(yaw);
+      const rz =  x*Math.sin(yaw) + z*Math.cos(yaw);
+      const sx = (rx - rz) * 6;
+      const sy = (rx + rz) * 3 - y * 6;
+      return { sx, sy, bid: String(b.blockId||"") };
     });
 
-    // draw blocks as 2D cubes (very simplified)
-    for(const b of sorted){
-      const x=(b.dx|0)-minX;
-      const y=(b.dy|0)-minY;
-      const z=(b.dz|0)-minZ;
-      const blockId = b.blockId || b.block_id || b.id || "";
-      const col = colorForBlock(blockId, pal);
-      const alpha = isTransparentBlockId(blockId) ? 160 : 255;
+    // バウンディング
+    let minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9;
+    for(const p of pts){
+      minX=Math.min(minX,p.sx); maxX=Math.max(maxX,p.sx);
+      minY=Math.min(minY,p.sy); maxY=Math.max(maxY,p.sy);
+    }
+    const cx = (minX+maxX)/2;
+    const cy = (minY+maxY)/2;
 
-      const [cx,cy] = proj(x,y,z);
-      // cube faces (2D fake)
-      const w = s*0.95;
-      const h = s*0.55;
+    const scale = Math.min(
+      (w-30)/(maxX-minX+20),
+      (h-30)/(maxY-minY+20)
+    );
 
-      // top
-      ctx2.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${alpha/255})`;
-      ctx2.beginPath();
-      ctx2.moveTo(cx, cy - h);
-      ctx2.lineTo(cx + w, cy - h*0.2);
-      ctx2.lineTo(cx, cy + h*0.6);
-      ctx2.lineTo(cx - w, cy - h*0.2);
-      ctx2.closePath();
-      ctx2.fill();
+    // 描画順：奥→手前（sy小さい→大きい）
+    pts.sort((a,b)=>a.sy-b.sy);
 
-      // side
-      ctx2.fillStyle = `rgba(${Math.max(0,col[0]-20)},${Math.max(0,col[1]-20)},${Math.max(0,col[2]-20)},${alpha/255})`;
-      ctx2.beginPath();
-      ctx2.moveTo(cx, cy + h*0.6);
-      ctx2.lineTo(cx + w, cy - h*0.2);
-      ctx2.lineTo(cx + w, cy + h*1.4);
-      ctx2.lineTo(cx, cy + h*2.2);
-      ctx2.closePath();
-      ctx2.fill();
+    for(const p of pts){
+      const x = (p.sx - cx) * scale + w/2;
+      const y = (p.sy - cy) * scale + h/2;
 
-      // other side
-      ctx2.fillStyle = `rgba(${Math.max(0,col[0]-35)},${Math.max(0,col[1]-35)},${Math.max(0,col[2]-35)},${alpha/255})`;
-      ctx2.beginPath();
-      ctx2.moveTo(cx, cy + h*0.6);
-      ctx2.lineTo(cx - w, cy - h*0.2);
-      ctx2.lineTo(cx - w, cy + h*1.4);
-      ctx2.lineTo(cx, cy + h*2.2);
-      ctx2.closePath();
-      ctx2.fill();
+      // 色：簡易ハッシュ
+      let hash=0;
+      for(let i=0;i<p.bid.length;i++) hash = ((hash<<5)-hash + p.bid.charCodeAt(i))|0;
+      const r = 120 + (hash & 63);
+      const g = 120 + ((hash>>6) & 63);
+      const b = 120 + ((hash>>12) & 63);
+
+      ctx.fillStyle = `rgb(${r%256},${g%256},${b%256})`;
+      ctx.fillRect(x-4, y-4, 8, 8);
+      ctx.strokeStyle = "rgba(15,23,42,.15)";
+      ctx.strokeRect(x-4, y-4, 8, 8);
     }
   }
 
-  // start
-  loadList();
+  function renderCard(it){
+    const card = document.createElement("article");
+    card.className = "card";
+    card.setAttribute("data-id", it.id);
+    card.setAttribute("data-no", String(it.no || 0));
+
+    card.innerHTML = `
+      <div class="thumbwrap">
+        <canvas class="thumb" width="480" height="280"></canvas>
+        <div class="pill">
+          <span class="badge">${escapeHtml(it.mod || "Forge")}</span>
+        </div>
+        <a class="btn-dl" href="${escapeHtml(API_DL(it.id))}" download>Download</a>
+      </div>
+      <div class="card-body">
+        <p class="title">${escapeHtml(it.name)}</p>
+        <div class="meta">
+          <div class="left">
+            <div class="author">👤 <span>${escapeHtml(it.author || "unknown")}</span></div>
+            <div class="dl">⬇ ${escapeHtml(it.dl ?? 0)}</div>
+          </div>
+          <div class="time">🕒 ${escapeHtml(it.createdText)}</div>
+        </div>
+        <div class="tagline">${escapeHtml(it.tags.join(" / "))}</div>
+      </div>
+    `;
+
+    card.addEventListener("click", (e) => {
+      const a = e.target && e.target.closest ? e.target.closest("a") : null;
+      if (a) return; // Downloadボタンはカードクリックと分ける
+
+      const no = Number(card.getAttribute("data-no") || 0);
+      const id = card.getAttribute("data-id") || "";
+      if (no) location.href = `/u/${no}`;     // ★GitHub Pages では 404.html 経由で /u/index.html に飛ぶ
+      else if (id) location.hash = `unit-${id}`; // フォールバック（古いデータ用）
+    });
+
+    // サムネ描画
+    const canvas = card.querySelector("canvas.thumb");
+    (async () => {
+      try{
+        const j = await fetchUnitJson(it.id);
+        const yaw = Number(yawUi.value || 270);
+        drawIso(canvas, j.blocks, yaw);
+      }catch{
+        // 失敗しても無視（軽量MVP）
+      }
+    })();
+
+    return card;
+  }
+
+  function applyFilter(){
+    const kw = String(q.value||"").trim().toLowerCase();
+    let arr = items.slice();
+
+    if(kw){
+      arr = arr.filter(it => {
+        const hay = (it.name + " " + it.desc + " " + it.tags.join(" ")).toLowerCase();
+        return hay.includes(kw);
+      });
+    }
+
+    const mode = String(sort.value||"new");
+    if(mode === "dl"){
+      arr.sort((a,b)=> (b.dl||0)-(a.dl||0));
+    }else if(mode === "name"){
+      arr.sort((a,b)=> String(a.name).localeCompare(String(b.name)));
+    }else{
+      // new
+      arr.sort((a,b)=> (b.created||"").localeCompare(a.created||""));
+    }
+
+    grid.innerHTML = "";
+    for(const it of arr){
+      grid.appendChild(renderCard(it));
+    }
+  }
+
+  async function load(){
+    hideError();
+    grid.innerHTML = "";
+    try{
+      const r = await fetch(API_LIST, { cache:"no-store" });
+      if(!r.ok) throw new Error("list HTTP " + r.status);
+      const data = await r.json();
+      const arr = Array.isArray(data.items) ? data.items : [];
+      items = arr.map(r => {
+        const created = asDateIso(r.created_at || r.createdAt || r.created);
+        const createdText = created ? created.slice(0,10) : "";
+        const tags = normalizeTags(r.tags);
+        const no = resolveNo(r);
+
+        return ({
+          id: String(r.id),
+          no,
+          name: r.title || r.name || "Untitled",
+          desc: r.description || "",
+          tags,
+          author: r.author_name || r.authorName || "unknown",
+          dl: Number(r.download_count ?? r.downloadCount ?? 0),
+          mod: r.mod_version || r.modVersion || "Forge",
+          created: created || "",
+          createdText,
+        });
+      });
+
+      applyFilter();
+    }catch(e){
+      showError("一覧の取得に失敗しました。\n" + String(e.message || e));
+    }
+  }
+
+  // events
+  q.addEventListener("input", applyFilter);
+  sort.addEventListener("change", applyFilter);
+  yawUi.addEventListener("change", applyFilter);
+
+  load();
 })();
 </script>
 </body>
