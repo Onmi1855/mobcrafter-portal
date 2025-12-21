@@ -13,7 +13,6 @@
       --muted:#64748b;
       --line:#e5e7eb;
       --brand:#2563eb;
-      --brand2:#16a34a;
       --shadow: 0 10px 25px rgba(15,23,42,.08);
       --radius: 16px;
     }
@@ -46,7 +45,7 @@
     .topbar{
       display:flex;
       gap:12px;
-      align-items:flex-end理解;
+      align-items:flex-end;
       justify-content:space-between;
       flex-wrap:wrap;
       background:var(--card);
@@ -235,7 +234,7 @@
           <option value="90">Yaw補正 +90°</option>
           <option value="0">Yaw補正 なし</option>
         </select>
-        <div class="muted">クリックで詳細ページへ（/u/:id）</div>
+        <div class="muted">カードクリックで詳細へ（/u/数字 or /u/UUID）</div>
       </div>
     </div>
 
@@ -258,13 +257,11 @@
 
 <script>
 (() => {
-  // ====== API (approved only) ======
-  // ★確定構成：同一オリジン（mobcrafter.net/api）
+  // ====== API ======
   const API_LIST = "/api/public/submissions";
   const API_JSON = (id) => `/api/public/submissions/${id}/json`;      // DLカウントしない
-  const API_DL   = (id) => `/api/public/submissions/${id}/download`;  // DLカウントする（Downloadボタン用）
+  const API_DL   = (id) => `/api/public/submissions/${id}/download`;  // DLカウントする
 
-  // 画面側の状態
   let items = [];
 
   const grid = document.getElementById("grid");
@@ -308,24 +305,17 @@
   }
 
   function resolveNo(row){
-    // submission_no が無い古いデータ救済：unit_id が unit_13 形式なら 13 を使う
     const n = Number(row.submission_no ?? row.submissionNo ?? row.no ?? 0);
-    if (n) return n;
-    const u = String(row.unit_id ?? row.unitId ?? "");
-    const m = u.match(/^unit_(\d+)$/);
-    return m ? Number(m[1]) : 0;
+    return n || 0;
   }
 
-  // ----- blocks fetch -----
   async function fetchUnitJson(id){
-    // サムネ用：DLカウントしない JSON API を使う
     const r = await fetch(API_JSON(id), { cache: "no-store" });
     if(!r.ok) throw new Error("json HTTP " + r.status);
     return await r.json();
   }
 
-  // ----- render engine (簡易アイソメ) -----
-  // ここは「雰囲気重視 / 軽量」のまま（MVP方針）
+  // 簡易描画（軽量MVP）
   function drawIso(canvas, blocks, yawDeg){
     const ctx = canvas.getContext("2d");
     const w = canvas.width, h = canvas.height;
@@ -338,7 +328,6 @@
       return;
     }
 
-    // ブロックを単純投影（色は blockId をハッシュして暫定）
     const yaw = (yawDeg||0) * Math.PI/180;
 
     const pts = blocks.map(b => {
@@ -350,7 +339,6 @@
       return { sx, sy, bid: String(b.blockId||"") };
     });
 
-    // バウンディング
     let minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9;
     for(const p of pts){
       minX=Math.min(minX,p.sx); maxX=Math.max(maxX,p.sx);
@@ -364,14 +352,12 @@
       (h-30)/(maxY-minY+20)
     );
 
-    // 描画順：奥→手前（sy小さい→大きい）
     pts.sort((a,b)=>a.sy-b.sy);
 
     for(const p of pts){
       const x = (p.sx - cx) * scale + w/2;
       const y = (p.sy - cy) * scale + h/2;
 
-      // 色：簡易ハッシュ
       let hash=0;
       for(let i=0;i<p.bid.length;i++) hash = ((hash<<5)-hash + p.bid.charCodeAt(i))|0;
       const r = 120 + (hash & 63);
@@ -414,15 +400,17 @@
 
     card.addEventListener("click", (e) => {
       const a = e.target && e.target.closest ? e.target.closest("a") : null;
-      if (a) return; // Downloadボタンはカードクリックと分ける
+      if (a) return;
 
       const no = Number(card.getAttribute("data-no") || 0);
       const id = card.getAttribute("data-id") || "";
-      if (no) location.href = `/u/${no}`;     // ★GitHub Pages では 404.html 経由で /u/index.html に飛ぶ
-      else if (id) location.hash = `unit-${id}`; // フォールバック（古いデータ用）
+
+      // ★ここが今回の修正点：
+      // submission_no が無い旧データは /u/<UUID> に飛ばす（表示できるようにする）
+      if (no) location.href = `/u/${no}`;
+      else if (id) location.href = `/u/${id}`;
     });
 
-    // サムネ描画
     const canvas = card.querySelector("canvas.thumb");
     (async () => {
       try{
@@ -454,7 +442,6 @@
     }else if(mode === "name"){
       arr.sort((a,b)=> String(a.name).localeCompare(String(b.name)));
     }else{
-      // new
       arr.sort((a,b)=> (b.created||"").localeCompare(a.created||""));
     }
 
@@ -498,7 +485,6 @@
     }
   }
 
-  // events
   q.addEventListener("input", applyFilter);
   sort.addEventListener("change", applyFilter);
   yawUi.addEventListener("change", applyFilter);
