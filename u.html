@@ -43,6 +43,11 @@
     input,textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;}
     textarea{min-height:90px;resize:vertical;}
     .hint{font-size:12px;color:var(--muted);margin-top:6px;}
+    .thumbBox{display:flex;flex-direction:column;gap:10px;}
+    .thumbTabs{display:flex;gap:8px;flex-wrap:wrap;}
+    .thumbTabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 10px;cursor:pointer;}
+    .thumbFrame{border:1px solid var(--line);border-radius:14px;background:#fff;min-height:240px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+    .thumbFrame .muted{padding:12px;}
   </style>
 </head>
 <body>
@@ -81,9 +86,9 @@
         <button id="copyBtn" class="btn" type="button">使い方をコピー</button>
       </div>
 
-      <details>
+      <details id="previewDetails">
         <summary>JSONプレビュー（折りたたみ）</summary>
-        <pre id="jsonPreview">...</pre>
+        <pre id="jsonPreview">（開くと読み込みます）</pre>
       </details>
 
       <details>
@@ -123,20 +128,28 @@
 
     <aside class="card">
       <h3 style="margin:0 0 10px;">サムネ</h3>
-      <div class="muted" style="font-size:13px;">
-        MVP方針により、一覧は軽量維持。詳細では今後スクショ/3D切替を実装します。<br>
-        （現時点はこの枠は説明のみ。スクショ対応フェーズでここに表示を追加）
+      <div class="thumbBox">
+        <div class="thumbTabs">
+          <button type="button" id="tab3d">3D（予定）</button>
+          <button type="button" id="tabShot">スクショ（予定）</button>
+        </div>
+        <div class="thumbFrame" id="thumbFrame">
+          <div class="muted">
+            MVP方針により、詳細ページのサムネはフェーズ③で実装します。<br>
+            （今は枠のみ）
+          </div>
+        </div>
       </div>
     </aside>
   </div>
 </main>
 
 <script>
-  // ★あなたのAPIドメインに合わせてください
-  const API_BASE = "https://api.mobcrafter.net";
+  // ★ 正式: mobcrafter.net/api 配下に統一（同一オリジン）
+  // GitHub Pages 上でも location.origin は mobcrafter.net になる前提
+  const API_BASE = "";
 
   function getSubmissionNoFromPath() {
-    // /u/123 から 123 を取り出す
     const m = location.pathname.match(/^\/u\/(\d+)/);
     if (!m) return null;
     return Number(m[1]);
@@ -145,17 +158,35 @@
   function el(id){ return document.getElementById(id); }
 
   function setStatus(html){
-    const s = el("status");
-    s.innerHTML = html || "";
+    el("status").innerHTML = html || "";
   }
 
-  function safeJsonPretty(obj){
-    try { return JSON.stringify(obj, null, 2); } catch { return ""; }
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;").replaceAll("'","&#39;");
   }
 
-  function parseTags(tagsText){
-    const arr = String(tagsText||"").split(",").map(s=>s.trim()).filter(Boolean);
-    return arr;
+  function parseTagsFromAny(v){
+    if (Array.isArray(v)) return v.map(x=>String(x)).filter(Boolean);
+    const s = String(v || "").trim();
+    if (!s) return [];
+    // JSON配列っぽい場合
+    if (s.startsWith("[") && s.endsWith("]")) {
+      try {
+        const j = JSON.parse(s);
+        if (Array.isArray(j)) return j.map(x=>String(x)).filter(Boolean);
+      } catch {}
+    }
+    return s.split(/[, \t\r\n]+/).map(x=>x.trim()).filter(Boolean);
+  }
+
+  function parseTagsInput(tagsText){
+    return String(tagsText||"")
+      .split(",")
+      .map(s=>s.trim())
+      .filter(Boolean)
+      .slice(0, 40);
   }
 
   async function apiGet(path){
@@ -197,6 +228,12 @@
     ].join("\\n");
   }
 
+  function kvRow(k,v){
+    return `<div class="k">${escapeHtml(String(k))}</div><div>${escapeHtml(String(v ?? ""))}</div>`;
+  }
+
+  let currentItem = null;
+
   async function main(){
     const no = getSubmissionNoFromPath();
     if (!no) {
@@ -204,35 +241,31 @@
       return;
     }
 
-    // 詳細メタ取得（approvedのみ返る）
+    // 詳細メタ取得（approvedのみ）
     let item;
     try {
       const res = await apiGet(`/api/public/u/${no}`);
       item = res.item;
+      currentItem = item;
     } catch (e) {
-      // deleted は 404/410 のどちらでも来得る
-      setStatus(`<div class="err">詳細の取得に失敗しました: ${String(e.message || e)}</div>`);
+      setStatus(`<div class="err">詳細の取得に失敗しました: ${escapeHtml(String(e.message || e))}</div>`);
       return;
     }
 
-    // 表示
     el("title").textContent = item.title || "(no title)";
     const created = item.created_at ? new Date(item.created_at).toLocaleString() : "";
     const updated = item.updated_at ? new Date(item.updated_at).toLocaleString() : "";
     el("meta").innerHTML = [
-      `<span>投稿: ${created}</span>`,
-      updated ? `<span>更新: ${updated}</span>` : "",
-      `<span>DL: ${item.download_count ?? 0}</span>`,
-      item.mod_version ? `<span>Mod: ${item.mod_version}</span>` : "",
-      item.mc_version ? `<span>MC: ${item.mc_version}</span>` : ""
+      `<span>投稿: ${escapeHtml(created)}</span>`,
+      updated ? `<span>更新: ${escapeHtml(updated)}</span>` : "",
+      `<span>DL: ${escapeHtml(item.download_count ?? 0)}</span>`,
+      item.mod_version ? `<span>Mod: ${escapeHtml(item.mod_version)}</span>` : "",
+      item.mc_version ? `<span>MC: ${escapeHtml(item.mc_version)}</span>` : ""
     ].filter(Boolean).join(" · ");
 
-    // tags
-    let tags = [];
-    try { tags = JSON.parse(item.tags || "[]"); } catch {}
+    const tags = parseTagsFromAny(item.tags_array || item.tags);
     el("tags").innerHTML = tags.map(t=>`<span class="tag">${escapeHtml(String(t))}</span>`).join("");
 
-    // kv
     el("kv").innerHTML = [
       kvRow("submission_no", item.submission_no),
       kvRow("unit_id", item.unit_id),
@@ -240,13 +273,11 @@
     ].join("");
 
     // DLリンク（UUIDでDL）
-    const dl = `${API_BASE}/api/public/submissions/${item.id}/download`;
-    const dlBtn = el("downloadBtn");
-    dlBtn.href = dl;
+    const dl = `/api/public/submissions/${item.id}/download`;
+    el("downloadBtn").href = dl;
 
-    // howto / preview
+    // howto
     el("howto").textContent = buildHowTo(item.unit_id);
-    el("jsonPreview").textContent = "（ダウンロードしたJSONをここに表示したい場合は、後でAPI拡張します。MVPでは重くしない方針）";
 
     // copy howto
     el("copyBtn").onclick = async () => {
@@ -259,16 +290,35 @@
       }
     };
 
-    // ---- owner check（whoami が必要）----
-    // ここは Worker 側に /api/whoami を追加して完成させます（次のセクション参照）
+    // JSONプレビュー：折りたたみを開いた時だけ取得（MVPで重くしない）
+    el("previewDetails").addEventListener("toggle", async (ev) => {
+      if (!ev.target.open) return;
+      if (!currentItem) return;
+      const pre = el("jsonPreview");
+      if (pre.dataset.loaded === "1") return;
+
+      pre.textContent = "読み込み中...";
+      try {
+        const r = await fetch(`/api/public/submissions/${currentItem.id}/json`, { credentials:"include" });
+        const t = await r.text();
+        if (!r.ok) throw new Error(t || ("HTTP_"+r.status));
+        pre.textContent = t;
+        pre.dataset.loaded = "1";
+      } catch (e) {
+        pre.textContent = "取得失敗: " + String(e.message || e);
+      }
+    });
+
+    // ---- owner check（whoami）----
     try {
       const who = await apiGet(`/api/whoami`);
       const me = who.email || "";
-      if (me && item.author_email && me === item.author_email) {
+      const isAdmin = !!who.is_admin;
+      if (me && (isAdmin || (item.author_email && me === String(item.author_email).toLowerCase()))) {
         enableOwnerUI(item);
       }
     } catch (_) {
-      // ログインしてない/Access未設定なら何もしない
+      // 未ログインなら何もしない
     }
   }
 
@@ -278,8 +328,7 @@
 
     el("editTitle").value = item.title || "";
     el("editDesc").value = item.description || "";
-    let tags = [];
-    try { tags = JSON.parse(item.tags || "[]"); } catch {}
+    const tags = parseTagsFromAny(item.tags_array || item.tags);
     el("editTags").value = tags.join(", ");
 
     el("saveMetaBtn").onclick = async () => {
@@ -288,7 +337,7 @@
         await apiJson("PUT", `/api/submissions/${item.id}`, {
           title: el("editTitle").value,
           description: el("editDesc").value,
-          tags: parseTags(el("editTags").value),
+          tags: parseTagsInput(el("editTags").value),
         });
         el("ownerMsg").textContent = "保存しました。リロードで反映されます。";
       } catch (e) {
@@ -317,9 +366,7 @@
       if (!confirm("本当に削除しますか？（一覧/詳細/DLから消えます）")) return;
       el("ownerMsg").textContent = "削除中...";
       try {
-        const r = await fetch(API_BASE + `/api/submissions/${item.id}`, {
-          method:"DELETE", credentials:"include"
-        });
+        const r = await fetch(`/api/submissions/${item.id}`, { method:"DELETE", credentials:"include" });
         const t = await r.text();
         if (!r.ok) throw new Error(t || ("HTTP_"+r.status));
         el("ownerMsg").textContent = "削除しました。一覧へ戻ります...";
@@ -328,15 +375,6 @@
         el("ownerMsg").textContent = "削除失敗: " + String(e.message || e);
       }
     };
-  }
-
-  function kvRow(k,v){
-    return `<div class="k">${escapeHtml(String(k))}</div><div>${escapeHtml(String(v ?? ""))}</div>`;
-  }
-  function escapeHtml(s){
-    return String(s)
-      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;").replaceAll("'","&#39;");
   }
 
   main();
