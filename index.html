@@ -407,8 +407,8 @@
 
       // ★ここが今回の修正点：
       // submission_no が無い旧データは /u/<UUID> に飛ばす（表示できるようにする）
-      if (no) location.href = `/u/index.html?p=${encodeURIComponent(`/u/${no}`)}`;
-      else if (id) location.href = `/u/index.html?p=${encodeURIComponent(`/u/${id}`)}`;
+if (no) location.href = `/unit.html?id=${encodeURIComponent(String(no))}`;
+else if (id) location.href = `/unit.html?id=${encodeURIComponent(String(id))}`;
     });
 
     const canvas = card.querySelector("canvas.thumb");
