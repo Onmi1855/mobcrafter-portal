@@ -1,1 +1,16 @@
-
+function colorForBlock(blockId, pal){
+  const key = String(blockId || "");
+  if(pal){
+    const v = pal[key] ?? pal[key.toLowerCase()];
+    if(typeof v === "string" && v.trim()){
+      return hexToRgb(v);
+    }
+    if(v && typeof v === "object"){
+      const s = v.color || v.hex || v.value;
+      if(typeof s === "string" && s.trim()){
+        return hexToRgb(s);
+      }
+    }
+  }
+  return hashColor(key);
+}
