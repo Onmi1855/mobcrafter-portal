@@ -72,6 +72,12 @@
       border-color:rgba(37,99,235,.10);
       color:#fff;
     }
+    .btn.danger{
+      background:rgba(220,38,38,.95);
+      border-color:rgba(220,38,38,.10);
+      color:#fff;
+    }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; }
     pre{
       margin:10px 0 0;
       background:#0b1220;
@@ -91,6 +97,38 @@
       padding:10px 12px;
       border-radius:12px;
       white-space:pre-wrap;
+    }
+
+    /* editor */
+    .divider{ height:1px; background:var(--line); margin:14px 0; }
+    .editor{ margin-top:12px; display:none; }
+    .editor .row{ display:grid; grid-template-columns: 140px 1fr; gap:10px; align-items:center; margin-top:10px; }
+    @media (max-width: 700px){ .editor .row{ grid-template-columns: 1fr; } }
+    input[type="text"], textarea{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:14px;
+      background:#fff;
+      color:var(--text);
+    }
+    textarea{ min-height: 160px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; font-size:12px; }
+    .editorActions{ margin-top:10px; display:flex; gap:10px; flex-wrap:wrap; }
+    .note{
+      margin-top:8px;
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.4;
+    }
+    .okmsg{
+      background:#ecfdf5;
+      border:1px solid #a7f3d0;
+      color:#065f46;
+      padding:10px 12px;
+      border-radius:12px;
+      white-space:pre-wrap;
+      margin-top:10px;
     }
   </style>
 </head>
@@ -124,6 +162,54 @@
         <pre id="howto"></pre>
       </details>
 
+      <div class="divider"></div>
+
+      <!-- owner/admin editor -->
+      <div class="editor" id="editor">
+        <div style="font-weight:800;">編集（所有者/管理者）</div>
+        <div class="muted" id="whoamiLine" style="margin-top:6px;"></div>
+
+        <div class="row">
+          <div class="muted">タイトル</div>
+          <input id="editTitle" type="text" maxlength="80" placeholder="title" />
+        </div>
+
+        <div class="row">
+          <div class="muted">説明</div>
+          <input id="editDesc" type="text" maxlength="2000" placeholder="description" />
+        </div>
+
+        <div class="row">
+          <div class="muted">タグ</div>
+          <input id="editTags" type="text" maxlength="300" placeholder="tag1 tag2 tag3" />
+        </div>
+
+        <div class="editorActions">
+          <button id="saveMetaBtn" class="btn primary" type="button">メタ保存</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div style="font-weight:800;">JSON差し替え</div>
+        <div class="note">※ ここに貼ったJSONはサーバー側で <b>unitId/id を unit_採番 に強制上書き</b>します（確定仕様）。</div>
+        <textarea id="editJson" spellcheck="false" placeholder="{ ... }"></textarea>
+
+        <div class="editorActions">
+          <button id="loadJsonBtn" class="btn" type="button">現在のJSONを読み込む</button>
+          <button id="saveJsonBtn" class="btn primary" type="button">JSON保存</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div style="font-weight:800; color:var(--danger);">削除（論理削除）</div>
+        <div class="note">※ 一覧/詳細/DL から消えます（R2物理削除はしません）。</div>
+        <div class="editorActions">
+          <button id="deleteBtn" class="btn danger" type="button">削除する</button>
+        </div>
+
+        <div id="editorMsg"></div>
+      </div>
+
       <div id="msg"></div>
     </section>
 
@@ -138,9 +224,12 @@
 
 <script>
 (() => {
-  const API_LIST = "/api/public/submissions"; // approved一覧
-  const API_JSON = (id) => `/api/public/submissions/${id}/json`;      // DLカウントしない
-  const API_DL   = (id) => `/api/public/submissions/${id}/download`;  // DLカウントする
+  const API_LIST   = "/api/public/submissions"; // approved一覧
+  const API_JSON   = (id) => `/api/public/submissions/${id}/json`;      // DLカウントしない
+  const API_DL     = (id) => `/api/public/submissions/${id}/download`;  // DLカウントする
+  const API_WHOAMI = "/api/whoami";
+  const API_OWNER_META = (id) => `/api/submissions/${id}`;          // PUT, DELETE
+  const API_OWNER_JSON = (id) => `/api/submissions/${id}/json`;     // PUT
 
   const el = (id) => document.getElementById(id);
 
@@ -173,7 +262,7 @@
       "3) MobCrafter の指定フォルダへ配置 → ゲーム内で読み込み/召喚",
       "",
       "※ポータル側で unitId を強制一致させています（MobCrafter本体仕様対策）。"
-    ].join("\\n");
+    ].join("\n");
   }
 
   function getKeyFromUrl(){
@@ -196,14 +285,46 @@
     return Array.isArray(data.items) ? data.items : [];
   }
 
+  async function apiJson(url, method, bodyObj){
+    const r = await fetch(url, {
+      method,
+      credentials: "include",
+      headers: { "Content-Type":"application/json", "Accept":"application/json" },
+      body: bodyObj ? JSON.stringify(bodyObj) : undefined
+    });
+    const text = await r.text();
+    let data = null;
+    try { data = JSON.parse(text); } catch { data = { raw:text }; }
+    if(!r.ok){
+      const err = new Error("HTTP " + r.status);
+      err.status = r.status;
+      err.data = data;
+      throw err;
+    }
+    return data;
+  }
+
+  function setMsg(html){
+    el("msg").innerHTML = html || "";
+  }
+
+  function setEditorMsg(html){
+    el("editorMsg").innerHTML = html || "";
+  }
+
+  function fillEditorFromItem(item){
+    el("editTitle").value = item.title || "";
+    el("editDesc").value  = item.description || "";
+    el("editTags").value  = normalizeTags(item.tags).join(" ");
+  }
+
   async function load(){
     const key = getKeyFromUrl();
     if(!key){
-      el("msg").innerHTML = `<div class="err">URLが不正です。一覧からクリックして開いてください。</div>`;
+      setMsg(`<div class="err">URLが不正です。一覧からクリックして開いてください。</div>`);
       return;
     }
 
-    // key が数字なら submission_no、数字以外なら UUID とみなす
     const isNo = /^\d+$/.test(key);
     const list = await fetchApprovedList();
 
@@ -216,7 +337,7 @@
     }
 
     if(!item){
-      el("msg").innerHTML = `<div class="err">対象が見つかりませんでした。\n（承認済み一覧に無い、または削除済みの可能性）</div>`;
+      setMsg(`<div class="err">対象が見つかりませんでした。\n（承認済み一覧に無い、または削除済みの可能性）</div>`);
       return;
     }
 
@@ -263,12 +384,111 @@
     el("copyBtn").onclick = async () => {
       try{
         await navigator.clipboard.writeText(buildHowTo(item.unit_id));
-        el("msg").innerHTML = `<div class="muted" style="margin-top:12px;">コピーしました。</div>`;
-        setTimeout(()=> el("msg").innerHTML = "", 1500);
+        setMsg(`<div class="muted" style="margin-top:12px;">コピーしました。</div>`);
+        setTimeout(()=> setMsg(""), 1500);
       }catch{
-        el("msg").innerHTML = `<div class="err">コピーできませんでした。</div>`;
+        setMsg(`<div class="err">コピーできませんでした。</div>`);
       }
     };
+
+    // --- editor (whoami) ---
+    let who = { ok:true, email:null, is_admin:false };
+    try{
+      who = await apiJson(API_WHOAMI, "GET");
+    }catch{
+      who = { ok:false, email:null, is_admin:false };
+    }
+
+    if(who && who.email){
+      el("editor").style.display = "block";
+      el("whoamiLine").textContent = `login: ${who.email}` + (who.is_admin ? "（admin）" : "");
+
+      fillEditorFromItem(item);
+
+      // 現在JSON読み込み
+      el("loadJsonBtn").onclick = async () => {
+        setEditorMsg(`<div class="muted" style="margin-top:10px;">読み込み中...</div>`);
+        try{
+          const r = await fetch(API_JSON(item.id), { cache:"no-store", credentials:"include" });
+          if(!r.ok) throw new Error("json HTTP " + r.status);
+          const text = await r.text();
+          el("editJson").value = text;
+          setEditorMsg(`<div class="okmsg">読み込みました。</div>`);
+          setTimeout(()=> setEditorMsg(""), 1200);
+        }catch(e){
+          setEditorMsg(`<div class="err">取得失敗: ${escapeHtml(String(e.message || e))}</div>`);
+        }
+      };
+
+      // メタ保存
+      el("saveMetaBtn").onclick = async () => {
+        const btn = el("saveMetaBtn");
+        btn.disabled = true;
+        setEditorMsg(`<div class="muted" style="margin-top:10px;">保存中...</div>`);
+        try{
+          const body = {
+            title: el("editTitle").value || "",
+            description: el("editDesc").value || "",
+            tags: el("editTags").value || ""
+          };
+          await apiJson(API_OWNER_META(item.id), "PUT", body);
+          setEditorMsg(`<div class="okmsg">保存しました。</div>`);
+          // 画面へ反映（軽量）
+          item.title = body.title;
+          item.description = body.description;
+          item.tags = body.tags;
+          el("title").textContent = item.title || "Untitled";
+          el("tags").innerHTML = normalizeTags(item.tags).map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join("");
+          // kvの説明は元UIに無いので更新しない（必要なら後で）
+          setTimeout(()=> setEditorMsg(""), 1500);
+        }catch(e){
+          const hint = e.status === 403 ? "権限がありません（owner/adminのみ）。" : "保存に失敗しました。";
+          setEditorMsg(`<div class="err">${escapeHtml(hint)}\n${escapeHtml(JSON.stringify(e.data || {}, null, 2))}</div>`);
+        }finally{
+          btn.disabled = false;
+        }
+      };
+
+      // JSON保存
+      el("saveJsonBtn").onclick = async () => {
+        const btn = el("saveJsonBtn");
+        btn.disabled = true;
+        setEditorMsg(`<div class="muted" style="margin-top:10px;">保存中...</div>`);
+        try{
+          const raw = el("editJson").value || "";
+          let obj = null;
+          try{ obj = JSON.parse(raw); }catch{ throw new Error("JSONの形式が不正です"); }
+          await apiJson(API_OWNER_JSON(item.id), "PUT", { json: obj });
+          setEditorMsg(`<div class="okmsg">JSONを保存しました（unitIdはサーバー側で強制一致）。</div>`);
+          // プレビューも更新したい場合に備えてリセット
+          el("jsonPreview").textContent = "...";
+          setTimeout(()=> setEditorMsg(""), 1700);
+        }catch(e){
+          const hint = e.status === 403 ? "権限がありません（owner/adminのみ）。" : (e.message || "保存に失敗しました");
+          setEditorMsg(`<div class="err">${escapeHtml(String(hint))}</div>`);
+        }finally{
+          btn.disabled = false;
+        }
+      };
+
+      // 削除
+      el("deleteBtn").onclick = async () => {
+        const ok = confirm("削除（論理削除）します。\n一覧/詳細/DLから消えます。\nよろしいですか？");
+        if(!ok) return;
+        const btn = el("deleteBtn");
+        btn.disabled = true;
+        setEditorMsg(`<div class="muted" style="margin-top:10px;">削除中...</div>`);
+        try{
+          await apiJson(API_OWNER_META(item.id), "DELETE");
+          setEditorMsg(`<div class="okmsg">削除しました。トップへ戻ります。</div>`);
+          setTimeout(()=> location.href = "/", 900);
+        }catch(e){
+          const hint = e.status === 403 ? "権限がありません（owner/adminのみ）。" : "削除に失敗しました。";
+          setEditorMsg(`<div class="err">${escapeHtml(hint)}\n${escapeHtml(JSON.stringify(e.data || {}, null, 2))}</div>`);
+          btn.disabled = false;
+        }
+      };
+    }
   }
 
   load().catch(e => {
