@@ -53,18 +53,6 @@
       border-radius:var(--radius);
       padding:14px 14px;
       box-shadow:var(--shadow);
-          <div class="authbar" id="authbar">
-      <div class="left">
-        <span>Login:</span>
-        <code id="authState">checking...</code>
-        <span id="authEmailWrap" style="display:none;">Email: <code id="authEmail"></code></span>
-        <span id="authAdminWrap" style="display:none;">Admin: <code id="authAdmin"></code></span>
-      </div>
-      <div class="right">
-        <a id="authLoginLink" href="/api/whoami">ログインを開始</a>
-      </div>
-    </div>
-
     }
     .leftbox{
       display:flex;
@@ -221,7 +209,9 @@
       font-size:12px;
       color:var(--muted);
     }
-        .authbar{
+
+    /* ===== auth bar ===== */
+    .authbar{
       display:flex;
       align-items:center;
       justify-content:space-between;
@@ -295,6 +285,19 @@
     </div>
 
     <div id="err" class="error"></div>
+
+    <!-- ✅ auth bar はCSSではなく、ここ（HTML）に置く -->
+    <div class="authbar" id="authbar">
+      <div class="left">
+        <span>Login:</span>
+        <code id="authState">checking...</code>
+        <span id="authEmailWrap" style="display:none;">Email: <code id="authEmail"></code></span>
+        <span id="authAdminWrap" style="display:none;">Admin: <code id="authAdmin"></code></span>
+      </div>
+      <div class="right">
+        <a id="authLoginLink" href="/api/whoami">ログインを開始</a>
+      </div>
+    </div>
   </div>
 
   <section id="grid" class="grid"></section>
@@ -306,9 +309,11 @@
 (() => {
   // ====== API ======
   const API_LIST = "/api/public/submissions";
-    // ====== AUTH ======
-  const API_WHOAMI = "/api/whoami";
+  const API_JSON = (id) => `/api/public/submissions/${id}/json`;      // DLカウントしない
+  const API_DL   = (id) => `/api/public/submissions/${id}/download`;  // DLカウントする
 
+  // ====== AUTH ======
+  const API_WHOAMI = "/api/whoami";
   const authState = document.getElementById("authState");
   const authEmailWrap = document.getElementById("authEmailWrap");
   const authEmail = document.getElementById("authEmail");
@@ -323,8 +328,8 @@
       authAdminWrap.style.display = "none";
 
       const r = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
-      // Accessに当たるとここでリダイレクト/HTMLが返る場合があるので text→JSON で安全に
       const text = await r.text();
+
       let data = null;
       try { data = JSON.parse(text); } catch { data = null; }
 
@@ -341,7 +346,7 @@
       if(!email){
         authState.textContent = "logged out";
         authLoginLink.style.display = "inline-flex";
-        authLoginLink.href = API_WHOAMI; // ここ踏むとAccessが掛かっていればログインが始まる
+        authLoginLink.href = API_WHOAMI;
         return;
       }
 
@@ -352,7 +357,6 @@
       authAdminWrap.style.display = "inline";
       authAdmin.textContent = isAdmin ? "true" : "false";
 
-      // ログイン済みならリンクは隠す（邪魔なら）
       authLoginLink.style.display = "none";
     }catch{
       authState.textContent = "unknown";
@@ -360,9 +364,6 @@
       authLoginLink.href = API_WHOAMI;
     }
   }
-
-  const API_JSON = (id) => `/api/public/submissions/${id}/json`;      // DLカウントしない
-  const API_DL   = (id) => `/api/public/submissions/${id}/download`;  // DLカウントする
 
   let items = [];
 
@@ -462,11 +463,11 @@
 
       let hash=0;
       for(let i=0;i<p.bid.length;i++) hash = ((hash<<5)-hash + p.bid.charCodeAt(i))|0;
-      const r = 120 + (hash & 63);
-      const g = 120 + ((hash>>6) & 63);
-      const b = 120 + ((hash>>12) & 63);
+      const rr = 120 + (hash & 63);
+      const gg = 120 + ((hash>>6) & 63);
+      const bb = 120 + ((hash>>12) & 63);
 
-      ctx.fillStyle = `rgb(${r%256},${g%256},${b%256})`;
+      ctx.fillStyle = `rgb(${rr%256},${gg%256},${bb%256})`;
       ctx.fillRect(x-4, y-4, 8, 8);
       ctx.strokeStyle = "rgba(15,23,42,.15)";
       ctx.strokeRect(x-4, y-4, 8, 8);
@@ -507,10 +508,8 @@
       const no = Number(card.getAttribute("data-no") || 0);
       const id = card.getAttribute("data-id") || "";
 
-      // ★ここが今回の修正点：
-      // submission_no が無い旧データは /u/<UUID> に飛ばす（表示できるようにする）
-if (no) location.href = `/unit.html?id=${encodeURIComponent(String(no))}`;
-else if (id) location.href = `/unit.html?id=${encodeURIComponent(String(id))}`;
+      if (no) location.href = `/unit.html?id=${encodeURIComponent(String(no))}`;
+      else if (id) location.href = `/unit.html?id=${encodeURIComponent(String(id))}`;
     });
 
     const canvas = card.querySelector("canvas.thumb");
@@ -558,7 +557,10 @@ else if (id) location.href = `/unit.html?id=${encodeURIComponent(String(id))}`;
     grid.innerHTML = "";
     try{
       const r = await fetch(API_LIST, { cache:"no-store" });
-      if(!r.ok) throw new Error("list HTTP " + r.status);
+      if(!r.ok){
+        const t = await r.text().catch(()=> "");
+        throw new Error(`list HTTP ${r.status}\n${t ? ("body: " + t.slice(0,200)) : ""}`);
+      }
       const data = await r.json();
       const arr = Array.isArray(data.items) ? data.items : [];
       items = arr.map(r => {
@@ -590,7 +592,7 @@ else if (id) location.href = `/unit.html?id=${encodeURIComponent(String(id))}`;
   q.addEventListener("input", applyFilter);
   sort.addEventListener("change", applyFilter);
   yawUi.addEventListener("change", applyFilter);
-  
+
   loadWhoami();
   load();
 })();
