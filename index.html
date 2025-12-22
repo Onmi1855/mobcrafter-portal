@@ -53,6 +53,18 @@
       border-radius:var(--radius);
       padding:14px 14px;
       box-shadow:var(--shadow);
+          <div class="authbar" id="authbar">
+      <div class="left">
+        <span>Login:</span>
+        <code id="authState">checking...</code>
+        <span id="authEmailWrap" style="display:none;">Email: <code id="authEmail"></code></span>
+        <span id="authAdminWrap" style="display:none;">Admin: <code id="authAdmin"></code></span>
+      </div>
+      <div class="right">
+        <a id="authLoginLink" href="/api/whoami">ログインを開始</a>
+      </div>
+    </div>
+
     }
     .leftbox{
       display:flex;
@@ -209,6 +221,41 @@
       font-size:12px;
       color:var(--muted);
     }
+        .authbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      width:100%;
+      margin-top:8px;
+      padding-top:10px;
+      border-top:1px dashed var(--line);
+      color:var(--muted);
+      font-size:12px;
+    }
+    .authbar .left{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      min-width:0;
+    }
+    .authbar code{
+      background:rgba(148,163,184,.15);
+      border:1px solid rgba(148,163,184,.25);
+      padding:2px 6px;
+      border-radius:999px;
+      color:#0f172a;
+    }
+    .authbar a{
+      color:var(--brand);
+      text-decoration:none;
+      border:1px solid rgba(37,99,235,.25);
+      padding:6px 10px;
+      border-radius:999px;
+      background:#fff;
+      white-space:nowrap;
+    }
   </style>
 </head>
 <body>
@@ -259,6 +306,61 @@
 (() => {
   // ====== API ======
   const API_LIST = "/api/public/submissions";
+    // ====== AUTH ======
+  const API_WHOAMI = "/api/whoami";
+
+  const authState = document.getElementById("authState");
+  const authEmailWrap = document.getElementById("authEmailWrap");
+  const authEmail = document.getElementById("authEmail");
+  const authAdminWrap = document.getElementById("authAdminWrap");
+  const authAdmin = document.getElementById("authAdmin");
+  const authLoginLink = document.getElementById("authLoginLink");
+
+  async function loadWhoami(){
+    try{
+      authState.textContent = "checking...";
+      authEmailWrap.style.display = "none";
+      authAdminWrap.style.display = "none";
+
+      const r = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
+      // Accessに当たるとここでリダイレクト/HTMLが返る場合があるので text→JSON で安全に
+      const text = await r.text();
+      let data = null;
+      try { data = JSON.parse(text); } catch { data = null; }
+
+      if(!r.ok || !data){
+        authState.textContent = "unknown";
+        authLoginLink.style.display = "inline-flex";
+        authLoginLink.href = API_WHOAMI;
+        return;
+      }
+
+      const email = data.email || null;
+      const isAdmin = Boolean(data.is_admin);
+
+      if(!email){
+        authState.textContent = "logged out";
+        authLoginLink.style.display = "inline-flex";
+        authLoginLink.href = API_WHOAMI; // ここ踏むとAccessが掛かっていればログインが始まる
+        return;
+      }
+
+      authState.textContent = "logged in";
+      authEmailWrap.style.display = "inline";
+      authEmail.textContent = email;
+
+      authAdminWrap.style.display = "inline";
+      authAdmin.textContent = isAdmin ? "true" : "false";
+
+      // ログイン済みならリンクは隠す（邪魔なら）
+      authLoginLink.style.display = "none";
+    }catch{
+      authState.textContent = "unknown";
+      authLoginLink.style.display = "inline-flex";
+      authLoginLink.href = API_WHOAMI;
+    }
+  }
+
   const API_JSON = (id) => `/api/public/submissions/${id}/json`;      // DLカウントしない
   const API_DL   = (id) => `/api/public/submissions/${id}/download`;  // DLカウントする
 
@@ -488,7 +590,8 @@ else if (id) location.href = `/unit.html?id=${encodeURIComponent(String(id))}`;
   q.addEventListener("input", applyFilter);
   sort.addEventListener("change", applyFilter);
   yawUi.addEventListener("change", applyFilter);
-
+  
+  loadWhoami();
   load();
 })();
 </script>
