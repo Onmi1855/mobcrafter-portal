@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MobCrafter Portal</title>
   <meta name="description" content="MobCrafter用ユニットJSON共有ポータル。検索・新着で探せます。" />
   <style>
@@ -13,139 +13,119 @@
       --muted:#64748b;
       --line:#e5e7eb;
       --brand:#2563eb;
-      --danger:#dc2626;
+      --brand2:#16a34a;
       --shadow: 0 10px 25px rgba(15,23,42,.08);
-      --radius: 16px;
+      --radius: 14px;
     }
-    *{ box-sizing:border-box; }
     body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      color:var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
       background:var(--bg);
+      color:var(--text);
     }
     header{
-      padding:24px 16px 10px;
-      text-align:center;
-    }
-    header h1{
-      margin:0;
-      font-size:20px;
-      letter-spacing:.4px;
-    }
-    header p{
-      margin:6px 0 0;
-      color:var(--muted);
-      font-size:12px;
-    }
-    main{
-      max-width:1060px;
+      padding:24px 18px 12px;
+      max-width: 1120px;
       margin:0 auto;
-      padding:10px 16px 40px;
     }
-    .topbar{
-      display:flex;
-      gap:12px;
-      align-items:flex-end;
-      justify-content:space-between;
-      flex-wrap:wrap;
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      padding:14px 14px;
-      box-shadow:var(--shadow);
+    h1{
+      margin:0;
+      font-size:22px;
+      letter-spacing:.2px;
     }
-    .leftbox{
-      display:flex;
-      gap:12px;
-      flex-wrap:wrap;
-      align-items:flex-end;
-    }
-    .field label{
-      display:block;
-      font-size:12px;
+    .sub{
+      margin-top:6px;
       color:var(--muted);
-      margin-bottom:6px;
+      font-size:13px;
+      line-height:1.4;
     }
-    input[type="text"], select{
+    .toolbar{
+      max-width:1120px;
+      margin:0 auto;
+      padding:12px 18px 8px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .toolbar input, .toolbar select{
       border:1px solid var(--line);
-      border-radius:12px;
+      border-radius: 999px;
       padding:10px 12px;
-      font-size:14px;
-      min-width:260px;
-      outline:none;
       background:#fff;
+      outline:none;
+      font-size:14px;
     }
-    select{ min-width:180px; }
-    .muted{
-      color:var(--muted);
-      font-size:12px;
+    .toolbar input{ min-width: 240px; flex: 1 1 240px; }
+    .toolbar select{ flex: 0 0 auto; }
+
+    .wrap{
+      max-width:1120px;
+      margin:0 auto;
+      padding: 8px 18px 28px;
     }
-    .error{
-      margin-top:10px;
-      padding:10px 12px;
-      border-radius:12px;
+
+    .err{
+      display:none;
       background:#fff1f2;
       border:1px solid #fecdd3;
       color:#9f1239;
-      display:none;
+      padding:10px 12px;
+      border-radius: 12px;
       white-space:pre-wrap;
-      width:100%;
+      margin: 0 0 14px;
     }
+
     .grid{
-      margin-top:14px;
       display:grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap:14px;
     }
+    @media (max-width: 980px){ .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px){ .grid{ grid-template-columns: 1fr; } }
+
     .card{
       background:var(--card);
       border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       overflow:hidden;
       cursor:pointer;
-      transition: transform .08s ease, box-shadow .08s ease;
-      position:relative;
-    }
-    .card:hover{
-      transform: translateY(-1px);
-      box-shadow: 0 14px 30px rgba(15,23,42,.10);
+      display:flex;
+      flex-direction:column;
+      min-height: 360px;
     }
     .thumbwrap{
-      height:140px;
-      background: linear-gradient(180deg, #e6f0ff, #f5f9ff);
-      display:flex;
-      align-items:center;
-      justify-content:center;
       position:relative;
+      background: linear-gradient(180deg, rgba(37,99,235,.10), rgba(22,163,74,.08));
     }
     canvas.thumb{
       width:100%;
-      height:140px;
-      image-rendering:pixelated;
+      height:auto;
+      display:block;
+      border-bottom:1px solid var(--line);
     }
     .pill{
       position:absolute;
       top:10px;
       left:10px;
       display:flex;
-      gap:6px;
+      gap:8px;
       align-items:center;
     }
     .badge{
-      font-size:11px;
-      padding:4px 8px;
+      font-size:12px;
+      padding:6px 10px;
       border-radius:999px;
-      background:rgba(255,255,255,.78);
+      background:rgba(255,255,255,.8);
       border:1px solid rgba(148,163,184,.35);
       color:#0f172a;
       backdrop-filter: blur(6px);
     }
     .btn-dl{
       position:absolute;
-      top:10px;
-      right:10px;
+      bottom:10px;
+      left:10px;
       font-size:12px;
       padding:6px 10px;
       border-radius:999px;
@@ -271,110 +251,79 @@
     }
     .authbar a.primary{
       background:#2563eb;
-      border-color:#2563eb;
       color:#fff;
+      border-color:rgba(37,99,235,.10);
     }
-    .authbar a.danger{
-      background:var(--danger);
-      border-color:var(--danger);
-      color:#fff;
-    }
-    .chip{
-      display:inline-flex;
-      align-items:center;
+    .mine{
+      display:none;
       gap:8px;
-      border:1px solid rgba(148,163,184,.25);
-      background:#fff;
+      align-items:center;
+      border:1px solid rgba(148,163,184,.35);
       padding:6px 10px;
       border-radius:999px;
-      user-select:none;
+      background:#fff;
     }
-    .chip input{ transform: translateY(1px); }
+    .mine input{ margin:0; }
   </style>
 </head>
 <body>
 <header>
   <h1>MobCrafter Portal</h1>
-  <p>ユニットJSON共有（MVP）</p>
-</header>
+  <div class="sub">MobCrafter用ユニットJSON共有ポータル。検索・新着で探せます。</div>
 
-<main>
-  <div class="topbar">
-    <div class="leftbox">
-      <div class="field">
-        <label>探す</label>
-        <input id="q" type="text" placeholder="検索（例：sephiroth / boss / sword）" />
-        <div class="muted">タイトル / 説明 / タグで検索できます。サムネは簡易3D描画。</div>
-      </div>
-
-      <div class="field">
-        <label>Yaw補正</label>
-        <select id="yaw">
-          <option value="270">Yaw補正 +270°</option>
-          <option value="180">Yaw補正 +180°</option>
-          <option value="90">Yaw補正 +90°</option>
-          <option value="0">Yaw補正 なし</option>
-        </select>
-        <div class="muted">カードクリックで詳細へ（/unit.html?id=数字 or UUID）</div>
-      </div>
+  <div class="authbar">
+    <div class="left">
+      <span>Login: <b id="authState">checking...</b></span>
+      <span>Email: <code id="meEmail">-</code></span>
+      <span class="mine" id="mineWrap"><input type="checkbox" id="mineOnly" /><label for="mineOnly">自分の投稿のみ</label></span>
     </div>
-
-    <div class="field">
-      <label>並び替え</label>
-      <select id="sort">
-        <option value="new">新着順</option>
-        <option value="dl">DL多い順</option>
-        <option value="name">名前順</option>
-      </select>
-    </div>
-
-    <div id="err" class="error"></div>
-
-    <div class="authbar" id="authbar">
-      <div class="left">
-        <span>Login:</span>
-        <code id="authState">checking...</code>
-        <span id="authEmailWrap" style="display:none;">Email: <code id="authEmail"></code></span>
-        <span id="authAdminWrap" style="display:none;">Admin: <code id="authAdmin"></code></span>
-
-        <label id="mineWrap" class="chip" style="display:none;">
-          <input id="mineOnly" type="checkbox" />
-          <span>自分の投稿のみ</span>
-        </label>
-      </div>
-
-      <div class="right">
-        <a id="authActionLink" href="/api/whoami">ログイン</a>
-        <a id="postLink" class="primary" href="/submit.html">投稿</a>
-      </div>
+    <div class="right">
+      <a id="authActionLink" href="#">...</a>
+      <a id="postLink" class="primary" href="/submit.html">投稿</a>
+      <a href="/admin.html" id="adminLink" style="display:none;">Admin</a>
     </div>
   </div>
+</header>
 
-  <section id="grid" class="grid"></section>
+<div class="toolbar">
+  <input id="q" type="search" placeholder="検索：タイトル / 説明 / タグ" />
+  <select id="sort">
+    <option value="new" selected>新着</option>
+    <option value="dl">DL数</option>
+    <option value="name">名前</option>
+  </select>
+  <select id="yaw">
+    <option value="0">Yaw 0°</option>
+    <option value="90">Yaw 90°</option>
+    <option value="180">Yaw 180°</option>
+    <option value="270" selected>Yaw 270°</option>
+  </select>
+</div>
 
-  <footer>© 2025 MobCrafter Portal — MVP</footer>
+<main class="wrap">
+  <div id="err" class="err"></div>
+  <div id="grid" class="grid"></div>
+
+  <footer>
+    © MobCrafter Portal
+  </footer>
 </main>
 
 <script>
 (() => {
-  // ====== API ======
-  const API_PUBLIC_LIST = "/api/public/submissions";
-  const API_MY_LIST = "/api/my/submissions?scope=approved"; // ログイン必須 / 自分の承認済みのみ
-  const API_JSON = (id) => `/api/public/submissions/${id}/json`;
-  const API_DL   = (id) => `/api/public/submissions/${id}/download`;
-
-  // ====== AUTH ======
   const API_WHOAMI = "/api/whoami";
+  const API_PUBLIC_LIST = "/api/public/submissions";
+  const API_MY_LIST = "/api/my/submissions";
+  const API_JSON = (id) => `/api/public/submissions/${encodeURIComponent(id)}/json`;
+  const API_DL   = (id) => `/api/public/submissions/${encodeURIComponent(id)}/download`;
+
+  const whoamiNext = (nextPath) => `/api/login?next=${encodeURIComponent(nextPath || "/")}`;
 
   const authState = document.getElementById("authState");
-  const authEmailWrap = document.getElementById("authEmailWrap");
-  const authEmail = document.getElementById("authEmail");
-  const authAdminWrap = document.getElementById("authAdminWrap");
-  const authAdmin = document.getElementById("authAdmin");
-
   const authActionLink = document.getElementById("authActionLink");
+  const meEmailEl = document.getElementById("meEmail");
+  const adminLink = document.getElementById("adminLink");
   const postLink = document.getElementById("postLink");
-
   const mineWrap = document.getElementById("mineWrap");
   const mineOnly = document.getElementById("mineOnly");
 
@@ -382,66 +331,24 @@
   let meIsAdmin = false;
   let meUserId = null;
 
-  function whoamiNext(path){
-    return `${API_WHOAMI}?next=${encodeURIComponent(path)}`;
-  }
-
-  function normEmail(v){
-    const s = String(v || "").trim().toLowerCase();
-    return (s && s.includes("@")) ? s : "";
-  }
-
   async function loadWhoami(){
     try{
-      authState.textContent = "checking...";
-      authEmailWrap.style.display = "none";
-      authAdminWrap.style.display = "none";
-      mineWrap.style.display = "none";
-      meEmail = null;
-      meIsAdmin = false;
-      meUserId = null;
-
       const r = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
-      const text = await r.text();
-      let data = null;
-      try { data = JSON.parse(text); } catch { data = null; }
+      if(!r.ok) throw new Error("whoami HTTP " + r.status);
+      const j = await r.json();
 
-      authActionLink.href = `/api/login?next=${encodeURIComponent("/")}`;
-      postLink.href = meEmail ? "/submit.html" : `/api/login?next=${encodeURIComponent("/submit.html")}`;
-
-      if(!r.ok || !data){
-        authState.textContent = "unknown";
-        authActionLink.textContent = "ログイン";
-        authActionLink.className = "";
-        return;
-      }
-
-      const email = normEmail(data.email);
-      const isAdmin = Boolean(data.is_admin);
-      const uid = String(data.user_id || "").trim();
-
-      if(!email){
-        authState.textContent = "logged out";
-        authActionLink.textContent = "ログイン";
-        authActionLink.className = "";
-        return;
-      }
-
-      meEmail = email;
-      meIsAdmin = isAdmin;
-      meUserId = uid || null;
+      meEmail = j.email || null;
+      meIsAdmin = !!j.is_admin;
+      meUserId = j.user_id || j.userId || null;
 
       authState.textContent = "logged in";
-      authEmailWrap.style.display = "inline";
-      authEmail.textContent = email;
-
-      authAdminWrap.style.display = "inline";
-      authAdmin.textContent = isAdmin ? "true" : "false";
+      meEmailEl.textContent = meEmail || "-";
 
       authActionLink.textContent = "ログアウト";
-      authActionLink.className = "danger";
-      authActionLink.href = "/cdn-cgi/access/logout?returnTo=" + encodeURIComponent(location.origin + "/");
+      authActionLink.className = "";
+      authActionLink.href = "/api/logout";
 
+      adminLink.style.display = meIsAdmin ? "inline-flex" : "none";
       postLink.href = "/submit.html";
 
       mineWrap.style.display = "inline-flex";
@@ -511,6 +418,89 @@
     return await r.json();
   }
 
+  // --- palette (submit と同じ色味に揃える) ---
+  const PALETTE_URL = "/assets/palette.v1.json";
+  const PALETTE_VER = "v1";
+  const PALETTE_LS_KEY = `mcPalette:${PALETTE_VER}`;
+  let PALETTE_MAP = null;
+
+  function parseColorString(s){
+    if(!s) return null;
+    const v = String(s).trim();
+    const hex = /^#([0-9a-f]{6})$/i.exec(v);
+    if(hex){
+      const n = parseInt(hex[1], 16);
+      return { r:(n>>16)&255, g:(n>>8)&255, b:n&255, a:1 };
+    }
+    const rgba = /^rgba?\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})(?:\s*,\s*([0-9]*\.?[0-9]+))?\s*\)$/i.exec(v);
+    if(rgba){
+      const r = Math.max(0, Math.min(255, parseInt(rgba[1],10)));
+      const g = Math.max(0, Math.min(255, parseInt(rgba[2],10)));
+      const b = Math.max(0, Math.min(255, parseInt(rgba[3],10)));
+      const a = rgba[4] == null ? 1 : Math.max(0, Math.min(1, parseFloat(rgba[4])));
+      return {r,g,b,a};
+    }
+    return null;
+  }
+
+  async function loadPalette(){
+    if(PALETTE_MAP) return PALETTE_MAP;
+    try{
+      const cached = localStorage.getItem(PALETTE_LS_KEY);
+      if(cached){
+        const obj = JSON.parse(cached);
+        if(obj && typeof obj === "object"){
+          PALETTE_MAP = obj;
+          return PALETTE_MAP;
+        }
+      }
+    }catch(e){}
+    try{
+      const r = await fetch(`${PALETTE_URL}?v=${encodeURIComponent(PALETTE_VER)}`, { cache:"no-store" });
+      if(r.ok){
+        const obj = await r.json();
+        if(obj && typeof obj === "object"){
+          PALETTE_MAP = obj;
+          try{ localStorage.setItem(PALETTE_LS_KEY, JSON.stringify(obj)); }catch(e){}
+          return PALETTE_MAP;
+        }
+      }
+    }catch(e){}
+    PALETTE_MAP = {};
+    return PALETTE_MAP;
+  }
+
+  function paletteLookup(blockId){
+    if(!PALETTE_MAP) return null;
+    const k = String(blockId||"").trim().toLowerCase();
+    return parseColorString(PALETTE_MAP[k]);
+  }
+
+  // submit.html の色味（palette優先 + 既存ID名からのヒューリスティック）
+  function pickBaseColor(blockId){
+    const p = paletteLookup(blockId);
+    if(p) return p;
+
+    const raw = String(blockId||"").toLowerCase();
+    const id = raw.includes(":") ? raw.split(":")[1] : raw;
+
+    if (id.includes("glass") || id.includes("ice")) return {r: 170, g: 210, b: 230, a: 0.55};
+    if (id.includes("leaves") || id.includes("leaf") || id.includes("moss") || id.includes("vine") || id.includes("grass")) return {r: 90, g: 150, b: 90, a: 0.95};
+    if (id.includes("log") || id.includes("wood") || id.includes("planks") || id.includes("bamboo")) return {r: 160, g: 125, b: 85, a: 0.95};
+    if (id.includes("dirt") || id.includes("sand") || id.includes("gravel") || id.includes("clay") || id.includes("mud")) return {r: 160, g: 145, b: 110, a: 0.98};
+    if (id.includes("stone") || id.includes("deepslate") || id.includes("andesite") || id.includes("diorite") || id.includes("granite") || id.includes("cobble") || id.includes("tuff") || id.includes("slate")) return {r: 140, g: 145, b: 155, a: 0.98};
+    if (id.includes("iron") || id.includes("anvil") || id.includes("chain") || id.includes("rail") || id.includes("metal")) return {r: 170, g: 175, b: 185, a: 0.98};
+    if (id.includes("copper") || id.includes("bronze")) return {r: 190, g: 120, b: 80, a: 0.98};
+    if (id.includes("gold")) return {r: 210, g: 185, b: 90, a: 0.98};
+    if (id.includes("diamond")) return {r: 120, g: 210, b: 220, a: 0.98};
+    if (id.includes("emerald")) return {r: 70, g: 200, b: 120, a: 0.98};
+    if (id.includes("lapis")) return {r: 70, g: 110, b: 200, a: 0.98};
+    if (id.includes("redstone")) return {r: 190, g: 70, b: 70, a: 0.98};
+
+    let h=0; for(let i=0;i<raw.length;i++) h=(h*31 + raw.charCodeAt(i))|0;
+    return { r:120 + (h & 70), g:120 + ((h>>8)&70), b:120 + ((h>>16)&70), a:0.98 };
+  }
+
   function drawIso(canvas, blocks, yawDeg){
     const ctx = canvas.getContext("2d");
     const w = canvas.width, h = canvas.height;
@@ -553,13 +543,9 @@
       const x = (p.sx - cx) * scale + w/2;
       const y = (p.sy - cy) * scale + h/2;
 
-      let hash=0;
-      for(let i=0;i<p.bid.length;i++) hash = ((hash<<5)-hash + p.bid.charCodeAt(i))|0;
-      const rr = 120 + (hash & 63);
-      const gg = 120 + ((hash>>6) & 63);
-      const bb = 120 + ((hash>>12) & 63);
-
-      ctx.fillStyle = `rgb(${rr%256},${gg%256},${bb%256})`;
+      const col = pickBaseColor(p.bid);
+      const a = (col.a == null ? 1 : col.a);
+      ctx.fillStyle = `rgba(${col.r},${col.g},${col.b},${a})`;
       ctx.fillRect(x-4, y-4, 8, 8);
       ctx.strokeStyle = "rgba(15,23,42,.15)";
       ctx.strokeRect(x-4, y-4, 8, 8);
@@ -618,6 +604,7 @@
     (async () => {
       try{
         const j = await fetchUnitJson(it.id);
+        await loadPalette();
         const yaw = Number(yawUi.value || 270);
         drawIso(canvas, j.blocks, yaw);
       }catch{}
@@ -682,36 +669,33 @@
         const tags = normalizeTags(r.tags);
         const no = resolveNo(r);
 
-        return ({
-          id: String(r.id),
+        return {
+          id: r.id ?? r.submission_id ?? r.submissionId ?? "",
           no,
-          name: r.title || r.name || "Untitled",
-          desc: r.description || "",
+          name: r.title ?? r.name ?? "(no title)",
+          desc: r.description ?? r.desc ?? "",
           tags,
-          author: r.author_name || r.authorName || "unknown",
-          authorId: r.author_id || r.authorId || "",
-          dl: Number(r.download_count ?? r.downloadCount ?? 0),
-          mod: r.mod_version || r.modVersion || "Forge",
+          dl: r.downloads ?? r.dl ?? 0,
+          author: r.author_email ?? r.author ?? "unknown",
+          authorId: r.author_id ?? r.authorId ?? null,
+          mod: r.mod_version ?? r.mod ?? "Forge",
           created: created || "",
           createdText,
-        });
+        };
       });
 
       applyFilter();
     }catch(e){
-      showError("一覧の取得に失敗しました。\n" + String(e.message || e));
+      showError(String(e?.message || e));
     }
   }
 
-  q.addEventListener("input", applyFilter);
-  sort.addEventListener("change", applyFilter);
-  yawUi.addEventListener("change", applyFilter);
+  q.addEventListener("input", () => applyFilter());
+  sort.addEventListener("change", () => applyFilter());
+  yawUi.addEventListener("change", () => applyFilter());
   if (mineOnly) mineOnly.addEventListener("change", () => load());
 
-  (async () => {
-    await loadWhoami();
-    await load();
-  })();
+  loadWhoami().finally(() => load());
 })();
 </script>
 </body>
