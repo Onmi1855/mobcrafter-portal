@@ -1,5 +1,5 @@
 {
-  "minecraft:air": "#000000",
+  "minecraft:air": "rgba(0,0,0,0)",
   "minecraft:water": "#3a5fd7",
   "minecraft:lava": "#d75f2a",
   "minecraft:ice": "#a8d7ff",
