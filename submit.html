@@ -355,6 +355,10 @@
         body: JSON.stringify(payload),
         credentials: "include"
       });
+       if (resp.status === 401 || resp.status === 403) {
+        $loginLink.style.display = "inline-block";
+      }
+
       const text = await resp.text();
       let data; try { data = JSON.parse(text); } catch { data = { raw: text }; }
       setResult({ http: resp.status, ok: resp.ok, ...data });
