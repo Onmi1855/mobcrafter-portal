@@ -1,269 +1,367 @@
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MobCrafter Portal | Submit</title>
-  <meta name="description" content="MobCrafter用ユニットJSONの投稿ページ（MVP）。" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MobCrafter - Unit Submit</title>
   <style>
-    :root{
-      --bg:#f6f8fb; --card:#fff; --text:#0f172a; --muted:#64748b; --line:#e5e7eb;
-      --brand:#2563eb; --danger:#dc2626; --shadow:0 10px 25px rgba(15,23,42,.08); --r:16px;
-    }
-    *{ box-sizing:border-box; }
-    body{ margin:0; font-family: system-ui, -apple-system, Segoe UI, sans-serif; background:var(--bg); color:var(--text); }
-    header{ padding:22px 16px 10px; text-align:center; }
-    header a{ color:inherit; text-decoration:none; }
-    header h1{ margin:0; font-size:18px; letter-spacing:.4px; }
-    header p{ margin:6px 0 0; font-size:12px; color:var(--muted); }
-    main{ max-width:980px; margin:0 auto; padding:10px 16px 40px; }
-    .card{ background:var(--card); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); padding:14px; }
-    .row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
-    .auth{ font-size:12px; color:var(--muted); display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    code{ background:rgba(148,163,184,.15); border:1px solid rgba(148,163,184,.25); padding:2px 6px; border-radius:999px; color:#0f172a; }
-    .btn{ border:1px solid var(--line); border-radius:12px; padding:10px 12px; background:#fff; cursor:pointer; font-size:14px; text-decoration:none; color:inherit; }
-    .btn.primary{ background:rgba(37,99,235,.92); color:#fff; border-color:transparent; }
-    .btn.danger{ background:rgba(220,38,38,.92); color:#fff; border-color:transparent; }
-    .grid{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px; }
-    @media (max-width: 860px){ .grid{ grid-template-columns:1fr; } }
-    label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px; }
-    input[type="text"], textarea{
-      width:100%; border:1px solid var(--line); border-radius:12px; padding:10px 12px;
-      font-size:14px; outline:none; background:#fff;
-    }
-    textarea{ min-height:200px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-    .hint{ font-size:12px; color:var(--muted); margin-top:6px; }
-    .msg{ margin-top:12px; padding:10px 12px; border-radius:12px; white-space:pre-wrap; }
-    .msg.ok{ background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; }
-    .msg.err{ background:#fff1f2; border:1px solid #fecdd3; color:#9f1239; }
-    .msg.muted{ background:#f8fafc; border:1px solid #e2e8f0; color:#334155; }
+    body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 24px; background:#f6f8fb; color:#0f172a; }
+    .card { max-width: 880px; background:#fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px; box-shadow: 0 10px 25px rgba(15,23,42,.08); }
+    h1 { margin: 0 0 6px; }
+    .hint { color:#555; font-size: 13px; margin: 6px 0 10px; }
+    label { display:block; margin-top: 12px; font-weight: 600; }
+    input[type="text"], textarea, select { width: 100%; padding: 10px; border: 1px solid #cbd5f5; border-radius: 10px; background:#fff; }
+    textarea { min-height: 96px; }
+    .row { display:flex; gap: 12px; }
+    .row > div { flex: 1; }
+    .actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    button { margin-top: 14px; padding: 10px 14px; border: 0; border-radius: 12px; cursor:pointer; }
+    button.primary { background:#111; color:#fff; }
+    button.secondary { background:#e5e7eb; }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    pre { white-space: pre-wrap; word-break: break-word; background:#f6f6f6; padding: 12px; border-radius: 12px; }
+    canvas { margin-top: 10px; background:#fff; border:1px solid #e5e7eb; border-radius:12px; }
+    .mini { color:#666; font-size: 12px; margin-top: 6px; }
+    .divider { height:1px; background:#e5e7eb; margin:14px 0; }
   </style>
 </head>
 <body>
-<header>
-  <a href="/"><h1>MobCrafter Portal</h1></a>
-  <p>投稿（MVP）</p>
-</header>
 
-<main>
-  <section class="card">
-    <div class="row">
-      <div class="auth">
-        <span>Login:</span> <code id="st">checking...</code>
-        <span id="emw" style="display:none;">Email: <code id="em"></code></span>
-        <span id="adw" style="display:none;">Admin: <code id="ad"></code></span>
-      </div>
-      <div class="row" style="gap:8px;">
-        <a class="btn" href="/">一覧へ戻る</a>
-        <a class="btn" id="loginBtn" href="/api/whoami" style="display:none;">ログインを開始</a>
-      </div>
+<div class="card">
+  <h1>ユニット投稿</h1>
+  <div class="hint">
+    Cloudflare Access ログイン後に投稿できます。JSONファイルを選択すると、構造検証と簡易3Dプレビューが表示されます。
+  </div>
+
+  <label>JSONファイル</label>
+  <input id="file" type="file" accept=".json,application/json" />
+
+  <div class="row">
+    <div>
+      <label>タイトル</label>
+      <input id="title" type="text" placeholder="例: Sephiroth Unit v1" />
     </div>
-
-    <div class="grid">
-      <div>
-        <label>タイトル（任意 / 80文字まで）</label>
-        <input id="title" type="text" placeholder="例：Sephiroth Sword" maxlength="80" />
-
-        <label>説明（任意 / 2000文字まで）</label>
-        <input id="desc" type="text" placeholder="例：MobCrafter用のボスユニットです" maxlength="2000" />
-
-        <label>タグ（任意）</label>
-        <input id="tags" type="text" placeholder="例：ff7 boss sword" />
-        <div class="hint">スペース区切り推奨（カンマも可）。</div>
-
-        <label>作者名（任意）</label>
-        <input id="author" type="text" placeholder="例：nao" maxlength="60" />
-
-        <label>mod_version / mc_version（任意）</label>
-        <div class="grid" style="grid-template-columns:1fr 1fr;">
-          <input id="modv" type="text" placeholder="Forge" maxlength="40" />
-          <input id="mcv" type="text" placeholder="1.20.1" maxlength="40" />
-        </div>
-
-        <div class="hint">※ author_email は whoami の email を自動で使います（未ログイン時は null）。</div>
-      </div>
-
-      <div>
-        <label>ユニットJSON（必須）</label>
-        <textarea id="json" placeholder='{"blocks":[{"dx":0,"dy":1,"dz":0,"blockId":"mob_crafter:boneblock"}]}'></textarea>
-        <div class="hint">
-          JSONは「ルートが blocks を持つ」形式を想定。あなたのWorker側が unitId を自動で整形します。
-        </div>
-
-        <div class="row" style="margin-top:12px; justify-content:flex-start;">
-          <button class="btn primary" id="submitBtn" type="button">投稿する（/api/submit）</button>
-          <button class="btn" id="fillBtn" type="button">サンプル挿入</button>
-          <button class="btn danger" id="clearBtn" type="button">クリア</button>
-        </div>
-
-        <div id="msg" class="msg muted" style="display:none;"></div>
-      </div>
+    <div>
+      <label>mod_version（任意）</label>
+      <input id="modVersion" type="text" placeholder="1.0.0" />
     </div>
-  </section>
-</main>
+  </div>
+
+  <label>説明</label>
+  <textarea id="description" placeholder="説明（任意）"></textarea>
+
+  <label>タグ（カンマ区切り）</label>
+  <input id="tags" type="text" placeholder="boss, ff7, sword" />
+
+  <label>正面補正（0/90/180/270）※任意</label>
+  <select id="yawOffset">
+    <option value="0" selected>0°（補正なし）</option>
+    <option value="1">+90°</option>
+    <option value="2">+180°</option>
+    <option value="3">+270°</option>
+  </select>
+  <div class="mini">
+    frontYaw が無い/作品ごとに正面の流派が違う場合、ここで合わせてください（プレビューと投稿メタに保存）。
+  </div>
+
+  <div class="actions">
+    <button id="btn" class="primary" disabled>送信</button>
+    <span class="mini">※ 送信はログイン必須</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <label>プレビュー（情報）</label>
+  <pre id="preview">{}</pre>
+
+  <label>3Dイメージ（簡易）</label>
+  <canvas id="canvas" width="520" height="420"></canvas>
+  <div class="hint">
+    ※ 形状確認用の簡易表示です（色・質感は実物と異なります）
+  </div>
+
+  <label>結果</label>
+  <pre id="result">未送信</pre>
+</div>
 
 <script>
 (() => {
-  const API_WHOAMI = "/api/whoami";
-  const API_SUBMIT = "/api/submit";
+  const $file = document.getElementById("file");
+  const $title = document.getElementById("title");
+  const $desc  = document.getElementById("description");
+  const $tags  = document.getElementById("tags");
+  const $mv    = document.getElementById("modVersion");
+  const $btn   = document.getElementById("btn");
+  const $prev  = document.getElementById("preview");
+  const $res   = document.getElementById("result");
+  const $yawOffset = document.getElementById("yawOffset");
+  const canvas = document.getElementById("canvas");
 
-  const st = document.getElementById("st");
-  const emw = document.getElementById("emw");
-  const em = document.getElementById("em");
-  const adw = document.getElementById("adw");
-  const ad = document.getElementById("ad");
-  const loginBtn = document.getElementById("loginBtn");
+  let parsedJson = null;
 
-  const title = document.getElementById("title");
-  const desc = document.getElementById("desc");
-  const tags = document.getElementById("tags");
-  const author = document.getElementById("author");
-  const modv = document.getElementById("modv");
-  const mcv = document.getElementById("mcv");
-  const jsonTa = document.getElementById("json");
-
-  const submitBtn = document.getElementById("submitBtn");
-  const fillBtn = document.getElementById("fillBtn");
-  const clearBtn = document.getElementById("clearBtn");
-
-  const msg = document.getElementById("msg");
-
-  function showMsg(kind, text){
-    msg.style.display = "block";
-    msg.className = "msg " + kind;
-    msg.textContent = text;
+  function setPreview(v) {
+    $prev.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
+  }
+  function setResult(v) {
+    $res.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
+  }
+  function updateButtonState() {
+    $btn.disabled = !(parsedJson && ($title.value || "").trim());
   }
 
-  function safeJsonParse(text){
-    try { return JSON.parse(text); } catch { return null; }
+  function validateMobCrafterJson(obj) {
+    if (!obj || typeof obj !== "object") return "JSONがオブジェクトではありません";
+    if (!Array.isArray(obj.blocks)) return "blocks 配列がありません";
+    if (obj.blocks.length === 0) return "blocks が空です";
+    if (obj.blocks.length > 200000) return "blocks が多すぎます（200k超）";
+    for (let i = 0; i < Math.min(obj.blocks.length, 1000); i++) {
+      const b = obj.blocks[i];
+      if (typeof b.dx !== "number" || typeof b.dy !== "number" || typeof b.dz !== "number") {
+        return `blocks[${i}] に dx/dy/dz がありません`;
+      }
+      if (typeof b.blockId !== "string") {
+        return `blocks[${i}] に blockId がありません`;
+      }
+    }
+    return null;
   }
 
-  async function loadWhoami(){
-    try{
-      st.textContent = "checking...";
-      emw.style.display = "none";
-      adw.style.display = "none";
-      loginBtn.style.display = "none";
-
-      const r = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
-      const t = await r.text();
-      let data = null;
-      try { data = JSON.parse(t); } catch { data = null; }
-
-      if(!r.ok || !data){
-        st.textContent = "unknown";
-        loginBtn.style.display = "inline-flex";
-        loginBtn.href = API_WHOAMI;
-        return { email:null, is_admin:false };
-      }
-
-      const email = data.email || null;
-      const isAdmin = Boolean(data.is_admin);
-
-      if(!email){
-        st.textContent = "logged out";
-        loginBtn.style.display = "inline-flex";
-        loginBtn.href = API_WHOAMI; // Accessが掛かっていればここでログイン開始
-        return { email:null, is_admin:false };
-      }
-
-      st.textContent = "logged in";
-      emw.style.display = "inline";
-      em.textContent = email;
-      adw.style.display = "inline";
-      ad.textContent = isAdmin ? "true" : "false";
-      return { email, is_admin:isAdmin };
-    }catch{
-      st.textContent = "unknown";
-      loginBtn.style.display = "inline-flex";
-      loginBtn.href = API_WHOAMI;
-      return { email:null, is_admin:false };
+  function yawToQuarterTurns(frontYaw, extraOffsetQuarter){
+    if(frontYaw == null) return null;
+    const y = Number(frontYaw);
+    if(!Number.isFinite(y)) return null;
+    let deg = y % 360;
+    if(deg < 0) deg += 360;
+    let q = (Math.round(deg / 90) % 4);
+    q = (q + (extraOffsetQuarter ?? 0)) % 4;
+    return q;
+  }
+  function rotateXZ(x, z, q){
+    switch(q){
+      case 1: return {x: z,  z: -x};
+      case 2: return {x: -x, z: -z};
+      case 3: return {x: -z, z: x};
+      default:return {x, z};
     }
   }
 
-  async function submit(){
-    submitBtn.disabled = true;
+  const PALETTE_URL = "/assets/palette.v1.json";
+  const PALETTE_VER = "v1";
+  const PALETTE_LS_KEY = `mcPalette:${PALETTE_VER}`;
+  let PALETTE_MAP = null;
+
+  function parseColorString(s){
+    if(!s) return null;
+    const v = String(s).trim();
+    const hex = /^#([0-9a-f]{6})$/i.exec(v);
+    if(hex){
+      const n = parseInt(hex[1], 16);
+      return { r:(n>>16)&255, g:(n>>8)&255, b:n&255, a:1 };
+    }
+    const rgba = /^rgba?\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})(?:\s*,\s*([0-9]*\.?[0-9]+))?\s*\)$/i.exec(v);
+    if(rgba){
+      const r = Math.max(0, Math.min(255, parseInt(rgba[1],10)));
+      const g = Math.max(0, Math.min(255, parseInt(rgba[2],10)));
+      const b = Math.max(0, Math.min(255, parseInt(rgba[3],10)));
+      const a = rgba[4] == null ? 1 : Math.max(0, Math.min(1, parseFloat(rgba[4])));
+      return {r,g,b,a};
+    }
+    return null;
+  }
+
+  async function loadPalette(){
+    if(PALETTE_MAP) return PALETTE_MAP;
     try{
-      const who = await loadWhoami(); // 最新状態で
-
-      const raw = (jsonTa.value || "").trim();
-      if(!raw){
-        showMsg("err", "JSONが空です。");
-        return;
+      const cached = localStorage.getItem(PALETTE_LS_KEY);
+      if(cached){
+        const obj = JSON.parse(cached);
+        if(obj && typeof obj === "object"){
+          PALETTE_MAP = obj;
+          return PALETTE_MAP;
+        }
       }
-      const parsed = safeJsonParse(raw);
-      if(!parsed || typeof parsed !== "object"){
-        showMsg("err", "JSONの形式が不正です（パースできません）。");
-        return;
+    }catch(e){}
+    try{
+      const r = await fetch(`${PALETTE_URL}?v=${encodeURIComponent(PALETTE_VER)}`, { cache:"no-store" });
+      if(r.ok){
+        const obj = await r.json();
+        if(obj && typeof obj === "object"){
+          PALETTE_MAP = obj;
+          try{ localStorage.setItem(PALETTE_LS_KEY, JSON.stringify(obj)); }catch(e){}
+          return PALETTE_MAP;
+        }
       }
+    }catch(e){}
+    PALETTE_MAP = {};
+    return PALETTE_MAP;
+  }
 
-      const body = {
-        title: (title.value || "").trim(),
-        description: (desc.value || "").trim(),
-        tags: (tags.value || "").trim(),
-        author_name: (author.value || "").trim() || "unknown",
-        author_email: who.email, // null可
-        mod_version: (modv.value || "").trim(),
-        mc_version: (mcv.value || "").trim(),
-        json: parsed
-      };
+  function paletteLookup(blockId){
+    if(!PALETTE_MAP) return null;
+    const k = String(blockId||"").trim().toLowerCase();
+    return parseColorString(PALETTE_MAP[k]);
+  }
 
-      showMsg("muted", "投稿中...");
+  function pickBaseColor(blockId){
+    const p = paletteLookup(blockId);
+    if(p) return p;
+    const raw = String(blockId||"").toLowerCase();
+    const id = raw.includes(":") ? raw.split(":")[1] : raw;
+    if (id.includes("glass") || id.includes("ice")) return {r: 170, g: 210, b: 230, a: 0.55};
+    if (id.includes("leaves") || id.includes("leaf") || id.includes("moss") || id.includes("vine") || id.includes("grass")) return {r: 90, g: 150, b: 90, a: 0.95};
+    if (id.includes("log") || id.includes("wood") || id.includes("planks") || id.includes("bamboo")) return {r: 160, g: 125, b: 85, a: 0.95};
+    if (id.includes("dirt") || id.includes("sand") || id.includes("gravel") || id.includes("clay") || id.includes("mud")) return {r: 160, g: 145, b: 110, a: 0.98};
+    if (id.includes("stone") || id.includes("deepslate") || id.includes("andesite") || id.includes("diorite") || id.includes("granite") || id.includes("cobble") || id.includes("tuff") || id.includes("slate")) return {r: 140, g: 145, b: 155, a: 0.98};
+    if (id.includes("iron") || id.includes("anvil") || id.includes("chain") || id.includes("rail") || id.includes("metal")) return {r: 170, g: 175, b: 185, a: 0.98};
+    if (id.includes("copper") || id.includes("bronze")) return {r: 190, g: 120, b: 80, a: 0.98};
+    if (id.includes("gold")) return {r: 210, g: 185, b: 90, a: 0.98};
+    if (id.includes("diamond")) return {r: 120, g: 210, b: 220, a: 0.98};
+    if (id.includes("emerald")) return {r: 70, g: 200, b: 120, a: 0.98};
+    if (id.includes("lapis")) return {r: 70, g: 110, b: 200, a: 0.98};
+    if (id.includes("redstone")) return {r: 190, g: 70, b: 70, a: 0.98};
+    let h=0; for(let i=0;i<raw.length;i++) h=(h*31 + raw.charCodeAt(i))|0;
+    return { r:120 + (h & 70), g:120 + ((h>>8)&70), b:120 + ((h>>16)&70), a:0.98 };
+  }
 
-      const r = await fetch(API_SUBMIT, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type":"application/json", "Accept":"application/json" },
-        body: JSON.stringify(body)
+  function analyzeBlocks(blocks){
+    let minX=Infinity,minY=Infinity,minZ=Infinity;
+    let maxX=-Infinity,maxY=-Infinity,maxZ=-Infinity;
+    for(const b of blocks){
+      minX=Math.min(minX,b.dx); minY=Math.min(minY,b.dy); minZ=Math.min(minZ,b.dz);
+      maxX=Math.max(maxX,b.dx); maxY=Math.max(maxY,b.dy); maxZ=Math.max(maxZ,b.dz);
+    }
+    return {minX,minY,minZ, maxX,maxY,maxZ, sizeX:maxX-minX+1, sizeY:maxY-minY+1, sizeZ:maxZ-minZ+1};
+  }
+
+  function drawIsoCube(ctx, x, y, z, s, col, stroke){
+    const sx = (x - z) * s;
+    const sy = (x + z) * s * 0.5 - y * s;
+    const a = (col.a == null ? 1 : col.a);
+    const top = `rgba(${Math.min(255,col.r+30)},${Math.min(255,col.g+30)},${Math.min(255,col.b+30)},${a})`;
+    const left= `rgba(${Math.max(0,col.r-10)},${Math.max(0,col.g-10)},${Math.max(0,col.b-10)},${a})`;
+    const right=`rgba(${Math.max(0,col.r-25)},${Math.max(0,col.g-25)},${Math.max(0,col.b-25)},${a})`;
+    ctx.fillStyle = top;
+    ctx.beginPath(); ctx.moveTo(sx, sy - s*0.5); ctx.lineTo(sx + s, sy); ctx.lineTo(sx, sy + s*0.5); ctx.lineTo(sx - s, sy); ctx.closePath(); ctx.fill();
+    if (stroke){ ctx.strokeStyle = "rgba(15,23,42,.10)"; ctx.lineWidth = Math.max(1, s*0.06); ctx.stroke(); }
+    ctx.fillStyle = left;
+    ctx.beginPath(); ctx.moveTo(sx - s, sy); ctx.lineTo(sx, sy + s*0.5); ctx.lineTo(sx, sy + s*0.5 + s); ctx.lineTo(sx - s, sy + s); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = right;
+    ctx.beginPath(); ctx.moveTo(sx + s, sy); ctx.lineTo(sx, sy + s*0.5); ctx.lineTo(sx, sy + s*0.5 + s); ctx.lineTo(sx + s, sy + s); ctx.closePath(); ctx.fill();
+  }
+
+  function binBlocks(blocks, bin){
+    if(bin <= 1) return blocks;
+    const m = new Map();
+    for(const b of blocks){
+      const bx = Math.floor(b.dx / bin);
+      const by = Math.floor(b.dy / bin);
+      const bz = Math.floor(b.dz / bin);
+      const k = bx + "," + by + "," + bz;
+      const cur = m.get(k);
+      if(!cur || b.dy > cur.dy){ m.set(k, b); }
+    }
+    return Array.from(m.values());
+  }
+  function chooseBinSize(blockCount){
+    const target = 16000;
+    if(blockCount <= target) return 1;
+    const ratio = blockCount / target;
+    let bin = Math.ceil(Math.cbrt(ratio));
+    return Math.min(6, Math.max(2, bin));
+  }
+
+  function renderThumbToCanvas(canvas, unitJson, extraOffsetQuarter){
+    const ctx = canvas.getContext("2d");
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0,0,w,h);
+    const g = ctx.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,"rgba(37,99,235,.10)");
+    g.addColorStop(1,"rgba(22,163,74,.08)");
+    ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+    const blocks0 = unitJson.blocks;
+    const qTurns = yawToQuarterTurns(unitJson.frontYaw, extraOffsetQuarter);
+    const bin = chooseBinSize(blocks0.length);
+    const blocks = binBlocks(blocks0, bin);
+    function drawPass(turns, alpha){
+      const transformed = blocks.map(b=>{
+        const r = rotateXZ(b.dx, b.dz, turns);
+        return {dx:r.x, dy:b.dy, dz:r.z, blockId:b.blockId};
       });
-
-      const text = await r.text();
-      let data = null;
-      try { data = JSON.parse(text); } catch { data = { raw:text }; }
-
-      if(!r.ok){
-        showMsg("err", "投稿に失敗しました。\n\nHTTP " + r.status + "\n" + JSON.stringify(data, null, 2));
-        return;
+      const inf = analyzeBlocks(transformed);
+      const spanX = inf.sizeX + inf.sizeZ;
+      const spanY = inf.sizeY;
+      const s = Math.max(1.8, Math.min(w/(spanX+6), h/(spanY+10)) * 1.6);
+      const ox = w*0.5, oy = h*0.80;
+      transformed.sort((a,b)=> (a.dx+a.dz) - (b.dx+b.dz) || (a.dy - b.dy));
+      ctx.save(); ctx.globalAlpha = alpha; ctx.translate(ox, oy);
+      const stroke = (s >= 3);
+      for(const b of transformed){
+        const x = (b.dx - inf.minX), y = (b.dy - inf.minY), z = (b.dz - inf.minZ);
+        drawIsoCube(ctx, x, y, z, s, pickBaseColor(b.blockId), stroke);
       }
-
-      showMsg("ok",
-        "投稿しました！（pending）\n\n" +
-        JSON.stringify(data, null, 2) +
-        "\n\n管理画面で承認してください。"
-      );
-
-      // 入力は残す派ならコメントアウト
-      // jsonTa.value = "";
-    }catch(e){
-      showMsg("err", "投稿に失敗しました。\n" + String(e?.message || e));
-    }finally{
-      submitBtn.disabled = false;
+      ctx.restore();
     }
+    if(qTurns == null){ drawPass(0, 1.0); drawPass(2, 0.33); }
+    else{ drawPass(qTurns, 1.0); }
   }
 
-  fillBtn.onclick = () => {
-    const sample = {
-      blocks: [
-        { dx:0, dy:1, dz:0, blockId:"mob_crafter:boneblock" },
-        { dx:1, dy:1, dz:0, blockId:"minecraft:stone" },
-        { dx:0, dy:2, dz:0, blockId:"minecraft:stone" }
-      ]
+  function rerender(){
+    if(!parsedJson) return;
+    const extra = Number($yawOffset.value || "0") % 4;
+    renderThumbToCanvas(canvas, parsedJson, extra);
+  }
+
+  $file.addEventListener("change", async () => {
+    parsedJson = null; setResult("未送信"); setPreview("{}");
+    const f = $file.files && $file.files[0];
+    if (!f) return;
+    if (f.size > 2_200_000) { setPreview("ファイルが大きすぎます（約2MB超）"); return; }
+    try {
+      const obj = JSON.parse(await f.text());
+      const err = validateMobCrafterJson(obj);
+      if (err) { setPreview(err); return; }
+      parsedJson = obj;
+      if (!$title.value.trim()) $title.value = f.name.replace(/\.json$/i,"");
+      const info = analyzeBlocks(obj.blocks);
+      setPreview({ file:{name:f.name,size:f.size}, blocks: obj.blocks.length, size:`${info.sizeX} x ${info.sizeY} x ${info.sizeZ}`, frontYaw:(obj.frontYaw ?? null), yaw_offset_quarter:Number($yawOffset.value||"0") });
+      loadPalette().finally(()=>rerender());
+    } catch (e) {
+      setPreview("JSONとして読み込めません: " + (e?.message || String(e)));
+    }
+    updateButtonState();
+  });
+
+  $yawOffset.addEventListener("change", () => { rerender(); updateButtonState(); });
+  [$title,$desc,$tags,$mv].forEach(el => el.addEventListener("input", updateButtonState));
+
+  $btn.addEventListener("click", async () => {
+    if (!parsedJson) return;
+    const payload = {
+      title: $title.value.trim(),
+      description: $desc.value.trim(),
+      tags: ($tags.value||"").split(",").map(s=>s.trim()).filter(Boolean),
+      mod_version: $mv.value.trim(),
+      yaw_offset_quarter: Number($yawOffset.value || "0"),
+      json: parsedJson
     };
-    jsonTa.value = JSON.stringify(sample, null, 2);
-  };
-
-  clearBtn.onclick = () => {
-    if(!confirm("入力をクリアします。よろしいですか？")) return;
-    title.value = ""; desc.value = ""; tags.value = ""; author.value = "";
-    modv.value = ""; mcv.value = ""; jsonTa.value = "";
-    msg.style.display = "none";
-  };
-
-  submitBtn.onclick = submit;
-
-  // 初回表示
-  loadWhoami();
+    setResult("送信中...");
+    try {
+      const resp = await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "include"
+      });
+      const text = await resp.text();
+      let data; try { data = JSON.parse(text); } catch { data = { raw: text }; }
+      setResult({ http: resp.status, ok: resp.ok, ...data });
+    } catch (e) {
+      setResult("送信失敗: " + (e?.message || String(e)));
+    }
+  });
 })();
 </script>
+
 </body>
 </html>
