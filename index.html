@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MobCrafter Portal</title>
   <meta name="description" content="MobCrafter用ユニットJSON共有ポータル。検索・新着で探せます。" />
   <style>
@@ -13,119 +13,139 @@
       --muted:#64748b;
       --line:#e5e7eb;
       --brand:#2563eb;
-      --brand2:#16a34a;
+      --danger:#dc2626;
       --shadow: 0 10px 25px rgba(15,23,42,.08);
-      --radius: 14px;
+      --radius: 16px;
     }
+    *{ box-sizing:border-box; }
     body{
       margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
-      background:var(--bg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
       color:var(--text);
+      background:var(--bg);
     }
     header{
-      padding:24px 18px 12px;
-      max-width: 1120px;
-      margin:0 auto;
+      padding:24px 16px 10px;
+      text-align:center;
     }
-    h1{
+    header h1{
       margin:0;
-      font-size:22px;
-      letter-spacing:.2px;
+      font-size:20px;
+      letter-spacing:.4px;
     }
-    .sub{
-      margin-top:6px;
+    header p{
+      margin:6px 0 0;
       color:var(--muted);
-      font-size:13px;
-      line-height:1.4;
+      font-size:12px;
     }
-    .toolbar{
-      max-width:1120px;
+    main{
+      max-width:1060px;
       margin:0 auto;
-      padding:12px 18px 8px;
+      padding:10px 16px 40px;
+    }
+    .topbar{
       display:flex;
-      gap:10px;
+      gap:12px;
+      align-items:flex-end;
+      justify-content:space-between;
       flex-wrap:wrap;
-      align-items:center;
-    }
-    .toolbar input, .toolbar select{
+      background:var(--card);
       border:1px solid var(--line);
-      border-radius: 999px;
+      border-radius:var(--radius);
+      padding:14px 14px;
+      box-shadow:var(--shadow);
+    }
+    .leftbox{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:flex-end;
+    }
+    .field label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+    input[type="text"], select{
+      border:1px solid var(--line);
+      border-radius:12px;
       padding:10px 12px;
-      background:#fff;
-      outline:none;
       font-size:14px;
+      min-width:260px;
+      outline:none;
+      background:#fff;
     }
-    .toolbar input{ min-width: 240px; flex: 1 1 240px; }
-    .toolbar select{ flex: 0 0 auto; }
-
-    .wrap{
-      max-width:1120px;
-      margin:0 auto;
-      padding: 8px 18px 28px;
+    select{ min-width:180px; }
+    .muted{
+      color:var(--muted);
+      font-size:12px;
     }
-
-    .err{
-      display:none;
+    .error{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
       background:#fff1f2;
       border:1px solid #fecdd3;
       color:#9f1239;
-      padding:10px 12px;
-      border-radius: 12px;
+      display:none;
       white-space:pre-wrap;
-      margin: 0 0 14px;
+      width:100%;
     }
-
     .grid{
+      margin-top:14px;
       display:grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
       gap:14px;
     }
-    @media (max-width: 980px){ .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 640px){ .grid{ grid-template-columns: 1fr; } }
-
     .card{
       background:var(--card);
       border:1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
       overflow:hidden;
       cursor:pointer;
-      display:flex;
-      flex-direction:column;
-      min-height: 360px;
+      transition: transform .08s ease, box-shadow .08s ease;
+      position:relative;
+    }
+    .card:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 14px 30px rgba(15,23,42,.10);
     }
     .thumbwrap{
+      height:140px;
+      background: linear-gradient(180deg, #e6f0ff, #f5f9ff);
+      display:flex;
+      align-items:center;
+      justify-content:center;
       position:relative;
-      background: linear-gradient(180deg, rgba(37,99,235,.10), rgba(22,163,74,.08));
     }
     canvas.thumb{
       width:100%;
-      height:auto;
-      display:block;
-      border-bottom:1px solid var(--line);
+      height:140px;
+      image-rendering:pixelated;
     }
     .pill{
       position:absolute;
       top:10px;
       left:10px;
       display:flex;
-      gap:8px;
+      gap:6px;
       align-items:center;
     }
     .badge{
-      font-size:12px;
-      padding:6px 10px;
+      font-size:11px;
+      padding:4px 8px;
       border-radius:999px;
-      background:rgba(255,255,255,.8);
+      background:rgba(255,255,255,.78);
       border:1px solid rgba(148,163,184,.35);
       color:#0f172a;
       backdrop-filter: blur(6px);
     }
     .btn-dl{
       position:absolute;
-      bottom:10px;
-      left:10px;
+      top:10px;
+      right:10px;
       font-size:12px;
       padding:6px 10px;
       border-radius:999px;
@@ -251,79 +271,110 @@
     }
     .authbar a.primary{
       background:#2563eb;
+      border-color:#2563eb;
       color:#fff;
-      border-color:rgba(37,99,235,.10);
     }
-    .mine{
-      display:none;
-      gap:8px;
+    .authbar a.danger{
+      background:var(--danger);
+      border-color:var(--danger);
+      color:#fff;
+    }
+    .chip{
+      display:inline-flex;
       align-items:center;
-      border:1px solid rgba(148,163,184,.35);
+      gap:8px;
+      border:1px solid rgba(148,163,184,.25);
+      background:#fff;
       padding:6px 10px;
       border-radius:999px;
-      background:#fff;
+      user-select:none;
     }
-    .mine input{ margin:0; }
+    .chip input{ transform: translateY(1px); }
   </style>
 </head>
 <body>
 <header>
   <h1>MobCrafter Portal</h1>
-  <div class="sub">MobCrafter用ユニットJSON共有ポータル。検索・新着で探せます。</div>
-
-  <div class="authbar">
-    <div class="left">
-      <span>Login: <b id="authState">checking...</b></span>
-      <span>Email: <code id="meEmail">-</code></span>
-      <span class="mine" id="mineWrap"><input type="checkbox" id="mineOnly" /><label for="mineOnly">自分の投稿のみ</label></span>
-    </div>
-    <div class="right">
-      <a id="authActionLink" href="#">...</a>
-      <a id="postLink" class="primary" href="/submit.html">投稿</a>
-      <a href="/admin.html" id="adminLink" style="display:none;">Admin</a>
-    </div>
-  </div>
+  <p>ユニットJSON共有（MVP）</p>
 </header>
 
-<div class="toolbar">
-  <input id="q" type="search" placeholder="検索：タイトル / 説明 / タグ" />
-  <select id="sort">
-    <option value="new" selected>新着</option>
-    <option value="dl">DL数</option>
-    <option value="name">名前</option>
-  </select>
-  <select id="yaw">
-    <option value="0">Yaw 0°</option>
-    <option value="90">Yaw 90°</option>
-    <option value="180">Yaw 180°</option>
-    <option value="270" selected>Yaw 270°</option>
-  </select>
-</div>
+<main>
+  <div class="topbar">
+    <div class="leftbox">
+      <div class="field">
+        <label>探す</label>
+        <input id="q" type="text" placeholder="検索（例：sephiroth / boss / sword）" />
+        <div class="muted">タイトル / 説明 / タグで検索できます。サムネは簡易3D描画。</div>
+      </div>
 
-<main class="wrap">
-  <div id="err" class="err"></div>
-  <div id="grid" class="grid"></div>
+      <div class="field">
+        <label>Yaw補正</label>
+        <select id="yaw">
+          <option value="270">Yaw補正 +270°</option>
+          <option value="180">Yaw補正 +180°</option>
+          <option value="90">Yaw補正 +90°</option>
+          <option value="0">Yaw補正 なし</option>
+        </select>
+        <div class="muted">カードクリックで詳細へ（/unit.html?id=数字 or UUID）</div>
+      </div>
+    </div>
 
-  <footer>
-    © MobCrafter Portal
-  </footer>
+    <div class="field">
+      <label>並び替え</label>
+      <select id="sort">
+        <option value="new">新着順</option>
+        <option value="dl">DL多い順</option>
+        <option value="name">名前順</option>
+      </select>
+    </div>
+
+    <div id="err" class="error"></div>
+
+    <div class="authbar" id="authbar">
+      <div class="left">
+        <span>Login:</span>
+        <code id="authState">checking...</code>
+        <span id="authEmailWrap" style="display:none;">Email: <code id="authEmail"></code></span>
+        <span id="authAdminWrap" style="display:none;">Admin: <code id="authAdmin"></code></span>
+
+        <label id="mineWrap" class="chip" style="display:none;">
+          <input id="mineOnly" type="checkbox" />
+          <span>自分の投稿のみ</span>
+        </label>
+      </div>
+
+      <div class="right">
+        <a id="authActionLink" href="/api/whoami">ログイン</a>
+        <a id="postLink" class="primary" href="/submit.html">投稿</a>
+      </div>
+    </div>
+  </div>
+
+  <section id="grid" class="grid"></section>
+
+  <footer>© 2025 MobCrafter Portal — MVP</footer>
 </main>
 
 <script>
 (() => {
-  const API_WHOAMI = "/api/whoami";
+  // ====== API ======
   const API_PUBLIC_LIST = "/api/public/submissions";
-  const API_MY_LIST = "/api/my/submissions";
-  const API_JSON = (id) => `/api/public/submissions/${encodeURIComponent(id)}/json`;
-  const API_DL   = (id) => `/api/public/submissions/${encodeURIComponent(id)}/download`;
+  const API_MY_LIST = "/api/my/submissions?scope=approved"; // ログイン必須 / 自分の承認済みのみ
+  const API_JSON = (id) => `/api/public/submissions/${id}/json`;
+  const API_DL   = (id) => `/api/public/submissions/${id}/download`;
 
-  const whoamiNext = (nextPath) => `/api/login?next=${encodeURIComponent(nextPath || "/")}`;
+  // ====== AUTH ======
+  const API_WHOAMI = "/api/whoami";
 
   const authState = document.getElementById("authState");
+  const authEmailWrap = document.getElementById("authEmailWrap");
+  const authEmail = document.getElementById("authEmail");
+  const authAdminWrap = document.getElementById("authAdminWrap");
+  const authAdmin = document.getElementById("authAdmin");
+
   const authActionLink = document.getElementById("authActionLink");
-  const meEmailEl = document.getElementById("meEmail");
-  const adminLink = document.getElementById("adminLink");
   const postLink = document.getElementById("postLink");
+
   const mineWrap = document.getElementById("mineWrap");
   const mineOnly = document.getElementById("mineOnly");
 
@@ -331,24 +382,66 @@
   let meIsAdmin = false;
   let meUserId = null;
 
+  function whoamiNext(path){
+    return `${API_WHOAMI}?next=${encodeURIComponent(path)}`;
+  }
+
+  function normEmail(v){
+    const s = String(v || "").trim().toLowerCase();
+    return (s && s.includes("@")) ? s : "";
+  }
+
   async function loadWhoami(){
     try{
-      const r = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
-      if(!r.ok) throw new Error("whoami HTTP " + r.status);
-      const j = await r.json();
+      authState.textContent = "checking...";
+      authEmailWrap.style.display = "none";
+      authAdminWrap.style.display = "none";
+      mineWrap.style.display = "none";
+      meEmail = null;
+      meIsAdmin = false;
+      meUserId = null;
 
-      meEmail = j.email || null;
-      meIsAdmin = !!j.is_admin;
-      meUserId = j.user_id || j.userId || null;
+      const r = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
+      const text = await r.text();
+      let data = null;
+      try { data = JSON.parse(text); } catch { data = null; }
+
+      authActionLink.href = `/api/login?next=${encodeURIComponent("/")}`;
+      postLink.href = meEmail ? "/submit.html" : `/api/login?next=${encodeURIComponent("/submit.html")}`;
+
+      if(!r.ok || !data){
+        authState.textContent = "unknown";
+        authActionLink.textContent = "ログイン";
+        authActionLink.className = "";
+        return;
+      }
+
+      const email = normEmail(data.email);
+      const isAdmin = Boolean(data.is_admin);
+      const uid = String(data.user_id || "").trim();
+
+      if(!email){
+        authState.textContent = "logged out";
+        authActionLink.textContent = "ログイン";
+        authActionLink.className = "";
+        return;
+      }
+
+      meEmail = email;
+      meIsAdmin = isAdmin;
+      meUserId = uid || null;
 
       authState.textContent = "logged in";
-      meEmailEl.textContent = meEmail || "-";
+      authEmailWrap.style.display = "inline";
+      authEmail.textContent = email;
+
+      authAdminWrap.style.display = "inline";
+      authAdmin.textContent = isAdmin ? "true" : "false";
 
       authActionLink.textContent = "ログアウト";
-      authActionLink.className = "";
-      authActionLink.href = "/api/logout";
+      authActionLink.className = "danger";
+      authActionLink.href = "/cdn-cgi/access/logout?returnTo=" + encodeURIComponent(location.origin + "/");
 
-      adminLink.style.display = meIsAdmin ? "inline-flex" : "none";
       postLink.href = "/submit.html";
 
       mineWrap.style.display = "inline-flex";
@@ -476,7 +569,6 @@
     return parseColorString(PALETTE_MAP[k]);
   }
 
-  // submit.html の色味（palette優先 + 既存ID名からのヒューリスティック）
   function pickBaseColor(blockId){
     const p = paletteLookup(blockId);
     if(p) return p;
@@ -501,6 +593,53 @@
     return { r:120 + (h & 70), g:120 + ((h>>8)&70), b:120 + ((h>>16)&70), a:0.98 };
   }
 
+  function isAirBlock(blockId){
+    const s = String(blockId||"").trim().toLowerCase();
+    return s === "minecraft:air" || s.endsWith(":air");
+  }
+
+  function drawIsoCube(ctx, x, y, z, s, col, stroke){
+    const sx = (x - z) * s;
+    const sy = (x + z) * s * 0.5 - y * s;
+
+    const a = (col.a == null ? 1 : col.a);
+    const top = `rgba(${Math.min(255,col.r+30)},${Math.min(255,col.g+30)},${Math.min(255,col.b+30)},${a})`;
+    const left= `rgba(${Math.max(0,col.r-10)},${Math.max(0,col.g-10)},${Math.max(0,col.b-10)},${a})`;
+    const right=`rgba(${Math.max(0,col.r-25)},${Math.max(0,col.g-25)},${Math.max(0,col.b-25)},${a})`;
+
+    ctx.fillStyle = top;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy - s*0.5);
+    ctx.lineTo(sx + s, sy);
+    ctx.lineTo(sx, sy + s*0.5);
+    ctx.lineTo(sx - s, sy);
+    ctx.closePath();
+    ctx.fill();
+    if (stroke){
+      ctx.strokeStyle = "rgba(15,23,42,.10)";
+      ctx.lineWidth = Math.max(1, s*0.06);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = left;
+    ctx.beginPath();
+    ctx.moveTo(sx - s, sy);
+    ctx.lineTo(sx, sy + s*0.5);
+    ctx.lineTo(sx, sy + s*0.5 + s);
+    ctx.lineTo(sx - s, sy + s);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = right;
+    ctx.beginPath();
+    ctx.moveTo(sx + s, sy);
+    ctx.lineTo(sx, sy + s*0.5);
+    ctx.lineTo(sx, sy + s*0.5 + s);
+    ctx.lineTo(sx + s, sy + s);
+    ctx.closePath();
+    ctx.fill();
+  }
+
   function drawIso(canvas, blocks, yawDeg){
     const ctx = canvas.getContext("2d");
     const w = canvas.width, h = canvas.height;
@@ -513,43 +652,88 @@
       return;
     }
 
-    const yaw = (yawDeg||0) * Math.PI/180;
+    // 背景グラデ（UI/見た目は現状維持）
+    const g = ctx.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,"rgba(37,99,235,.10)");
+    g.addColorStop(1,"rgba(22,163,74,.08)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,w,h);
 
-    const pts = blocks.map(b => {
-      const x = Number(b.dx||0), y=Number(b.dy||0), z=Number(b.dz||0);
-      const rx =  x*Math.cos(yaw) - z*Math.sin(yaw);
-      const rz =  x*Math.sin(yaw) + z*Math.cos(yaw);
-      const sx = (rx - rz) * 6;
-      const sy = (rx + rz) * 3 - y * 6;
-      return { sx, sy, bid: String(b.blockId||"") };
-    });
+    const yaw = (Number(yawDeg||0) % 360) * Math.PI/180;
+    const cos = Math.cos(yaw), sin = Math.sin(yaw);
 
-    let minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9;
-    for(const p of pts){
-      minX=Math.min(minX,p.sx); maxX=Math.max(maxX,p.sx);
-      minY=Math.min(minY,p.sy); maxY=Math.max(maxY,p.sy);
+    // 回転後座標（四捨五入で格子に戻す：yawは0/90/180/270前提）
+    const pts = [];
+    for(const b of blocks){
+      const bid = String(b.blockId||"");
+      if(isAirBlock(bid)) continue;
+
+      const x0 = Number(b.dx||0), y0 = Number(b.dy||0), z0 = Number(b.dz||0);
+      const rx = x0*cos - z0*sin;
+      const rz = x0*sin + z0*cos;
+
+      const x = Math.round(rx);
+      const z = Math.round(rz);
+      const y = y0;
+
+      // 投影(s=1)の基準点
+      const sx0 = (x - z);
+      const sy0 = (x + z) * 0.5 - y;
+
+      // 立方体が占有する外接矩形（s=1想定）
+      const minX = sx0 - 1;
+      const maxX = sx0 + 1;
+      const minY = sy0 - 0.5;
+      const maxY = sy0 + 1.5;
+
+      pts.push({x,y,z,bid,sx0,sy0,minX,maxX,minY,maxY});
     }
-    const cx = (minX+maxX)/2;
-    const cy = (minY+maxY)/2;
 
-    const scale = Math.min(
-      (w-30)/(maxX-minX+20),
-      (h-30)/(maxY-minY+20)
+    if(pts.length === 0){
+      ctx.fillStyle = "rgba(15,23,42,.35)";
+      ctx.font = "12px sans-serif";
+      ctx.fillText("No visible blocks", 10, 20);
+      return;
+    }
+
+    let minPX=Infinity, maxPX=-Infinity, minPY=Infinity, maxPY=-Infinity;
+    for(const p of pts){
+      if(p.minX < minPX) minPX = p.minX;
+      if(p.maxX > maxPX) maxPX = p.maxX;
+      if(p.minY < minPY) minPY = p.minY;
+      if(p.maxY > maxPY) maxPY = p.maxY;
+    }
+
+    const rangeX = Math.max(1e-6, (maxPX - minPX));
+    const rangeY = Math.max(1e-6, (maxPY - minPY));
+    const cx = (minPX + maxPX) * 0.5;
+    const cy = (minPY + maxPY) * 0.5;
+
+    // 余白（thumb枠の中で見切れゼロ優先）
+    const margin = 16;
+
+    const s = Math.max(
+      1.8,
+      Math.min(
+        (w - margin*2) / rangeX,
+        (h - margin*2) / rangeY
+      )
     );
 
-    pts.sort((a,b)=>a.sy-b.sy);
+    const ox = (w * 0.5) - (cx * s);
+    const oy = (h * 0.5) - (cy * s);
 
+    // 描画順：奥→手前（既存の簡易3Dの思想を維持）
+    pts.sort((a,b)=> (a.x + a.z) - (b.x + b.z) || (a.y - b.y));
+
+    const stroke = (s >= 3);
+
+    ctx.save();
+    ctx.translate(ox, oy);
     for(const p of pts){
-      const x = (p.sx - cx) * scale + w/2;
-      const y = (p.sy - cy) * scale + h/2;
-
-      const col = pickBaseColor(p.bid);
-      const a = (col.a == null ? 1 : col.a);
-      ctx.fillStyle = `rgba(${col.r},${col.g},${col.b},${a})`;
-      ctx.fillRect(x-4, y-4, 8, 8);
-      ctx.strokeStyle = "rgba(15,23,42,.15)";
-      ctx.strokeRect(x-4, y-4, 8, 8);
+      drawIsoCube(ctx, p.x, p.y, p.z, s, pickBaseColor(p.bid), stroke);
     }
+    ctx.restore();
   }
 
   function goUnit(it){
@@ -669,33 +853,36 @@
         const tags = normalizeTags(r.tags);
         const no = resolveNo(r);
 
-        return {
-          id: r.id ?? r.submission_id ?? r.submissionId ?? "",
+        return ({
+          id: String(r.id),
           no,
-          name: r.title ?? r.name ?? "(no title)",
-          desc: r.description ?? r.desc ?? "",
+          name: r.title || r.name || "Untitled",
+          desc: r.description || "",
           tags,
-          dl: r.downloads ?? r.dl ?? 0,
-          author: r.author_email ?? r.author ?? "unknown",
-          authorId: r.author_id ?? r.authorId ?? null,
-          mod: r.mod_version ?? r.mod ?? "Forge",
+          author: r.author_name || r.authorName || "unknown",
+          authorId: r.author_id || r.authorId || "",
+          dl: Number(r.download_count ?? r.downloadCount ?? 0),
+          mod: r.mod_version || r.modVersion || "Forge",
           created: created || "",
           createdText,
-        };
+        });
       });
 
       applyFilter();
     }catch(e){
-      showError(String(e?.message || e));
+      showError("一覧の取得に失敗しました。\n" + String(e.message || e));
     }
   }
 
-  q.addEventListener("input", () => applyFilter());
-  sort.addEventListener("change", () => applyFilter());
-  yawUi.addEventListener("change", () => applyFilter());
+  q.addEventListener("input", applyFilter);
+  sort.addEventListener("change", applyFilter);
+  yawUi.addEventListener("change", applyFilter);
   if (mineOnly) mineOnly.addEventListener("change", () => load());
 
-  loadWhoami().finally(() => load());
+  (async () => {
+    await loadWhoami();
+    await load();
+  })();
 })();
 </script>
 </body>
