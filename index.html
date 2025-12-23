@@ -89,6 +89,7 @@
       color:#9f1239;
       display:none;
       white-space:pre-wrap;
+      width:100%;
     }
     .grid{
       margin-top:14px;
@@ -237,6 +238,12 @@
       border-radius:999px;
       color:#0f172a;
     }
+    .authbar .right{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
     .authbar a{
       color:var(--brand);
       text-decoration:none;
@@ -245,6 +252,11 @@
       border-radius:999px;
       background:#fff;
       white-space:nowrap;
+    }
+    .authbar a.primary{
+      background:#2563eb;
+      border-color:#2563eb;
+      color:#fff;
     }
   </style>
 </head>
@@ -271,7 +283,7 @@
           <option value="90">Yaw補正 +90°</option>
           <option value="0">Yaw補正 なし</option>
         </select>
-        <div class="muted">カードクリックで詳細へ（/u/数字 or /u/UUID）</div>
+        <div class="muted">カードクリックで詳細へ（/unit.html?id=数字 or UUID）</div>
       </div>
     </div>
 
@@ -286,17 +298,20 @@
 
     <div id="err" class="error"></div>
 
-    <!-- ✅ auth bar はCSSではなく、ここ（HTML）に置く -->
     <div class="authbar" id="authbar">
       <div class="left">
         <span>Login:</span>
-        <a id="postLink" href="/submit.html" style="display:none; margin-left:12px; padding:6px 12px; border-radius:10px; background:#2563eb; color:#fff; text-decoration:none; font-size:13px;">投稿</a>
         <code id="authState">checking...</code>
         <span id="authEmailWrap" style="display:none;">Email: <code id="authEmail"></code></span>
         <span id="authAdminWrap" style="display:none;">Admin: <code id="authAdmin"></code></span>
       </div>
       <div class="right">
-        <a id="authLoginLink" href="/api/whoami">ログインを開始</a>
+        <!-- 未ログイン時: ログイン / 投稿（投稿はログイン後submitへ） -->
+        <a id="authLoginLink" href="/api/whoami">ログイン</a>
+        <a id="postLink" class="primary" href="/submit.html">投稿</a>
+
+        <!-- ログイン時: ログアウト / 投稿 -->
+        <a id="authLogoutLink" href="/cdn-cgi/access/logout?returnTo=/" style="display:none;">ログアウト</a>
       </div>
     </div>
   </div>
@@ -321,6 +336,12 @@
   const authAdminWrap = document.getElementById("authAdminWrap");
   const authAdmin = document.getElementById("authAdmin");
   const authLoginLink = document.getElementById("authLoginLink");
+  const authLogoutLink = document.getElementById("authLogoutLink");
+  const postLink = document.getElementById("postLink");
+
+  function whoamiNext(path){
+    return `${API_WHOAMI}?next=${encodeURIComponent(path)}`;
+  }
 
   async function loadWhoami(){
     try{
@@ -328,16 +349,21 @@
       authEmailWrap.style.display = "none";
       authAdminWrap.style.display = "none";
 
+      // public top は「ログイン状態は optional」
       const r = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
       const text = await r.text();
-
       let data = null;
       try { data = JSON.parse(text); } catch { data = null; }
 
+      // loginリンクは「戻れる導線」にしておく
+      authLoginLink.href = whoamiNext("/");
+
       if(!r.ok || !data){
         authState.textContent = "unknown";
+        // 未ログイン扱い：投稿はログイン後submitへ
+        postLink.href = whoamiNext("/submit.html");
+        authLogoutLink.style.display = "none";
         authLoginLink.style.display = "inline-flex";
-        authLoginLink.href = API_WHOAMI;
         return;
       }
 
@@ -346,8 +372,9 @@
 
       if(!email){
         authState.textContent = "logged out";
+        postLink.href = whoamiNext("/submit.html");
+        authLogoutLink.style.display = "none";
         authLoginLink.style.display = "inline-flex";
-        authLoginLink.href = API_WHOAMI;
         return;
       }
 
@@ -358,11 +385,16 @@
       authAdminWrap.style.display = "inline";
       authAdmin.textContent = isAdmin ? "true" : "false";
 
+      // ログイン済み：投稿は直行、ログアウト表示、ログインは隠す
+      postLink.href = "/submit.html";
+      authLogoutLink.style.display = "inline-flex";
       authLoginLink.style.display = "none";
     }catch{
       authState.textContent = "unknown";
+      authLoginLink.href = whoamiNext("/");
+      postLink.href = whoamiNext("/submit.html");
+      authLogoutLink.style.display = "none";
       authLoginLink.style.display = "inline-flex";
-      authLoginLink.href = API_WHOAMI;
     }
   }
 
