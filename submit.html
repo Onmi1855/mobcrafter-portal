@@ -360,6 +360,10 @@
       }
 
       const text = await resp.text();
+      if (typeof text === "string" && text.includes("<html")) {
+      $loginLink.style.display = "inline-block";
+      }
+
       let data; try { data = JSON.parse(text); } catch { data = { raw: text }; }
       setResult({ http: resp.status, ok: resp.ok, ...data });
     } catch (e) {
