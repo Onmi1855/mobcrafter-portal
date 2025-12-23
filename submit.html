@@ -117,6 +117,7 @@
 
   let parsedJson = null;
   let isLoggedIn = false;
+  let loggedInEmail = ""; // ★追加：whoami で取れた email を保持
 
   function normEmail(v){
     const s = String(v || "").trim().toLowerCase();
