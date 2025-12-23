@@ -5,7 +5,6 @@
   "minecraft:ice": "#a8d7ff",
   "minecraft:packed_ice": "#7fb8ff",
   "minecraft:blue_ice": "#4a94ff",
-
   "minecraft:stone": "#7d7d7d",
   "minecraft:cobblestone": "#7a7a7a",
   "minecraft:stone_bricks": "#7a7a7a",
@@ -38,7 +37,6 @@
   "minecraft:polished_blackstone_bricks": "#303030",
   "minecraft:basalt": "#3a3a40",
   "minecraft:polished_basalt": "#3f3f46",
-
   "minecraft:dirt": "#8b6a45",
   "minecraft:coarse_dirt": "#7a5a3a",
   "minecraft:rooted_dirt": "#7a5a3a",
@@ -52,7 +50,6 @@
   "minecraft:mud": "#4a3a34",
   "minecraft:packed_mud": "#7a5a4a",
   "minecraft:terracotta": "#9a6a5a",
-
   "minecraft:oak_log": "#6b4f2a",
   "minecraft:spruce_log": "#4a3721",
   "minecraft:birch_log": "#d8d2c4",
@@ -62,7 +59,6 @@
   "minecraft:mangrove_log": "#5a2a2a",
   "minecraft:cherry_log": "#d7b2b2",
   "minecraft:bamboo_block": "#c8c06a",
-
   "minecraft:oak_planks": "#b38a5a",
   "minecraft:spruce_planks": "#7a5a3a",
   "minecraft:birch_planks": "#d7c58a",
@@ -72,10 +68,8 @@
   "minecraft:mangrove_planks": "#7a3a3a",
   "minecraft:cherry_planks": "#e6b7b7",
   "minecraft:bamboo_planks": "#d7ce6a",
-
   "minecraft:glass": "#cfe8ff",
   "minecraft:tinted_glass": "#2a2a2a",
-
   "minecraft:iron_block": "#d8d8d8",
   "minecraft:gold_block": "#f0d84a",
   "minecraft:diamond_block": "#4ad7c8",
@@ -86,12 +80,10 @@
   "minecraft:oxidized_copper": "#3a7a6a",
   "minecraft:cut_copper": "#c07a5a",
   "minecraft:amethyst_block": "#8a5ad7",
-
   "minecraft:prismarine": "#6aa8a8",
   "minecraft:prismarine_bricks": "#5aa0a0",
   "minecraft:dark_prismarine": "#2a5a5a",
   "minecraft:sea_lantern": "#d7f0ea",
-
   "minecraft:slime_block": "#7bdc7b",
   "minecraft:honey_block": "#e6b34a",
   "minecraft:hay_block": "#d7c44a",
@@ -99,7 +91,6 @@
   "minecraft:coal_block": "#1f1f1f",
   "minecraft:redstone_block": "#b02e26",
   "minecraft:lapis_block": "#2e3aa8",
-
   "minecraft:bricks": "#9a4a3a",
   "minecraft:quartz_block": "#f2eee6",
   "minecraft:smooth_quartz": "#f2eee6",
@@ -107,7 +98,6 @@
   "minecraft:purpur_pillar": "#a88ad7",
   "minecraft:nether_wart_block": "#7a1f2a",
   "minecraft:warped_wart_block": "#2aa8a8",
-
   "minecraft:white_wool": "#eaeaea",
   "minecraft:light_gray_wool": "#bfbfbf",
   "minecraft:gray_wool": "#6a6a6a",
@@ -124,7 +114,6 @@
   "minecraft:purple_wool": "#5a2a7a",
   "minecraft:magenta_wool": "#a83aa8",
   "minecraft:pink_wool": "#f0a0a0",
-
   "minecraft:white_concrete": "#e6e6e6",
   "minecraft:light_gray_concrete": "#bfbfbf",
   "minecraft:gray_concrete": "#6a6a6a",
@@ -141,7 +130,6 @@
   "minecraft:purple_concrete": "#5a2a7a",
   "minecraft:magenta_concrete": "#a83aa8",
   "minecraft:pink_concrete": "#f0a0a0",
-
   "minecraft:white_concrete_powder": "#eeeeee",
   "minecraft:light_gray_concrete_powder": "#cfcfcf",
   "minecraft:gray_concrete_powder": "#7a7a7a",
@@ -158,7 +146,6 @@
   "minecraft:purple_concrete_powder": "#6a3a9a",
   "minecraft:magenta_concrete_powder": "#ba4aba",
   "minecraft:pink_concrete_powder": "#f2b2b2",
-
   "minecraft:white_terracotta": "#d7c7b7",
   "minecraft:light_gray_terracotta": "#b7a7a7",
   "minecraft:gray_terracotta": "#7a6a6a",
@@ -175,7 +162,6 @@
   "minecraft:purple_terracotta": "#5a3a7a",
   "minecraft:magenta_terracotta": "#a85a7a",
   "minecraft:pink_terracotta": "#d79aa0",
-
   "minecraft:white_stained_glass": "#f2f2f2",
   "minecraft:light_gray_stained_glass": "#cfcfcf",
   "minecraft:gray_stained_glass": "#7a7a7a",
@@ -192,7 +178,6 @@
   "minecraft:purple_stained_glass": "#6a3a9a",
   "minecraft:magenta_stained_glass": "#ba4aba",
   "minecraft:pink_stained_glass": "#f2b2b2",
-
   "minecraft:white_glazed_terracotta": "#d7c7b7",
   "minecraft:light_gray_glazed_terracotta": "#b7a7a7",
   "minecraft:gray_glazed_terracotta": "#7a6a6a",
