@@ -138,6 +138,7 @@
         authState.textContent = "logged out";
         authEmailWrap.style.display = "none";
         isLoggedIn = false;
+        loggedInEmail = ""; // ★追加
         $loginLink.style.display = "inline-block";
         $needLogin.textContent = "※ ログインすると送信できます";
         return;
@@ -146,12 +147,14 @@
       authState.textContent = "logged in";
       authEmailWrap.style.display = "inline";
       authEmail.textContent = email;
+      loggedInEmail = email; // ★追加
       isLoggedIn = true;
       $loginLink.style.display = "none";
       $needLogin.textContent = "※ ログイン済み";
     }catch{
       authState.textContent = "unknown";
       isLoggedIn = false;
+      loggedInEmail = ""; // ★追加
       $loginLink.style.display = "inline-block";
       $needLogin.textContent = "※ ログイン状態を確認できません（whoami）";
     }
@@ -407,14 +410,23 @@
       return;
     }
 
+    const email = normEmail(loggedInEmail);
+    const authorName = email ? email.split("@")[0].slice(0, 60) : "unknown";
+
     const payload = {
       title: $title.value.trim(),
       description: $desc.value.trim(),
       tags: ($tags.value||"").split(",").map(s=>s.trim()).filter(Boolean),
       mod_version: $mv.value.trim(),
       yaw_offset_quarter: Number($yawOffset.value || "0"),
+
+      // ★追加：サーバ側で author を確実に保存できるように送る
+      author_email: email,
+      author_name: authorName,
+
       json: parsedJson
     };
+
 
     // ownerUuid は必ず消す（念押し）
     try{
