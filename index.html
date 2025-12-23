@@ -155,7 +155,6 @@
       text-decoration:none;
       backdrop-filter: blur(6px);
     }
-    /* 自分の投稿に出す “編集” */
     .btn-edit{
       position:absolute;
       bottom:10px;
@@ -226,7 +225,6 @@
       color:var(--muted);
     }
 
-    /* ===== auth bar ===== */
     .authbar{
       display:flex;
       align-items:center;
@@ -281,7 +279,6 @@
       border-color:var(--danger);
       color:#fff;
     }
-    /* 自分の投稿のみトグル */
     .chip{
       display:inline-flex;
       align-items:center;
@@ -340,7 +337,6 @@
         <span id="authEmailWrap" style="display:none;">Email: <code id="authEmail"></code></span>
         <span id="authAdminWrap" style="display:none;">Admin: <code id="authAdmin"></code></span>
 
-        <!-- ログイン中だけ表示 -->
         <label id="mineWrap" class="chip" style="display:none;">
           <input id="mineOnly" type="checkbox" />
           <span>自分の投稿のみ</span>
@@ -348,10 +344,7 @@
       </div>
 
       <div class="right">
-        <!-- ここは “同じ位置で切り替え” -->
         <a id="authActionLink" href="/api/whoami">ログイン</a>
-
-        <!-- 投稿は常に見せる（未ログインならログイン→submitへ戻す） -->
         <a id="postLink" class="primary" href="/submit.html">投稿</a>
       </div>
     </div>
@@ -365,9 +358,10 @@
 <script>
 (() => {
   // ====== API ======
-  const API_LIST = "/api/public/submissions";
-  const API_JSON = (id) => `/api/public/submissions/${id}/json`;      // DLカウントしない
-  const API_DL   = (id) => `/api/public/submissions/${id}/download`;  // DLカウントする
+  const API_PUBLIC_LIST = "/api/public/submissions";
+  const API_MY_LIST = "/api/my/submissions?scope=approved"; // ログイン必須 / 自分の承認済みのみ
+  const API_JSON = (id) => `/api/public/submissions/${id}/json`;
+  const API_DL   = (id) => `/api/public/submissions/${id}/download`;
 
   // ====== AUTH ======
   const API_WHOAMI = "/api/whoami";
@@ -386,6 +380,7 @@
 
   let meEmail = null;
   let meIsAdmin = false;
+  let meUserId = null;
 
   function whoamiNext(path){
     return `${API_WHOAMI}?next=${encodeURIComponent(path)}`;
@@ -404,15 +399,15 @@
       mineWrap.style.display = "none";
       meEmail = null;
       meIsAdmin = false;
+      meUserId = null;
 
       const r = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
       const text = await r.text();
       let data = null;
       try { data = JSON.parse(text); } catch { data = null; }
 
-      // まず導線を「戻れる形」に固定
       authActionLink.href = whoamiNext("/");
-      postLink.href = whoamiNext("/submit.html"); // 未ログイン時はログイン→submit
+      postLink.href = whoamiNext("/submit.html"); // 未ログイン時はログイン→submitへ戻す
 
       if(!r.ok || !data){
         authState.textContent = "unknown";
@@ -423,6 +418,7 @@
 
       const email = normEmail(data.email);
       const isAdmin = Boolean(data.is_admin);
+      const uid = String(data.user_id || "").trim();
 
       if(!email){
         authState.textContent = "logged out";
@@ -431,9 +427,9 @@
         return;
       }
 
-      // logged in
       meEmail = email;
       meIsAdmin = isAdmin;
+      meUserId = uid || null;
 
       authState.textContent = "logged in";
       authEmailWrap.style.display = "inline";
@@ -442,15 +438,12 @@
       authAdminWrap.style.display = "inline";
       authAdmin.textContent = isAdmin ? "true" : "false";
 
-      // 同じ位置のボタンをログアウトに差し替え（赤）
       authActionLink.textContent = "ログアウト";
       authActionLink.className = "danger";
       authActionLink.href = "/cdn-cgi/access/logout?returnTo=" + encodeURIComponent(location.origin + "/");
 
-      // 投稿は直行
       postLink.href = "/submit.html";
 
-      // 自分の投稿のみトグルを表示
       mineWrap.style.display = "inline-flex";
     }catch{
       authState.textContent = "unknown";
@@ -461,6 +454,7 @@
       mineWrap.style.display = "none";
       meEmail = null;
       meIsAdmin = false;
+      meUserId = null;
     }
   }
 
@@ -517,7 +511,6 @@
     return await r.json();
   }
 
-  // 簡易描画（軽量MVP）
   function drawIso(canvas, blocks, yawDeg){
     const ctx = canvas.getContext("2d");
     const w = canvas.width, h = canvas.height;
@@ -574,7 +567,6 @@
   }
 
   function goUnit(it){
-    // 既存仕様：no優先、無ければid
     if (it.no) location.href = `/unit.html?id=${encodeURIComponent(String(it.no))}`;
     else location.href = `/unit.html?id=${encodeURIComponent(String(it.id))}`;
   }
@@ -582,10 +574,8 @@
   function renderCard(it){
     const card = document.createElement("article");
     card.className = "card";
-    card.setAttribute("data-id", it.id);
-    card.setAttribute("data-no", String(it.no || 0));
 
-    const canEdit = !!(meEmail && it.authorEmail && normEmail(it.authorEmail) === meEmail);
+    const canEdit = !!(meUserId && it.authorId && String(it.authorId) === String(meUserId));
 
     card.innerHTML = `
       <div class="thumbwrap">
@@ -630,9 +620,7 @@
         const j = await fetchUnitJson(it.id);
         const yaw = Number(yawUi.value || 270);
         drawIso(canvas, j.blocks, yaw);
-      }catch{
-        // 失敗しても無視（軽量MVP）
-      }
+      }catch{}
     })();
 
     return card;
@@ -640,16 +628,8 @@
 
   function applyFilter(){
     const kw = String(q.value||"").trim().toLowerCase();
-    const mine = !!(mineOnly && mineOnly.checked);
 
     let arr = items.slice();
-
-    if(mine && meEmail){
-      arr = arr.filter(it => {
-        const a = normEmail(it.authorEmail);
-        return a && a === meEmail;
-      });
-    }
 
     if(kw){
       arr = arr.filter(it => {
@@ -673,17 +653,29 @@
     }
   }
 
+  async function fetchList(useMine){
+    const url = useMine ? API_MY_LIST : API_PUBLIC_LIST;
+    const r = await fetch(url, { cache:"no-store", credentials:"include" });
+    const text = await r.text().catch(()=> "");
+    let data = null;
+    try { data = JSON.parse(text); } catch { data = null; }
+
+    if(!r.ok){
+      throw new Error(`list HTTP ${r.status}\n${text ? ("body: " + text.slice(0,240)) : ""}`);
+    }
+
+    // my/submissions は {ok:true, items:[...]}、public は {items:[...]}
+    const arr = (data && Array.isArray(data.items)) ? data.items : [];
+    return arr;
+  }
+
   async function load(){
     hideError();
     grid.innerHTML = "";
     try{
-      const r = await fetch(API_LIST, { cache:"no-store" });
-      if(!r.ok){
-        const t = await r.text().catch(()=> "");
-        throw new Error(`list HTTP ${r.status}\n${t ? ("body: " + t.slice(0,200)) : ""}`);
-      }
-      const data = await r.json();
-      const arr = Array.isArray(data.items) ? data.items : [];
+      const useMine = !!(mineOnly && mineOnly.checked && meUserId);
+      const arr = await fetchList(useMine);
+
       items = arr.map(r => {
         const created = asDateIso(r.created_at || r.createdAt || r.created);
         const createdText = created ? created.slice(0,10) : "";
@@ -697,7 +689,7 @@
           desc: r.description || "",
           tags,
           author: r.author_name || r.authorName || "unknown",
-          authorEmail: r.author_email || r.authorEmail || "",  // ← これが無いと編集判定できない
+          authorId: r.author_id || r.authorId || "",
           dl: Number(r.download_count ?? r.downloadCount ?? 0),
           mod: r.mod_version || r.modVersion || "Forge",
           created: created || "",
@@ -714,9 +706,8 @@
   q.addEventListener("input", applyFilter);
   sort.addEventListener("change", applyFilter);
   yawUi.addEventListener("change", applyFilter);
-  if (mineOnly) mineOnly.addEventListener("change", applyFilter);
+  if (mineOnly) mineOnly.addEventListener("change", () => load());
 
-  // whoami → list の順が安全（meEmailが決まってから編集判定できる）
   (async () => {
     await loadWhoami();
     await load();
