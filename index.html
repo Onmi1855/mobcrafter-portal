@@ -364,8 +364,8 @@
 <script>
 (() => {
   // ====== API ======
-  const API_PUBLIC_LIST = "/api/my/submissions?scope=all";
-  const API_MY_LIST = "/api/my/submissions"; // ★status含む想定（Worker側を合わせる）
+  const API_PUBLIC_LIST = "/api/public/submissions";
+  const API_MY_LIST = "/api/my/submissions?scope=all";
   const API_JSON = (id) => `/api/public/submissions/${id}/json`;
   const API_DL   = (id) => `/api/public/submissions/${id}/download`;
 
