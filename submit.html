@@ -27,38 +27,6 @@
     .toplinks a{ color:#2563eb; text-decoration:none; border:1px solid rgba(37,99,235,.25); padding:6px 10px; border-radius:999px; background:#fff; }
     .pill{ display:inline-flex; align-items:center; gap:8px; font-size:12px; color:#64748b; }
     .pill code{ background:rgba(148,163,184,.15); border:1px solid rgba(148,163,184,.25); padding:2px 6px; border-radius:999px; color:#0f172a; }
-
-    .after{
-      display:none;
-      margin-top:12px;
-      padding:12px;
-      border-radius:12px;
-      border:1px solid #bbf7d0;
-      background:#f0fdf4;
-    }
-    .after .row2{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:10px;
-    }
-    .after a{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:10px 14px;
-      border-radius:12px;
-      text-decoration:none;
-      border:1px solid rgba(37,99,235,.25);
-      background:#fff;
-      color:#2563eb;
-      font-weight:600;
-    }
-    .after a.primary{
-      background:#2563eb;
-      border-color:#2563eb;
-      color:#fff;
-    }
   </style>
 </head>
 <body>
@@ -111,16 +79,6 @@
     <span id="needLogin" class="mini">※ 送信はログイン必須</span>
   </div>
 
-  <div id="afterSuccess" class="after">
-    <div style="font-weight:800;">投稿を受け付けました ✅</div>
-    <div class="mini">承認前（pending）の場合、公開一覧には出ません。「自分の投稿のみ」で確認できます。</div>
-    <div class="row2">
-      <a id="goUnit" class="primary" href="/">詳細ページへ</a>
-      <a id="goMine" href="/?mine=1">自分の投稿のみを見る</a>
-      <a id="goHome" href="/">ホームへ戻る</a>
-    </div>
-  </div>
-
   <div class="divider"></div>
 
   <label>プレビュー（情報）</label>
@@ -138,377 +96,434 @@
 
 <script>
 (() => {
+  // ===== API =====
   const API_WHOAMI = "/api/whoami";
+  const API_LOGIN  = (next) => `/api/login?next=${encodeURIComponent(next)}`;
+  const API_SUBMIT = "/api/submit";
 
-  const authState = document.getElementById("authState");
-  const authEmailWrap = document.getElementById("authEmailWrap");
-  const authEmail = document.getElementById("authEmail");
-
-  const $file = document.getElementById("file");
-  const $title = document.getElementById("title");
-  const $desc  = document.getElementById("description");
-  const $tags  = document.getElementById("tags");
-  const $mv    = document.getElementById("modVersion");
-  const $btn   = document.getElementById("btn");
+  // ===== Elements =====
+  const $authState = document.getElementById("authState");
+  const $authEmailWrap = document.getElementById("authEmailWrap");
+  const $authEmail = document.getElementById("authEmail");
   const $loginLink = document.getElementById("loginLink");
   const $needLogin = document.getElementById("needLogin");
-  const $prev  = document.getElementById("preview");
-  const $res   = document.getElementById("result");
+
+  const $title = document.getElementById("title");
+  const $description = document.getElementById("description");
+  const $tags = document.getElementById("tags");
+  const $modVersion = document.getElementById("modVersion");
+  const $file = document.getElementById("file");
   const $yawOffset = document.getElementById("yawOffset");
-  const canvas = document.getElementById("canvas");
+  const $btn = document.getElementById("btn");
+  const $result = document.getElementById("result");
 
-  const $after = document.getElementById("afterSuccess");
-  const $goUnit = document.getElementById("goUnit");
-  const $goMine = document.getElementById("goMine");
-  const $goHome = document.getElementById("goHome");
+  const $preview = document.getElementById("preview");
+  const $canvas = document.getElementById("canvas");
+  const ctx = $canvas.getContext("2d");
 
-  let parsedJson = null;
-  let isLoggedIn = false;
+  let meEmail = null;
+  let meUserId = null;
+  let meIsAdmin = false;
+
+  let unitJson = null; // parsed JSON object
 
   function normEmail(v){
     const s = String(v || "").trim().toLowerCase();
     return (s && s.includes("@")) ? s : "";
   }
 
+  // ===== Auth =====
   async function loadWhoami(){
     try{
-      authState.textContent = "checking...";
-      authEmailWrap.style.display = "none";
-      isLoggedIn = false;
+      $authState.textContent = "checking...";
+      $authEmailWrap.style.display = "none";
+      $needLogin.style.display = "none";
 
-      const r = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
-      const data = await r.json().catch(()=>null);
+      const r = await fetch(API_WHOAMI, { cache: "no-store", credentials: "include" });
+      const text = await r.text();
+      let data = null;
+      try { data = JSON.parse(text); } catch { data = null; }
 
-      const email = data ? normEmail(data.email) : "";
-      if(!email){
-        authState.textContent = "logged out";
-        authEmailWrap.style.display = "none";
-        isLoggedIn = false;
-        $loginLink.style.display = "inline-block";
-        $needLogin.textContent = "※ ログインすると送信できます";
+      if(!r.ok || !data){
+        setLoggedOut("unknown");
         return;
       }
 
-      authState.textContent = "logged in";
-      authEmailWrap.style.display = "inline";
-      authEmail.textContent = email;
-      isLoggedIn = true;
-      $loginLink.style.display = "none";
-      $needLogin.textContent = "※ ログイン済み";
+      const email = normEmail(data.email);
+      meEmail = email || null;
+      meUserId = String(data.user_id || "").trim() || null;
+      meIsAdmin = Boolean(data.is_admin);
+
+      if(!email){
+        setLoggedOut("logged out");
+        return;
+      }
+
+      $authState.textContent = "logged in";
+      $authEmailWrap.style.display = "inline";
+      $authEmail.textContent = email;
+
+      $loginLink.textContent = "ログアウト";
+      $loginLink.href = "/cdn-cgi/access/logout?returnTo=" + encodeURIComponent(location.origin + "/submit.html");
+      $btn.disabled = false;
     }catch{
-      authState.textContent = "unknown";
-      isLoggedIn = false;
-      $loginLink.style.display = "inline-block";
-      $needLogin.textContent = "※ ログイン状態を確認できません（whoami）";
+      setLoggedOut("unknown");
     }
   }
 
-  function setPreview(v) {
-    $prev.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
-  }
-  function setResult(v) {
-    $res.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
-  }
-  function updateButtonState() {
-    $btn.disabled = !(isLoggedIn && parsedJson && ($title.value || "").trim());
+  function setLoggedOut(stateText){
+    meEmail = null;
+    meUserId = null;
+    meIsAdmin = false;
+
+    $authState.textContent = stateText || "logged out";
+    $authEmailWrap.style.display = "none";
+    $needLogin.style.display = "block";
+
+    $loginLink.textContent = "ログイン";
+    $loginLink.href = API_LOGIN("/submit.html");
+
+    $btn.disabled = true;
   }
 
-  function validateMobCrafterJson(obj) {
-    if (!obj || typeof obj !== "object") return "JSONがオブジェクトではありません";
-    if (!Array.isArray(obj.blocks)) return "blocks 配列がありません";
-    if (obj.blocks.length === 0) return "blocks が空です";
-    if (obj.blocks.length > 200000) return "blocks が多すぎます（200k超）";
-    for (let i = 0; i < Math.min(obj.blocks.length, 1000); i++) {
-      const b = obj.blocks[i];
-      if (typeof b.dx !== "number" || typeof b.dy !== "number" || typeof b.dz !== "number") {
-        return `blocks[${i}] に dx/dy/dz がありません`;
-      }
-      if (typeof b.blockId !== "string") {
-        return `blocks[${i}] に blockId がありません`;
-      }
+  // ===== Util =====
+  function showResult(text, isOk){
+    $result.style.display = "block";
+    $result.style.borderColor = isOk ? "#bbf7d0" : "#fecdd3";
+    $result.style.background = isOk ? "#f0fdf4" : "#fff1f2";
+    $result.textContent = text;
+  }
+
+  function safeJsonParse(s){
+    try { return { ok:true, value: JSON.parse(s) }; }
+    catch(e){ return { ok:false, error: e }; }
+  }
+
+  // ===== Canvas resize / redraw =====
+  function resizeCanvas(){
+    const dpr = window.devicePixelRatio || 1;
+    const w = Math.max(10, $preview.clientWidth);
+    const h = Math.max(10, $preview.clientHeight);
+
+    const cw = Math.floor(w * dpr);
+    const ch = Math.floor(h * dpr);
+
+    if ($canvas.width !== cw || $canvas.height !== ch){
+      $canvas.width = cw;
+      $canvas.height = ch;
     }
-    return null;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // draw in CSS pixels
   }
 
-  function yawToQuarterTurns(frontYaw, extraOffsetQuarter){
-    if(frontYaw == null) return null;
-    const y = Number(frontYaw);
-    if(!Number.isFinite(y)) return null;
-    let deg = y % 360;
-    if(deg < 0) deg += 360;
-    let q = (Math.round(deg / 90) % 4);
-    q = (q + (extraOffsetQuarter ?? 0)) % 4;
-    return q;
-  }
-  function rotateXZ(x, z, q){
-    switch(q){
-      case 1: return {x: z,  z: -x};
-      case 2: return {x: -x, z: -z};
-      case 3: return {x: -z, z: x};
-      default:return {x, z};
-    }
-  }
-
-  const PALETTE_URL = "/assets/palette.v1.json";
-  const PALETTE_VER = "v1";
-  const PALETTE_LS_KEY = `mcPalette:${PALETTE_VER}`;
-  let PALETTE_MAP = null;
-
-  function parseColorString(s){
-    if(!s) return null;
-    const v = String(s).trim();
-    const hex = /^#([0-9a-f]{6})$/i.exec(v);
-    if(hex){
-      const n = parseInt(hex[1], 16);
-      return { r:(n>>16)&255, g:(n>>8)&255, b:n&255, a:1 };
-    }
-    const rgba = /^rgba?\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})(?:\s*,\s*([0-9]*\.?[0-9]+))?\s*\)$/i.exec(v);
-    if(rgba){
-      const r = Math.max(0, Math.min(255, parseInt(rgba[1],10)));
-      const g = Math.max(0, Math.min(255, parseInt(rgba[2],10)));
-      const b = Math.max(0, Math.min(255, parseInt(rgba[3],10)));
-      const a = rgba[4] == null ? 1 : Math.max(0, Math.min(1, parseFloat(rgba[4])));
-      return {r,g,b,a};
-    }
-    return null;
-  }
-
-  async function loadPalette(){
-    if(PALETTE_MAP) return PALETTE_MAP;
-    try{
-      const cached = localStorage.getItem(PALETTE_LS_KEY);
-      if(cached){
-        const obj = JSON.parse(cached);
-        if(obj && typeof obj === "object"){
-          PALETTE_MAP = obj;
-          return PALETTE_MAP;
-        }
-      }
-    }catch(e){}
-    try{
-      const r = await fetch(`${PALETTE_URL}?v=${encodeURIComponent(PALETTE_VER)}`, { cache:"no-store" });
-      if(r.ok){
-        const obj = await r.json();
-        if(obj && typeof obj === "object"){
-          PALETTE_MAP = obj;
-          try{ localStorage.setItem(PALETTE_LS_KEY, JSON.stringify(obj)); }catch(e){}
-          return PALETTE_MAP;
-        }
-      }
-    }catch(e){}
-    PALETTE_MAP = {};
-    return PALETTE_MAP;
-  }
-
-  function paletteLookup(blockId){
-    if(!PALETTE_MAP) return null;
-    const k = String(blockId||"").trim().toLowerCase();
-    return parseColorString(PALETTE_MAP[k]);
-  }
-
-  function pickBaseColor(blockId){
-    const p = paletteLookup(blockId);
-    if(p) return p;
-    const raw = String(blockId||"").toLowerCase();
-    const id = raw.includes(":") ? raw.split(":")[1] : raw;
-    if (id.includes("glass") || id.includes("ice")) return {r: 170, g: 210, b: 230, a: 0.55};
-    if (id.includes("leaves") || id.includes("leaf") || id.includes("moss") || id.includes("vine") || id.includes("grass")) return {r: 90, g: 150, b: 90, a: 0.95};
-    if (id.includes("log") || id.includes("wood") || id.includes("planks") || id.includes("bamboo")) return {r: 160, g: 125, b: 85, a: 0.95};
-    if (id.includes("dirt") || id.includes("sand") || id.includes("gravel") || id.includes("clay") || id.includes("mud")) return {r: 160, g: 145, b: 110, a: 0.98};
-    if (id.includes("stone") || id.includes("deepslate") || id.includes("andesite") || id.includes("diorite") || id.includes("granite") || id.includes("cobble") || id.includes("tuff") || id.includes("slate")) return {r: 140, g: 145, b: 155, a: 0.98};
-    if (id.includes("iron") || id.includes("anvil") || id.includes("chain") || id.includes("rail") || id.includes("metal")) return {r: 170, g: 175, b: 185, a: 0.98};
-    if (id.includes("copper") || id.includes("bronze")) return {r: 190, g: 120, b: 80, a: 0.98};
-    if (id.includes("gold")) return {r: 210, g: 185, b: 90, a: 0.98};
-    if (id.includes("diamond")) return {r: 120, g: 210, b: 220, a: 0.98};
-    if (id.includes("emerald")) return {r: 70, g: 200, b: 120, a: 0.98};
-    if (id.includes("lapis")) return {r: 70, g: 110, b: 200, a: 0.98};
-    if (id.includes("redstone")) return {r: 190, g: 70, b: 70, a: 0.98};
-    let h=0; for(let i=0;i<raw.length;i++) h=(h*31 + raw.charCodeAt(i))|0;
-    return { r:120 + (h & 70), g:120 + ((h>>8)&70), b:120 + ((h>>16)&70), a:0.98 };
-  }
-
-  function analyzeBlocks(blocks){
-    let minX=Infinity,minY=Infinity,minZ=Infinity;
-    let maxX=-Infinity,maxY=-Infinity,maxZ=-Infinity;
-    for(const b of blocks){
-      minX=Math.min(minX,b.dx); minY=Math.min(minY,b.dy); minZ=Math.min(minZ,b.dz);
-      maxX=Math.max(maxX,b.dx); maxY=Math.max(maxY,b.dy); maxZ=Math.max(maxZ,b.dz);
-    }
-    return {minX,minY,minZ, maxX,maxY,maxZ, sizeX:maxX-minX+1, sizeY:maxY-minY+1, sizeZ:maxZ-minZ+1};
-  }
-
-  function drawIsoCube(ctx, x, y, z, s, col, stroke){
-    const sx = (x - z) * s;
-    const sy = (x + z) * s * 0.5 - y * s;
-    const a = (col.a == null ? 1 : col.a);
-    const top = `rgba(${Math.min(255,col.r+30)},${Math.min(255,col.g+30)},${Math.min(255,col.b+30)},${a})`;
-    const left= `rgba(${Math.max(0,col.r-10)},${Math.max(0,col.g-10)},${Math.max(0,col.b-10)},${a})`;
-    const right=`rgba(${Math.max(0,col.r-25)},${Math.max(0,col.g-25)},${Math.max(0,col.b-25)},${a})`;
-    ctx.fillStyle = top;
-    ctx.beginPath(); ctx.moveTo(sx, sy - s*0.5); ctx.lineTo(sx + s, sy); ctx.lineTo(sx, sy + s*0.5); ctx.lineTo(sx - s, sy); ctx.closePath(); ctx.fill();
-    if (stroke){ ctx.strokeStyle = "rgba(15,23,42,.10)"; ctx.lineWidth = Math.max(1, s*0.06); ctx.stroke(); }
-    ctx.fillStyle = left;
-    ctx.beginPath(); ctx.moveTo(sx - s, sy); ctx.lineTo(sx, sy + s*0.5); ctx.lineTo(sx, sy + s*0.5 + s); ctx.lineTo(sx - s, sy + s); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = right;
-    ctx.beginPath(); ctx.moveTo(sx + s, sy); ctx.lineTo(sx, sy + s*0.5); ctx.lineTo(sx, sy + s*0.5 + s); ctx.lineTo(sx + s, sy + s); ctx.closePath(); ctx.fill();
-  }
-
-  function binBlocks(blocks, bin){
-    if(bin <= 1) return blocks;
-    const m = new Map();
-    for(const b of blocks){
-      const bx = Math.floor(b.dx / bin);
-      const by = Math.floor(b.dy / bin);
-      const bz = Math.floor(b.dz / bin);
-      const k = bx + "," + by + "," + bz;
-      const cur = m.get(k);
-      if(!cur || b.dy > cur.dy){ m.set(k, b); }
-    }
-    return Array.from(m.values());
-  }
-  function chooseBinSize(blockCount){
-    const target = 16000;
-    if(blockCount <= target) return 1;
-    const ratio = blockCount / target;
-    let bin = Math.ceil(Math.cbrt(ratio));
-    return Math.min(6, Math.max(2, bin));
-  }
-
-  function renderThumbToCanvas(canvas, unitJson, extraOffsetQuarter){
-    const ctx = canvas.getContext("2d");
-    const w = canvas.width, h = canvas.height;
+  function clearCanvas(){
+    resizeCanvas();
+    const w = $preview.clientWidth;
+    const h = $preview.clientHeight;
     ctx.clearRect(0,0,w,h);
+
+    // subtle background
     const g = ctx.createLinearGradient(0,0,0,h);
-    g.addColorStop(0,"rgba(37,99,235,.10)");
-    g.addColorStop(1,"rgba(22,163,74,.08)");
-    ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
-    const blocks0 = unitJson.blocks;
-    const qTurns = yawToQuarterTurns(unitJson.frontYaw, extraOffsetQuarter);
-    const bin = chooseBinSize(blocks0.length);
-    const blocks = binBlocks(blocks0, bin);
-    function drawPass(turns, alpha){
-      const transformed = blocks.map(b=>{
-        const r = rotateXZ(b.dx, b.dz, turns);
-        return {dx:r.x, dy:b.dy, dz:r.z, blockId:b.blockId};
-      });
-      const inf = analyzeBlocks(transformed);
-      const spanX = inf.sizeX + inf.sizeZ;
-      const spanY = inf.sizeY;
-      const s = Math.max(1.8, Math.min(w/(spanX+6), h/(spanY+10)) * 1.6);
-      const ox = w*0.5, oy = h*0.80;
-      transformed.sort((a,b)=> (a.dx+a.dz) - (b.dx+b.dz) || (a.dy - b.dy));
-      ctx.save(); ctx.globalAlpha = alpha; ctx.translate(ox, oy);
-      const stroke = (s >= 3);
-      for(const b of transformed){
-        const x = (b.dx - inf.minX), y = (b.dy - inf.minY), z = (b.dz - inf.minZ);
-        drawIsoCube(ctx, x, y, z, s, pickBaseColor(b.blockId), stroke);
-      }
-      ctx.restore();
-    }
-    if(qTurns == null){ drawPass(0, 1.0); drawPass(2, 0.33); }
-    else{ drawPass(qTurns, 1.0); }
+    g.addColorStop(0, "#eef5ff");
+    g.addColorStop(1, "#ffffff");
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,w,h);
+
+    // frame
+    ctx.strokeStyle = "rgba(15,23,42,.08)";
+    ctx.strokeRect(0.5,0.5,w-1,h-1);
   }
 
-  function rerender(){
-    if(!parsedJson) return;
-    const extra = Number($yawOffset.value || "0") % 4;
-    renderThumbToCanvas(canvas, parsedJson, extra);
+  // ===== Color =====
+  function hash32(str){
+    let h = 2166136261;
+    for(let i=0;i<str.length;i++){
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
   }
 
-  // 初回：ログイン確認
-  loadWhoami().finally(updateButtonState);
+  function hslToRgb(h, s, l){
+    // h:0..360, s/l:0..1
+    h = ((h%360)+360)%360;
+    const c = (1 - Math.abs(2*l - 1)) * s;
+    const x = c * (1 - Math.abs(((h/60) % 2) - 1));
+    const m = l - c/2;
+    let r=0,g=0,b=0;
+    if(h < 60){ r=c; g=x; b=0; }
+    else if(h < 120){ r=x; g=c; b=0; }
+    else if(h < 180){ r=0; g=c; b=x; }
+    else if(h < 240){ r=0; g=x; b=c; }
+    else if(h < 300){ r=x; g=0; b=c; }
+    else { r=c; g=0; b=x; }
+    return [
+      Math.round((r+m)*255),
+      Math.round((g+m)*255),
+      Math.round((b+m)*255),
+    ];
+  }
 
-  $file.addEventListener("change", async () => {
-    parsedJson = null;
-    $after.style.display = "none";
-    setResult("未送信"); setPreview("{}");
-    const f = $file.files && $file.files[0];
-    if (!f) return;
-    if (f.size > 2_200_000) { setPreview("ファイルが大きすぎます（約2MB超）"); return; }
-    try {
-      const obj = JSON.parse(await f.text());
-      const err = validateMobCrafterJson(obj);
-      if (err) { setPreview(err); return; }
-      parsedJson = obj;
-      if (!$title.value.trim()) $title.value = f.name.replace(/\.json$/i,"");
-      const info = analyzeBlocks(obj.blocks);
-      setPreview({ file:{name:f.name,size:f.size}, blocks: obj.blocks.length, size:`${info.sizeX} x ${info.sizeY} x ${info.sizeZ}`, frontYaw:(obj.frontYaw ?? null), yaw_offset_quarter:Number($yawOffset.value||"0") });
-      loadPalette().finally(()=>rerender());
-    } catch (e) {
-      setPreview("JSONとして読み込めません: " + (e?.message || String(e)));
-    }
-    updateButtonState();
-  });
+  function shade(rgb, f){
+    return rgb.map((v,i)=> i<3 ? Math.max(0, Math.min(255, Math.round(v*f))) : v);
+  }
 
-  $yawOffset.addEventListener("change", () => { rerender(); updateButtonState(); });
-  [$title,$desc,$tags,$mv].forEach(el => el.addEventListener("input", updateButtonState));
+  function rgbStr(rgb){
+    return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+  }
 
-  $btn.addEventListener("click", async () => {
-    if (!parsedJson) return;
+  function colorForBlockId(blockId){
+    const h = hash32(blockId || "block");
+    const hue = (h % 360);
+    const sat = 0.42 + ((h >> 9) % 20) / 100;  // 0.42..0.61
+    const lit = 0.52 + ((h >> 17) % 12) / 100; // 0.52..0.63
+    return hslToRgb(hue, sat, lit);
+  }
 
-    // 未ログインならログイン導線を出して終了
-    if (!isLoggedIn) {
-      $loginLink.style.display = "inline-block";
-      setResult({ ok:false, error:"login_required" });
-      updateButtonState();
+  // ===== Iso render (cubes) =====
+  function drawIso(blocks, yawDeg){
+    clearCanvas();
+
+    if(!Array.isArray(blocks) || blocks.length === 0){
+      ctx.fillStyle = "rgba(15,23,42,.35)";
+      ctx.font = "14px system-ui, sans-serif";
+      ctx.fillText("No blocks", 14, 22);
       return;
     }
 
-    const payload = {
-      title: $title.value.trim(),
-      description: $desc.value.trim(),
-      tags: ($tags.value||"").split(",").map(s=>s.trim()).filter(Boolean),
-      mod_version: $mv.value.trim(),
-      yaw_offset_quarter: Number($yawOffset.value || "0"),
-      json: parsedJson
+    const w = $preview.clientWidth;
+    const h = $preview.clientHeight;
+
+    const yaw = (Number(yawDeg||0) * Math.PI) / 180;
+
+    // Prepare rotated coords and projected anchor (iso)
+    const pts = blocks.map(b => {
+      const x = Number(b.dx||0), y = Number(b.dy||0), z = Number(b.dz||0);
+      const rx =  x*Math.cos(yaw) - z*Math.sin(yaw);
+      const rz =  x*Math.sin(yaw) + z*Math.cos(yaw);
+
+      // iso projection in "tile units"
+      const px = (rx - rz);
+      const py = (rx + rz) * 0.5 - y;
+
+      return {
+        x, y, z, rx, rz,
+        px, py,
+        bid: String(b.blockId || "block")
+      };
+    });
+
+    // Compute bounds using cube extents (each cube occupies 1 unit)
+    let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity;
+    for(const p of pts){
+      // cube corners spread in projection: roughly +/-1 in x and +/-1 in y for our chosen basis
+      // We’ll take generous bounds by sampling 4 top corners projection offsets.
+      // Offsets are in projected px/py units.
+      const xs = [p.px, p.px+1, p.px-1];
+      const ys = [p.py, p.py+1, p.py-1];
+      for(const xx of xs){ minX=Math.min(minX,xx); maxX=Math.max(maxX,xx); }
+      for(const yy of ys){ minY=Math.min(minY,yy); maxY=Math.max(maxY,yy); }
+    }
+
+    const pad = 20;
+    const spanX = Math.max(1e-6, maxX - minX);
+    const spanY = Math.max(1e-6, maxY - minY);
+
+    // Tile size in pixels (auto-fit)
+    const tile = Math.max(6, Math.min(
+      (w - pad*2) / (spanX * 2.0),   // px is wider
+      (h - pad*2) / (spanY * 2.8)    // py includes vertical stack
+    ));
+
+    // Cube dimensions in pixels
+    const hw = tile;       // half width
+    const hh = tile * 0.5; // half height
+    const vh = tile;       // vertical height per block
+
+    // Centering
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+
+    const ox = w/2 - (cx * hw);
+    const oy = h/2 - (cy * hh);
+
+    // Painter's sort: back to front (rz + rx + y) with tie on y
+    pts.sort((a,b)=>{
+      const da = (a.rx + a.rz) + a.y*0.85;
+      const db = (b.rx + b.rz) + b.y*0.85;
+      if (da !== db) return da - db;
+      return a.y - b.y;
+    });
+
+    ctx.lineWidth = 1;
+
+    for(const p of pts){
+      const base = colorForBlockId(p.bid);
+      const topC = shade(base, 1.06);
+      const leftC = shade(base, 0.92);
+      const rightC = shade(base, 0.78);
+
+      const x = ox + p.px * hw;
+      const y = oy + p.py * hh;
+
+      // Top face (diamond)
+      ctx.beginPath();
+      ctx.moveTo(x,     y - vh);
+      ctx.lineTo(x+hw,  y - vh + hh);
+      ctx.lineTo(x,     y - vh + hh*2);
+      ctx.lineTo(x-hw,  y - vh + hh);
+      ctx.closePath();
+      ctx.fillStyle = rgbStr(topC);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(15,23,42,.10)";
+      ctx.stroke();
+
+      // Left face
+      ctx.beginPath();
+      ctx.moveTo(x-hw,  y - vh + hh);
+      ctx.lineTo(x,     y - vh + hh*2);
+      ctx.lineTo(x,     y + hh*2);
+      ctx.lineTo(x-hw,  y + hh);
+      ctx.closePath();
+      ctx.fillStyle = rgbStr(leftC);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(15,23,42,.10)";
+      ctx.stroke();
+
+      // Right face
+      ctx.beginPath();
+      ctx.moveTo(x+hw,  y - vh + hh);
+      ctx.lineTo(x,     y - vh + hh*2);
+      ctx.lineTo(x,     y + hh*2);
+      ctx.lineTo(x+hw,  y + hh);
+      ctx.closePath();
+      ctx.fillStyle = rgbStr(rightC);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(15,23,42,.10)";
+      ctx.stroke();
+    }
+  }
+
+  function redraw(){
+    if(!unitJson || !Array.isArray(unitJson.blocks)){
+      clearCanvas();
+      ctx.fillStyle = "rgba(15,23,42,.35)";
+      ctx.font = "14px system-ui, sans-serif";
+      ctx.fillText("JSONを選択するとプレビューします", 14, 22);
+      return;
+    }
+    drawIso(unitJson.blocks, Number($yawOffset.value||270));
+  }
+
+  // ===== File -> JSON =====
+  async function readFileAsText(file){
+    return await new Promise((resolve, reject)=>{
+      const fr = new FileReader();
+      fr.onload = () => resolve(String(fr.result || ""));
+      fr.onerror = () => reject(fr.error || new Error("read_failed"));
+      fr.readAsText(file);
+    });
+  }
+
+  async function onFileChange(){
+    unitJson = null;
+    redraw();
+
+    const f = $file.files && $file.files[0];
+    if(!f) return;
+
+    try{
+      const text = await readFileAsText(f);
+      const p = safeJsonParse(text);
+      if(!p.ok){
+        showResult("JSONが壊れています。ファイル内容を確認してください。\n" + String(p.error?.message || p.error), false);
+        return;
+      }
+      if(!p.value || typeof p.value !== "object"){
+        showResult("JSONの形式が不正です。", false);
+        return;
+      }
+      if(!Array.isArray(p.value.blocks) || p.value.blocks.length === 0){
+        showResult("blocks が空です（MobCrafter Unit JSON では blocks が必須です）。", false);
+        return;
+      }
+      unitJson = p.value;
+      showResult("JSONを読み込みました。プレビューを更新しました。", true);
+      redraw();
+    }catch(e){
+      showResult("ファイル読み込みに失敗しました。\n" + String(e?.message || e), false);
+    }
+  }
+
+  // ===== Submit =====
+  async function submit(){
+    if(!meEmail){
+      showResult("ログインが必要です。", false);
+      return;
+    }
+    if(!unitJson){
+      showResult("JSONファイルを選択してください。", false);
+      return;
+    }
+
+    const body = {
+      title: String($title.value || unitJson.title || "Untitled").slice(0,80),
+      description: String($description.value || "").slice(0,2000),
+      tags: String($tags.value || "").slice(0,400),
+      mod_version: String($modVersion.value || "").slice(0,40),
+      json: unitJson
     };
 
-    // ownerUuid は必ず消す（念押し）
+    $btn.disabled = true;
+    showResult("送信中...", true);
+
     try{
-      if(payload.json && typeof payload.json === "object"){
-        payload.json.ownerUuid = "";
-      }
-    }catch{}
-
-    setResult("送信中...");
-    $after.style.display = "none";
-
-    try {
-      const resp = await fetch("/api/submit", {
+      const r = await fetch(API_SUBMIT, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        credentials: "include"
+        body: JSON.stringify(body),
       });
+      const text = await r.text();
+      let data = null;
+      try { data = JSON.parse(text); } catch { data = { raw: text }; }
 
-      const text = await resp.text();
-      let data; try { data = JSON.parse(text); } catch { data = { raw: text }; }
-
-      if (resp.status === 401 || resp.status === 403) {
-        $loginLink.style.display = "inline-block";
+      if(!r.ok){
+        throw new Error(`HTTP ${r.status}\n${JSON.stringify(data, null, 2)}`);
       }
 
-      const out = { http: resp.status, ok: resp.ok, ...data };
-      setResult(out);
+      showResult("送信しました（pending）。\n" + JSON.stringify(data, null, 2) + "\n\n一覧へ戻ります…", true);
 
-      // ★成功したら導線を出す
-      if(resp.ok && data && data.ok){
-        const submissionNo = data.submission_no ? Number(data.submission_no) : 0;
-        const id = data.id ? String(data.id) : "";
-        const unitUrl = submissionNo
-          ? `/unit.html?id=${encodeURIComponent(String(submissionNo))}`
-          : (id ? `/unit.html?id=${encodeURIComponent(id)}` : "/unit.html");
-
-        $goUnit.href = unitUrl;
-        $goMine.href = "/?mine=1";
-        $goHome.href = "/";
-        $after.style.display = "block";
-      }
-
-    } catch (e) {
-      setResult("送信失敗: " + (e?.message || String(e)));
+      // index 側で mine=1 なら自分の投稿のみON
+      setTimeout(() => {
+        location.href = "/?mine=1";
+      }, 800);
+    }catch(e){
+      showResult("送信に失敗しました。\n" + String(e?.message || e), false);
+    }finally{
+      $btn.disabled = false;
     }
-  });
+  }
+
+  // ===== events =====
+  $file.addEventListener("change", onFileChange);
+  $yawOffset.addEventListener("change", redraw);
+  $btn.addEventListener("click", submit);
+
+  // keep preview sized and re-render
+  const ro = new ResizeObserver(() => redraw());
+  ro.observe($preview);
+  window.addEventListener("resize", () => redraw());
+
+  // init
+  clearCanvas();
+  ctx.fillStyle = "rgba(15,23,42,.35)";
+  ctx.font = "14px system-ui, sans-serif";
+  ctx.fillText("JSONを選択するとプレビューします", 14, 22);
+
+  (async () => {
+    await loadWhoami();
+    redraw();
+  })();
 })();
 </script>
 
