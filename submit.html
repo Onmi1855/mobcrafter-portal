@@ -1,4 +1,3 @@
-<!-- === submit.txt (UPDATED FULL) === -->
 <!doctype html>
 <html lang="ja">
 <head>
@@ -7,297 +6,511 @@
   <title>MobCrafter - Unit Submit</title>
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 24px; background:#f6f8fb; color:#0f172a; }
-    .card { max-width: 980px; background:#fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px; box-shadow: 0 10px 25px rgba(15,23,42,.08); margin: 0 auto; }
-    h1 { margin: 0 0 8px; }
-    .muted { color:#64748b; font-size: 13px; }
-    .row { display:flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-    .row > * { flex: 0 0 auto; }
-    select, button, input, textarea { padding: 10px; border-radius: 10px; border: 1px solid #cbd5e1; background:#fff; }
-    textarea { width: 100%; min-height: 220px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-    button { cursor: pointer; }
-    button.primary { background:#2563eb; color:#fff; border: 0; }
+    .card { max-width: 880px; background:#fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px; box-shadow: 0 10px 25px rgba(15,23,42,.08); }
+    h1 { margin: 0 0 6px; }
+    .hint { color:#555; font-size: 13px; margin: 6px 0 10px; }
+    label { display:block; margin-top: 12px; font-weight: 600; }
+    input[type="text"], textarea, select { width: 100%; padding: 10px; border: 1px solid #cbd5f5; border-radius: 10px; background:#fff; }
+    textarea { min-height: 96px; }
+    .row { display:flex; gap: 12px; }
+    .row > div { flex: 1; }
+    .actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    button { margin-top: 14px; padding: 10px 14px; border: 0; border-radius: 12px; cursor:pointer; }
+    button.primary { background:#111; color:#fff; }
+    button.secondary { background:#e5e7eb; }
     button:disabled { opacity:.5; cursor:not-allowed; }
-    pre { background:#f6f6f6; padding: 12px; border-radius: 10px; white-space: pre-wrap; word-break: break-word; }
+    pre { white-space: pre-wrap; word-break: break-word; background:#f6f6f6; padding: 12px; border-radius: 12px; }
+    canvas { margin-top: 10px; background:#fff; border:1px solid #e5e7eb; border-radius:12px; max-width:100%; height:auto; }
+    .mini { color:#666; font-size: 12px; margin-top: 6px; }
+    .divider { height:1px; background:#e5e7eb; margin:14px 0; }
+    .toplinks{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+    .toplinks a{ color:#2563eb; text-decoration:none; border:1px solid rgba(37,99,235,.25); padding:6px 10px; border-radius:999px; background:#fff; }
+    .pill{ display:inline-flex; align-items:center; gap:8px; font-size:12px; color:#64748b; }
+    .pill code{ background:rgba(148,163,184,.15); border:1px solid rgba(148,163,184,.25); padding:2px 6px; border-radius:999px; color:#0f172a; }
 
-    .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
-
-    .thumbcard { border:1px solid #e5e7eb; border-radius: 12px; padding: 12px; background:#fff; }
-    .thumbhead { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; }
-    .thumbhead .mini { font-size:12px; color:#64748b; }
-    canvas#preview3d { width: 100%; height: auto; border-radius: 12px; border: 1px solid #e5e7eb; background: linear-gradient(180deg, #e6f0ff, #f5f9ff); image-rendering: pixelated; }
+    .after{
+      display:none;
+      margin-top:12px;
+      padding:12px;
+      border-radius:12px;
+      border:1px solid #bbf7d0;
+      background:#f0fdf4;
+    }
+    .after .row2{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .after a{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:12px;
+      text-decoration:none;
+      border:1px solid rgba(37,99,235,.25);
+      background:#fff;
+      color:#2563eb;
+      font-weight:600;
+    }
+    .after a.primary{
+      background:#2563eb;
+      border-color:#2563eb;
+      color:#fff;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>ユニット投稿</h1>
-    <div class="muted">JSON を貼り付けて投稿します。サムネ3Dプレビューは簡易描画（見切れないよう自動フィット）。</div>
 
-    <div style="height:12px"></div>
+<div class="card">
+  <div class="toplinks">
+    <a href="/">← ホームに戻る</a>
+    <span class="pill">Login: <code id="authState">checking...</code> <span id="authEmailWrap" style="display:none;">Email: <code id="authEmail"></code></span></span>
+  </div>
 
-    <div class="grid2">
-      <div>
-        <div class="row">
-          <label>タイトル <input id="title" type="text" placeholder="例: Sephiroth Statue" style="min-width: 320px;" /></label>
-          <label>タグ <input id="tags" type="text" placeholder="例: ff7 boss sword" style="min-width: 320px;" /></label>
-        </div>
-        <div style="height:10px"></div>
-        <label class="muted">説明（最大2000）</label>
-        <input id="desc" type="text" placeholder="説明…" style="width:100%;" />
+  <h1>ユニット投稿</h1>
+  <div class="hint">
+    Cloudflare Access ログイン後に投稿できます。JSONファイルを選択すると、構造検証と簡易3Dプレビューが表示されます。
+  </div>
 
-        <div style="height:12px"></div>
+  <label>JSONファイル</label>
+  <input id="file" type="file" accept=".json,application/json" />
 
-        <label class="muted">JSON（貼り付け）</label>
-        <textarea id="json" placeholder='{"blocks":[{"dx":0,"dy":1,"dz":0,"blockId":"minecraft:stone"}]}'></textarea>
-
-        <div style="height:12px"></div>
-
-        <div class="row">
-          <label>Yaw補正
-            <select id="yaw">
-              <option value="270" selected>Yaw補正 +270°</option>
-              <option value="180">Yaw補正 +180°</option>
-              <option value="90">Yaw補正 +90°</option>
-              <option value="0">Yaw補正 なし</option>
-            </select>
-          </label>
-          <button id="btnPreview">プレビュー更新</button>
-          <button id="btnSubmit" class="primary">投稿</button>
-        </div>
-
-        <div style="height:10px"></div>
-        <div class="muted">※ 投稿にはログインが必要です（Cloudflare Access）。</div>
-
-        <div style="height:12px"></div>
-        <div class="muted">ログ</div>
-        <pre id="log">ready</pre>
-      </div>
-
-      <div class="thumbcard">
-        <div class="thumbhead">
-          <div>
-            <div style="font-weight:800;">3Dプレビュー</div>
-            <div class="mini">見切れないように自動フィット</div>
-          </div>
-          <div class="mini" id="meta">-</div>
-        </div>
-        <canvas id="preview3d" width="520" height="420"></canvas>
-      </div>
+  <div class="row">
+    <div>
+      <label>タイトル</label>
+      <input id="title" type="text" placeholder="例: Sephiroth Unit v1" />
+    </div>
+    <div>
+      <label>mod_version（任意）</label>
+      <input id="modVersion" type="text" placeholder="1.0.0" />
     </div>
   </div>
 
+  <label>説明</label>
+  <textarea id="description" placeholder="説明（任意）"></textarea>
+
+  <label>タグ（カンマ区切り）</label>
+  <input id="tags" type="text" placeholder="boss, ff7, sword" />
+
+  <label>正面補正（0/90/180/270）※任意</label>
+  <select id="yawOffset">
+    <option value="0" selected>0°（補正なし）</option>
+    <option value="1">+90°</option>
+    <option value="2">+180°</option>
+    <option value="3">+270°</option>
+  </select>
+  <div class="mini">
+    frontYaw が無い/作品ごとに正面の流派が違う場合、ここで合わせてください（プレビューと投稿メタに保存）。
+  </div>
+
+  <div class="actions">
+    <button id="btn" class="primary" disabled>送信</button>
+    <a id="loginLink" href="/api/login?next=/submit.html" style="display:none; padding:10px 14px; border-radius:12px; background:#2563eb; color:#fff; text-decoration:none;">ログインして投稿</a>
+    <span id="needLogin" class="mini">※ 送信はログイン必須</span>
+  </div>
+
+  <div id="afterSuccess" class="after">
+    <div style="font-weight:800;">投稿を受け付けました ✅</div>
+    <div class="mini">承認前（pending）の場合、公開一覧には出ません。「自分の投稿のみ」で確認できます。</div>
+    <div class="row2">
+      <a id="goUnit" class="primary" href="/">詳細ページへ</a>
+      <a id="goMine" href="/?mine=1">自分の投稿のみを見る</a>
+      <a id="goHome" href="/">ホームへ戻る</a>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <label>プレビュー（情報）</label>
+  <pre id="preview">{}</pre>
+
+  <label>3Dイメージ（簡易）</label>
+  <canvas id="canvas" width="520" height="420"></canvas>
+  <div class="hint">
+    ※ 形状確認用の簡易表示です（色・質感は実物と異なります）
+  </div>
+
+  <label>結果</label>
+  <pre id="result">未送信</pre>
+</div>
+
 <script>
 (() => {
-  const API_SUBMIT = "/api/submit"; // 既存Workerに合わせる
+  const API_WHOAMI = "/api/whoami";
 
+  const authState = document.getElementById("authState");
+  const authEmailWrap = document.getElementById("authEmailWrap");
+  const authEmail = document.getElementById("authEmail");
+
+  const $file = document.getElementById("file");
   const $title = document.getElementById("title");
+  const $desc  = document.getElementById("description");
   const $tags  = document.getElementById("tags");
-  const $desc  = document.getElementById("desc");
-  const $json  = document.getElementById("json");
-  const $yaw   = document.getElementById("yaw");
+  const $mv    = document.getElementById("modVersion");
+  const $btn   = document.getElementById("btn");
+  const $loginLink = document.getElementById("loginLink");
+  const $needLogin = document.getElementById("needLogin");
+  const $prev  = document.getElementById("preview");
+  const $res   = document.getElementById("result");
+  const $yawOffset = document.getElementById("yawOffset");
+  const canvas = document.getElementById("canvas");
 
-  const $btnPreview = document.getElementById("btnPreview");
-  const $btnSubmit  = document.getElementById("btnSubmit");
+  const $after = document.getElementById("afterSuccess");
+  const $goUnit = document.getElementById("goUnit");
+  const $goMine = document.getElementById("goMine");
+  const $goHome = document.getElementById("goHome");
 
-  const $log  = document.getElementById("log");
-  const $meta = document.getElementById("meta");
+  let parsedJson = null;
+  let isLoggedIn = false;
 
-  const $canvas = document.getElementById("preview3d");
-
-  function log(v){
-    $log.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
+  function normEmail(v){
+    const s = String(v || "").trim().toLowerCase();
+    return (s && s.includes("@")) ? s : "";
   }
 
-  function parseJsonSafe(txt){
-    try { return JSON.parse(txt); } catch { return null; }
-  }
-
-  function normalizeBlocks(obj){
-    if(!obj || typeof obj !== "object") return [];
-    const blocks = obj.blocks;
-    if(!Array.isArray(blocks)) return [];
-    return blocks.map(b => ({
-      dx: Number(b.dx||0),
-      dy: Number(b.dy||0),
-      dz: Number(b.dz||0),
-      blockId: String(b.blockId||"")
-    }));
-  }
-
-  // --- iso cube renderer (existing) ---
-  function drawIsoCube(ctx, x,y,z, s, blockId){
-    // iso projection
-    const sx = (x - z) * s;
-    const sy = (x + z) * s * 0.5 - y * s;
-
-    // pseudo color by blockId
-    let hash=0;
-    for(let i=0;i<blockId.length;i++) hash = ((hash<<5)-hash + blockId.charCodeAt(i))|0;
-    const rr = 120 + (hash & 63);
-    const gg = 120 + ((hash>>6) & 63);
-    const bb = 120 + ((hash>>12) & 63);
-
-    // top
-    ctx.fillStyle = `rgba(${rr%256},${gg%256},${bb%256},0.95)`;
-    ctx.beginPath();
-    ctx.moveTo(sx, sy - s);
-    ctx.lineTo(sx + s, sy - s*0.5);
-    ctx.lineTo(sx, sy);
-    ctx.lineTo(sx - s, sy - s*0.5);
-    ctx.closePath();
-    ctx.fill();
-
-    // left
-    ctx.fillStyle = `rgba(${(rr-20)%256},${(gg-20)%256},${(bb-20)%256},0.92)`;
-    ctx.beginPath();
-    ctx.moveTo(sx - s, sy - s*0.5);
-    ctx.lineTo(sx, sy);
-    ctx.lineTo(sx, sy + s);
-    ctx.lineTo(sx - s, sy + s*0.5);
-    ctx.closePath();
-    ctx.fill();
-
-    // right
-    ctx.fillStyle = `rgba(${(rr-35)%256},${(gg-35)%256},${(bb-35)%256},0.92)`;
-    ctx.beginPath();
-    ctx.moveTo(sx + s, sy - s*0.5);
-    ctx.lineTo(sx, sy);
-    ctx.lineTo(sx, sy + s);
-    ctx.lineTo(sx + s, sy + s*0.5);
-    ctx.closePath();
-    ctx.fill();
-
-    // outline
-    ctx.strokeStyle = "rgba(15,23,42,.10)";
-    ctx.stroke();
-  }
-
-  // ★ 見切れ対策：bounds を計算して scale/translate を自動決定
-  function renderThumbToCanvas(canvas, blocks, yawDeg, extraOffsetQuarter){
-    const ctx = canvas.getContext("2d");
-    const w = canvas.width, h = canvas.height;
-    ctx.clearRect(0,0,w,h);
-
-    if(!Array.isArray(blocks) || blocks.length === 0){
-      ctx.fillStyle = "rgba(15,23,42,.45)";
-      ctx.font = "14px sans-serif";
-      ctx.fillText("No blocks", 10, 24);
-      return;
-    }
-
-    // --- rotate blocks ---
-    const yaw = ((yawDeg||0) * Math.PI/180);
-    const rot = blocks.map(b => {
-      const x0 = Number(b.dx||0), y = Number(b.dy||0), z0 = Number(b.dz||0);
-      const x = x0*Math.cos(yaw) - z0*Math.sin(yaw);
-      const z = x0*Math.sin(yaw) + z0*Math.cos(yaw);
-      return { x, y, z, blockId: String(b.blockId||"") };
-    });
-
-    // --- projected bounds with s=1 ---
-    let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity;
-    for(const p of rot){
-      const sx = (p.x - p.z);
-      const sy = (p.x + p.z)*0.5 - p.y;
-
-      const ex = 1.1;
-      const eyTop = 0.7;
-      const eyBot = 1.9;
-
-      minX = Math.min(minX, sx - ex);
-      maxX = Math.max(maxX, sx + ex);
-      minY = Math.min(minY, sy - eyTop);
-      maxY = Math.max(maxY, sy + eyBot);
-    }
-
-    const spanX = Math.max(1e-6, (maxX - minX));
-    const spanY = Math.max(1e-6, (maxY - minY));
-
-    const pad = 12;
-    const s = Math.max(1.0, Math.min((w - pad*2)/spanX, (h - pad*2)/spanY));
-
-    const cx = (minX + maxX)/2;
-    const cy = (minY + maxY)/2;
-
-    let ox = w/2 - cx * s;
-    let oy = h/2 - cy * s;
-
-    // subtle grounding
-    oy += Math.min(18, h*0.06);
-
-    ctx.save();
-    ctx.translate(ox, oy);
-
-    // depth sort back -> front
-    rot.sort((a,b) => (a.x + a.z + a.y*0.2) - (b.x + b.z + b.y*0.2));
-
-    for(const p of rot){
-      const x = p.x + (extraOffsetQuarter||0)*0.25;
-      const z = p.z - (extraOffsetQuarter||0)*0.25;
-      drawIsoCube(ctx, x, p.y, z, s, p.blockId);
-    }
-
-    ctx.restore();
-  }
-
-  function updatePreview(){
-    const obj = parseJsonSafe($json.value);
-    const blocks = normalizeBlocks(obj);
-    const yaw = Number($yaw.value || 270);
-    renderThumbToCanvas($canvas, blocks, yaw, 0);
-    $meta.textContent = blocks.length ? `${blocks.length} blocks` : "-";
-  }
-
-  async function submit(){
-    const obj = parseJsonSafe($json.value);
-    if(!obj){ alert("JSONが壊れています"); return; }
-
-    const payload = {
-      title: $title.value || "",
-      description: $desc.value || "",
-      tags: $tags.value || "",
-      json: obj
-    };
-
-    $btnSubmit.disabled = true;
-    log("submitting...");
+  async function loadWhoami(){
     try{
-      const r = await fetch(API_SUBMIT, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type":"application/json", "Accept":"application/json" },
-        body: JSON.stringify(payload)
-      });
-      const text = await r.text();
-      let data = null;
-      try { data = JSON.parse(text); } catch { data = { raw:text }; }
+      authState.textContent = "checking...";
+      authEmailWrap.style.display = "none";
+      isLoggedIn = false;
 
-      if(!r.ok){
-        log({ ok:false, http:r.status, data });
-        alert("投稿に失敗しました（ログ参照）");
+      const r = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
+      const data = await r.json().catch(()=>null);
+
+      const email = data ? normEmail(data.email) : "";
+      if(!email){
+        authState.textContent = "logged out";
+        authEmailWrap.style.display = "none";
+        isLoggedIn = false;
+        $loginLink.style.display = "inline-block";
+        $needLogin.textContent = "※ ログインすると送信できます";
         return;
       }
 
-      log({ ok:true, data });
-      // 送信後は自分の投稿表示で戻る
-      location.href = "/?mine=1";
-    }catch(e){
-      log({ ok:false, error:String(e) });
-      alert("通信に失敗しました（ログ参照）");
-    }finally{
-      $btnSubmit.disabled = false;
+      authState.textContent = "logged in";
+      authEmailWrap.style.display = "inline";
+      authEmail.textContent = email;
+      isLoggedIn = true;
+      $loginLink.style.display = "none";
+      $needLogin.textContent = "※ ログイン済み";
+    }catch{
+      authState.textContent = "unknown";
+      isLoggedIn = false;
+      $loginLink.style.display = "inline-block";
+      $needLogin.textContent = "※ ログイン状態を確認できません（whoami）";
     }
   }
 
-  $btnPreview.addEventListener("click", updatePreview);
-  $btnSubmit.addEventListener("click", submit);
-  $json.addEventListener("input", () => {
-    // heavyになり過ぎないよう軽めに
-    try { updatePreview(); } catch {}
+  function setPreview(v) {
+    $prev.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
+  }
+  function setResult(v) {
+    $res.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
+  }
+  function updateButtonState() {
+    $btn.disabled = !(isLoggedIn && parsedJson && ($title.value || "").trim());
+  }
+
+  function validateMobCrafterJson(obj) {
+    if (!obj || typeof obj !== "object") return "JSONがオブジェクトではありません";
+    if (!Array.isArray(obj.blocks)) return "blocks 配列がありません";
+    if (obj.blocks.length === 0) return "blocks が空です";
+    if (obj.blocks.length > 200000) return "blocks が多すぎます（200k超）";
+    for (let i = 0; i < Math.min(obj.blocks.length, 1000); i++) {
+      const b = obj.blocks[i];
+      if (typeof b.dx !== "number" || typeof b.dy !== "number" || typeof b.dz !== "number") {
+        return `blocks[${i}] に dx/dy/dz がありません`;
+      }
+      if (typeof b.blockId !== "string") {
+        return `blocks[${i}] に blockId がありません`;
+      }
+    }
+    return null;
+  }
+
+  function yawToQuarterTurns(frontYaw, extraOffsetQuarter){
+    if(frontYaw == null) return null;
+    const y = Number(frontYaw);
+    if(!Number.isFinite(y)) return null;
+    let deg = y % 360;
+    if(deg < 0) deg += 360;
+    let q = (Math.round(deg / 90) % 4);
+    q = (q + (extraOffsetQuarter ?? 0)) % 4;
+    return q;
+  }
+  function rotateXZ(x, z, q){
+    switch(q){
+      case 1: return {x: z,  z: -x};
+      case 2: return {x: -x, z: -z};
+      case 3: return {x: -z, z: x};
+      default:return {x, z};
+    }
+  }
+
+  const PALETTE_URL = "/assets/palette.v1.json";
+  const PALETTE_VER = "v1";
+  const PALETTE_LS_KEY = `mcPalette:${PALETTE_VER}`;
+  let PALETTE_MAP = null;
+
+  function parseColorString(s){
+    if(!s) return null;
+    const v = String(s).trim();
+    const hex = /^#([0-9a-f]{6})$/i.exec(v);
+    if(hex){
+      const n = parseInt(hex[1], 16);
+      return { r:(n>>16)&255, g:(n>>8)&255, b:n&255, a:1 };
+    }
+    const rgba = /^rgba?\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})(?:\s*,\s*([0-9]*\.?[0-9]+))?\s*\)$/i.exec(v);
+    if(rgba){
+      const r = Math.max(0, Math.min(255, parseInt(rgba[1],10)));
+      const g = Math.max(0, Math.min(255, parseInt(rgba[2],10)));
+      const b = Math.max(0, Math.min(255, parseInt(rgba[3],10)));
+      const a = rgba[4] == null ? 1 : Math.max(0, Math.min(1, parseFloat(rgba[4])));
+      return {r,g,b,a};
+    }
+    return null;
+  }
+
+  async function loadPalette(){
+    if(PALETTE_MAP) return PALETTE_MAP;
+    try{
+      const cached = localStorage.getItem(PALETTE_LS_KEY);
+      if(cached){
+        const obj = JSON.parse(cached);
+        if(obj && typeof obj === "object"){
+          PALETTE_MAP = obj;
+          return PALETTE_MAP;
+        }
+      }
+    }catch(e){}
+    try{
+      const r = await fetch(`${PALETTE_URL}?v=${encodeURIComponent(PALETTE_VER)}`, { cache:"no-store" });
+      if(r.ok){
+        const obj = await r.json();
+        if(obj && typeof obj === "object"){
+          PALETTE_MAP = obj;
+          try{ localStorage.setItem(PALETTE_LS_KEY, JSON.stringify(obj)); }catch(e){}
+          return PALETTE_MAP;
+        }
+      }
+    }catch(e){}
+    PALETTE_MAP = {};
+    return PALETTE_MAP;
+  }
+
+  function paletteLookup(blockId){
+    if(!PALETTE_MAP) return null;
+    const k = String(blockId||"").trim().toLowerCase();
+    return parseColorString(PALETTE_MAP[k]);
+  }
+
+  function pickBaseColor(blockId){
+    const p = paletteLookup(blockId);
+    if(p) return p;
+    const raw = String(blockId||"").toLowerCase();
+    const id = raw.includes(":") ? raw.split(":")[1] : raw;
+    if (id.includes("glass") || id.includes("ice")) return {r: 170, g: 210, b: 230, a: 0.55};
+    if (id.includes("leaves") || id.includes("leaf") || id.includes("moss") || id.includes("vine") || id.includes("grass")) return {r: 90, g: 150, b: 90, a: 0.95};
+    if (id.includes("log") || id.includes("wood") || id.includes("planks") || id.includes("bamboo")) return {r: 160, g: 125, b: 85, a: 0.95};
+    if (id.includes("dirt") || id.includes("sand") || id.includes("gravel") || id.includes("clay") || id.includes("mud")) return {r: 160, g: 145, b: 110, a: 0.98};
+    if (id.includes("stone") || id.includes("deepslate") || id.includes("andesite") || id.includes("diorite") || id.includes("granite") || id.includes("cobble") || id.includes("tuff") || id.includes("slate")) return {r: 140, g: 145, b: 155, a: 0.98};
+    if (id.includes("iron") || id.includes("anvil") || id.includes("chain") || id.includes("rail") || id.includes("metal")) return {r: 170, g: 175, b: 185, a: 0.98};
+    if (id.includes("copper") || id.includes("bronze")) return {r: 190, g: 120, b: 80, a: 0.98};
+    if (id.includes("gold")) return {r: 210, g: 185, b: 90, a: 0.98};
+    if (id.includes("diamond")) return {r: 120, g: 210, b: 220, a: 0.98};
+    if (id.includes("emerald")) return {r: 70, g: 200, b: 120, a: 0.98};
+    if (id.includes("lapis")) return {r: 70, g: 110, b: 200, a: 0.98};
+    if (id.includes("redstone")) return {r: 190, g: 70, b: 70, a: 0.98};
+    let h=0; for(let i=0;i<raw.length;i++) h=(h*31 + raw.charCodeAt(i))|0;
+    return { r:120 + (h & 70), g:120 + ((h>>8)&70), b:120 + ((h>>16)&70), a:0.98 };
+  }
+
+  function analyzeBlocks(blocks){
+    let minX=Infinity,minY=Infinity,minZ=Infinity;
+    let maxX=-Infinity,maxY=-Infinity,maxZ=-Infinity;
+    for(const b of blocks){
+      minX=Math.min(minX,b.dx); minY=Math.min(minY,b.dy); minZ=Math.min(minZ,b.dz);
+      maxX=Math.max(maxX,b.dx); maxY=Math.max(maxY,b.dy); maxZ=Math.max(maxZ,b.dz);
+    }
+    return {minX,minY,minZ, maxX,maxY,maxZ, sizeX:maxX-minX+1, sizeY:maxY-minY+1, sizeZ:maxZ-minZ+1};
+  }
+
+  function drawIsoCube(ctx, x, y, z, s, col, stroke){
+    const sx = (x - z) * s;
+    const sy = (x + z) * s * 0.5 - y * s;
+    const a = (col.a == null ? 1 : col.a);
+    const top = `rgba(${Math.min(255,col.r+30)},${Math.min(255,col.g+30)},${Math.min(255,col.b+30)},${a})`;
+    const left= `rgba(${Math.max(0,col.r-10)},${Math.max(0,col.g-10)},${Math.max(0,col.b-10)},${a})`;
+    const right=`rgba(${Math.max(0,col.r-25)},${Math.max(0,col.g-25)},${Math.max(0,col.b-25)},${a})`;
+    ctx.fillStyle = top;
+    ctx.beginPath(); ctx.moveTo(sx, sy - s*0.5); ctx.lineTo(sx + s, sy); ctx.lineTo(sx, sy + s*0.5); ctx.lineTo(sx - s, sy); ctx.closePath(); ctx.fill();
+    if (stroke){ ctx.strokeStyle = "rgba(15,23,42,.10)"; ctx.lineWidth = Math.max(1, s*0.06); ctx.stroke(); }
+    ctx.fillStyle = left;
+    ctx.beginPath(); ctx.moveTo(sx - s, sy); ctx.lineTo(sx, sy + s*0.5); ctx.lineTo(sx, sy + s*0.5 + s); ctx.lineTo(sx - s, sy + s); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = right;
+    ctx.beginPath(); ctx.moveTo(sx + s, sy); ctx.lineTo(sx, sy + s*0.5); ctx.lineTo(sx, sy + s*0.5 + s); ctx.lineTo(sx + s, sy + s); ctx.closePath(); ctx.fill();
+  }
+
+  function binBlocks(blocks, bin){
+    if(bin <= 1) return blocks;
+    const m = new Map();
+    for(const b of blocks){
+      const bx = Math.floor(b.dx / bin);
+      const by = Math.floor(b.dy / bin);
+      const bz = Math.floor(b.dz / bin);
+      const k = bx + "," + by + "," + bz;
+      const cur = m.get(k);
+      if(!cur || b.dy > cur.dy){ m.set(k, b); }
+    }
+    return Array.from(m.values());
+  }
+  function chooseBinSize(blockCount){
+    const target = 16000;
+    if(blockCount <= target) return 1;
+    const ratio = blockCount / target;
+    let bin = Math.ceil(Math.cbrt(ratio));
+    return Math.min(6, Math.max(2, bin));
+  }
+
+  function renderThumbToCanvas(canvas, unitJson, extraOffsetQuarter){
+    const ctx = canvas.getContext("2d");
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0,0,w,h);
+    const g = ctx.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,"rgba(37,99,235,.10)");
+    g.addColorStop(1,"rgba(22,163,74,.08)");
+    ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+    const blocks0 = unitJson.blocks;
+    const qTurns = yawToQuarterTurns(unitJson.frontYaw, extraOffsetQuarter);
+    const bin = chooseBinSize(blocks0.length);
+    const blocks = binBlocks(blocks0, bin);
+    function drawPass(turns, alpha){
+      const transformed = blocks.map(b=>{
+        const r = rotateXZ(b.dx, b.dz, turns);
+        return {dx:r.x, dy:b.dy, dz:r.z, blockId:b.blockId};
+      });
+      const inf = analyzeBlocks(transformed);
+      const spanX = inf.sizeX + inf.sizeZ;
+      const spanY = inf.sizeY;
+      const s = Math.max(1.8, Math.min(w/(spanX+6), h/(spanY+10)) * 1.6);
+      const ox = w*0.5, oy = h*0.80;
+      transformed.sort((a,b)=> (a.dx+a.dz) - (b.dx+b.dz) || (a.dy - b.dy));
+      ctx.save(); ctx.globalAlpha = alpha; ctx.translate(ox, oy);
+      const stroke = (s >= 3);
+      for(const b of transformed){
+        const x = (b.dx - inf.minX), y = (b.dy - inf.minY), z = (b.dz - inf.minZ);
+        drawIsoCube(ctx, x, y, z, s, pickBaseColor(b.blockId), stroke);
+      }
+      ctx.restore();
+    }
+    if(qTurns == null){ drawPass(0, 1.0); drawPass(2, 0.33); }
+    else{ drawPass(qTurns, 1.0); }
+  }
+
+  function rerender(){
+    if(!parsedJson) return;
+    const extra = Number($yawOffset.value || "0") % 4;
+    renderThumbToCanvas(canvas, parsedJson, extra);
+  }
+
+  // 初回：ログイン確認
+  loadWhoami().finally(updateButtonState);
+
+  $file.addEventListener("change", async () => {
+    parsedJson = null;
+    $after.style.display = "none";
+    setResult("未送信"); setPreview("{}");
+    const f = $file.files && $file.files[0];
+    if (!f) return;
+    if (f.size > 2_200_000) { setPreview("ファイルが大きすぎます（約2MB超）"); return; }
+    try {
+      const obj = JSON.parse(await f.text());
+      const err = validateMobCrafterJson(obj);
+      if (err) { setPreview(err); return; }
+      parsedJson = obj;
+      if (!$title.value.trim()) $title.value = f.name.replace(/\.json$/i,"");
+      const info = analyzeBlocks(obj.blocks);
+      setPreview({ file:{name:f.name,size:f.size}, blocks: obj.blocks.length, size:`${info.sizeX} x ${info.sizeY} x ${info.sizeZ}`, frontYaw:(obj.frontYaw ?? null), yaw_offset_quarter:Number($yawOffset.value||"0") });
+      loadPalette().finally(()=>rerender());
+    } catch (e) {
+      setPreview("JSONとして読み込めません: " + (e?.message || String(e)));
+    }
+    updateButtonState();
   });
 
-  updatePreview();
+  $yawOffset.addEventListener("change", () => { rerender(); updateButtonState(); });
+  [$title,$desc,$tags,$mv].forEach(el => el.addEventListener("input", updateButtonState));
+
+  $btn.addEventListener("click", async () => {
+    if (!parsedJson) return;
+
+    // 未ログインならログイン導線を出して終了
+    if (!isLoggedIn) {
+      $loginLink.style.display = "inline-block";
+      setResult({ ok:false, error:"login_required" });
+      updateButtonState();
+      return;
+    }
+
+    const payload = {
+      title: $title.value.trim(),
+      description: $desc.value.trim(),
+      tags: ($tags.value||"").split(",").map(s=>s.trim()).filter(Boolean),
+      mod_version: $mv.value.trim(),
+      yaw_offset_quarter: Number($yawOffset.value || "0"),
+      json: parsedJson
+    };
+
+    // ownerUuid は必ず消す（念押し）
+    try{
+      if(payload.json && typeof payload.json === "object"){
+        payload.json.ownerUuid = "";
+      }
+    }catch{}
+
+    setResult("送信中...");
+    $after.style.display = "none";
+
+    try {
+      const resp = await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "include"
+      });
+
+      const text = await resp.text();
+      let data; try { data = JSON.parse(text); } catch { data = { raw: text }; }
+
+      if (resp.status === 401 || resp.status === 403) {
+        $loginLink.style.display = "inline-block";
+      }
+
+      const out = { http: resp.status, ok: resp.ok, ...data };
+      setResult(out);
+
+      // ★成功したら導線を出す
+      if(resp.ok && data && data.ok){
+        const submissionNo = data.submission_no ? Number(data.submission_no) : 0;
+        const id = data.id ? String(data.id) : "";
+        const unitUrl = submissionNo
+          ? `/unit.html?id=${encodeURIComponent(String(submissionNo))}`
+          : (id ? `/unit.html?id=${encodeURIComponent(id)}` : "/unit.html");
+
+        $goUnit.href = unitUrl;
+        $goMine.href = "/?mine=1";
+        $goHome.href = "/";
+        $after.style.display = "block";
+      }
+
+    } catch (e) {
+      setResult("送信失敗: " + (e?.message || String(e)));
+    }
+  });
 })();
 </script>
+
 </body>
 </html>
