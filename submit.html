@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="ja">
 <head>
@@ -21,14 +20,23 @@
     button.secondary { background:#e5e7eb; }
     button:disabled { opacity:.5; cursor:not-allowed; }
     pre { white-space: pre-wrap; word-break: break-word; background:#f6f6f6; padding: 12px; border-radius: 12px; }
-    canvas { margin-top: 10px; background:#fff; border:1px solid #e5e7eb; border-radius:12px; }
+    canvas { margin-top: 10px; background:#fff; border:1px solid #e5e7eb; border-radius:12px; max-width:100%; height:auto; }
     .mini { color:#666; font-size: 12px; margin-top: 6px; }
     .divider { height:1px; background:#e5e7eb; margin:14px 0; }
+    .toplinks{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+    .toplinks a{ color:#2563eb; text-decoration:none; border:1px solid rgba(37,99,235,.25); padding:6px 10px; border-radius:999px; background:#fff; }
+    .pill{ display:inline-flex; align-items:center; gap:8px; font-size:12px; color:#64748b; }
+    .pill code{ background:rgba(148,163,184,.15); border:1px solid rgba(148,163,184,.25); padding:2px 6px; border-radius:999px; color:#0f172a; }
   </style>
 </head>
 <body>
 
 <div class="card">
+  <div class="toplinks">
+    <a href="/">← ホームに戻る</a>
+    <span class="pill">Login: <code id="authState">checking...</code> <span id="authEmailWrap" style="display:none;">Email: <code id="authEmail"></code></span></span>
+  </div>
+
   <h1>ユニット投稿</h1>
   <div class="hint">
     Cloudflare Access ログイン後に投稿できます。JSONファイルを選択すると、構造検証と簡易3Dプレビューが表示されます。
@@ -67,8 +75,8 @@
 
   <div class="actions">
     <button id="btn" class="primary" disabled>送信</button>
-    <a id="loginLink" href="/api/login?next=/submit.html" style="display:none; padding:10px 14px; border-radius:12px; background:#e5e7eb; color:#111; text-decoration:none;">ログインして投稿</a>
-    <span class="mini">※ 送信はログイン必須</span>
+    <a id="loginLink" href="/api/login?next=/submit.html" style="display:none; padding:10px 14px; border-radius:12px; background:#2563eb; color:#fff; text-decoration:none;">ログインして投稿</a>
+    <span id="needLogin" class="mini">※ 送信はログイン必須</span>
   </div>
 
   <div class="divider"></div>
@@ -88,6 +96,12 @@
 
 <script>
 (() => {
+  const API_WHOAMI = "/api/whoami";
+
+  const authState = document.getElementById("authState");
+  const authEmailWrap = document.getElementById("authEmailWrap");
+  const authEmail = document.getElementById("authEmail");
+
   const $file = document.getElementById("file");
   const $title = document.getElementById("title");
   const $desc  = document.getElementById("description");
@@ -95,12 +109,52 @@
   const $mv    = document.getElementById("modVersion");
   const $btn   = document.getElementById("btn");
   const $loginLink = document.getElementById("loginLink");
+  const $needLogin = document.getElementById("needLogin");
   const $prev  = document.getElementById("preview");
   const $res   = document.getElementById("result");
   const $yawOffset = document.getElementById("yawOffset");
   const canvas = document.getElementById("canvas");
 
   let parsedJson = null;
+  let isLoggedIn = false;
+
+  function normEmail(v){
+    const s = String(v || "").trim().toLowerCase();
+    return (s && s.includes("@")) ? s : "";
+  }
+
+  async function loadWhoami(){
+    try{
+      authState.textContent = "checking...";
+      authEmailWrap.style.display = "none";
+      isLoggedIn = false;
+
+      const r = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
+      const data = await r.json().catch(()=>null);
+
+      const email = data ? normEmail(data.email) : "";
+      if(!email){
+        authState.textContent = "logged out";
+        authEmailWrap.style.display = "none";
+        isLoggedIn = false;
+        $loginLink.style.display = "inline-block";
+        $needLogin.textContent = "※ ログインすると送信できます";
+        return;
+      }
+
+      authState.textContent = "logged in";
+      authEmailWrap.style.display = "inline";
+      authEmail.textContent = email;
+      isLoggedIn = true;
+      $loginLink.style.display = "none";
+      $needLogin.textContent = "※ ログイン済み";
+    }catch{
+      authState.textContent = "unknown";
+      isLoggedIn = false;
+      $loginLink.style.display = "inline-block";
+      $needLogin.textContent = "※ ログイン状態を確認できません（whoami）";
+    }
+  }
 
   function setPreview(v) {
     $prev.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
@@ -109,7 +163,8 @@
     $res.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
   }
   function updateButtonState() {
-    $btn.disabled = !(parsedJson && ($title.value || "").trim());
+    // ★ログイン必須＋json＋title
+    $btn.disabled = !(isLoggedIn && parsedJson && ($title.value || "").trim());
   }
 
   function validateMobCrafterJson(obj) {
@@ -314,6 +369,9 @@
     renderThumbToCanvas(canvas, parsedJson, extra);
   }
 
+  // 初回：ログイン確認
+  loadWhoami().finally(updateButtonState);
+
   $file.addEventListener("change", async () => {
     parsedJson = null; setResult("未送信"); setPreview("{}");
     const f = $file.files && $file.files[0];
@@ -339,6 +397,15 @@
 
   $btn.addEventListener("click", async () => {
     if (!parsedJson) return;
+
+    // 未ログインならログイン導線を出して終了
+    if (!isLoggedIn) {
+      $loginLink.style.display = "inline-block";
+      setResult({ ok:false, error:"login_required" });
+      updateButtonState();
+      return;
+    }
+
     const payload = {
       title: $title.value.trim(),
       description: $desc.value.trim(),
@@ -347,6 +414,14 @@
       yaw_offset_quarter: Number($yawOffset.value || "0"),
       json: parsedJson
     };
+
+    // ownerUuid は必ず消す（念押し）
+    try{
+      if(payload.json && typeof payload.json === "object"){
+        payload.json.ownerUuid = "";
+      }
+    }catch{}
+
     setResult("送信中...");
     try {
       const resp = await fetch("/api/submit", {
@@ -355,16 +430,14 @@
         body: JSON.stringify(payload),
         credentials: "include"
       });
-       if (resp.status === 401 || resp.status === 403) {
+
+      const text = await resp.text();
+      let data; try { data = JSON.parse(text); } catch { data = { raw: text }; }
+
+      if (resp.status === 401 || resp.status === 403) {
         $loginLink.style.display = "inline-block";
       }
 
-      const text = await resp.text();
-      if (typeof text === "string" && text.includes("<html")) {
-      $loginLink.style.display = "inline-block";
-      }
-
-      let data; try { data = JSON.parse(text); } catch { data = { raw: text }; }
       setResult({ http: resp.status, ok: resp.ok, ...data });
     } catch (e) {
       setResult("送信失敗: " + (e?.message || String(e)));
