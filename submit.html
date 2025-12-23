@@ -27,6 +27,38 @@
     .toplinks a{ color:#2563eb; text-decoration:none; border:1px solid rgba(37,99,235,.25); padding:6px 10px; border-radius:999px; background:#fff; }
     .pill{ display:inline-flex; align-items:center; gap:8px; font-size:12px; color:#64748b; }
     .pill code{ background:rgba(148,163,184,.15); border:1px solid rgba(148,163,184,.25); padding:2px 6px; border-radius:999px; color:#0f172a; }
+
+    .after{
+      display:none;
+      margin-top:12px;
+      padding:12px;
+      border-radius:12px;
+      border:1px solid #bbf7d0;
+      background:#f0fdf4;
+    }
+    .after .row2{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .after a{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:12px;
+      text-decoration:none;
+      border:1px solid rgba(37,99,235,.25);
+      background:#fff;
+      color:#2563eb;
+      font-weight:600;
+    }
+    .after a.primary{
+      background:#2563eb;
+      border-color:#2563eb;
+      color:#fff;
+    }
   </style>
 </head>
 <body>
@@ -34,9 +66,7 @@
 <div class="card">
   <div class="toplinks">
     <a href="/">← ホームに戻る</a>
-    <span class="pill">Login: <code id="authState">checking...</code>
-      <span id="authEmailWrap" style="display:none;">Email: <code id="authEmail"></code></span>
-    </span>
+    <span class="pill">Login: <code id="authState">checking...</code> <span id="authEmailWrap" style="display:none;">Email: <code id="authEmail"></code></span></span>
   </div>
 
   <h1>ユニット投稿</h1>
@@ -77,12 +107,18 @@
 
   <div class="actions">
     <button id="btn" class="primary" disabled>送信</button>
-    <!-- ★ここが重要：Access を踏ませる導線 -->
-    <a id="loginLink" href="/api/whoami?next=/submit.html"
-       style="display:none; padding:10px 14px; border-radius:12px; background:#2563eb; color:#fff; text-decoration:none;">
-      ログインして投稿
-    </a>
+    <a id="loginLink" href="/api/login?next=/submit.html" style="display:none; padding:10px 14px; border-radius:12px; background:#2563eb; color:#fff; text-decoration:none;">ログインして投稿</a>
     <span id="needLogin" class="mini">※ 送信はログイン必須</span>
+  </div>
+
+  <div id="afterSuccess" class="after">
+    <div style="font-weight:800;">投稿を受け付けました ✅</div>
+    <div class="mini">承認前（pending）の場合、公開一覧には出ません。「自分の投稿のみ」で確認できます。</div>
+    <div class="row2">
+      <a id="goUnit" class="primary" href="/">詳細ページへ</a>
+      <a id="goMine" href="/?mine=1">自分の投稿のみを見る</a>
+      <a id="goHome" href="/">ホームへ戻る</a>
+    </div>
   </div>
 
   <div class="divider"></div>
@@ -120,6 +156,11 @@
   const $res   = document.getElementById("result");
   const $yawOffset = document.getElementById("yawOffset");
   const canvas = document.getElementById("canvas");
+
+  const $after = document.getElementById("afterSuccess");
+  const $goUnit = document.getElementById("goUnit");
+  const $goMine = document.getElementById("goMine");
+  const $goHome = document.getElementById("goHome");
 
   let parsedJson = null;
   let isLoggedIn = false;
@@ -378,7 +419,9 @@
   loadWhoami().finally(updateButtonState);
 
   $file.addEventListener("change", async () => {
-    parsedJson = null; setResult("未送信"); setPreview("{}");
+    parsedJson = null;
+    $after.style.display = "none";
+    setResult("未送信"); setPreview("{}");
     const f = $file.files && $file.files[0];
     if (!f) return;
     if (f.size > 2_200_000) { setPreview("ファイルが大きすぎます（約2MB超）"); return; }
@@ -389,13 +432,7 @@
       parsedJson = obj;
       if (!$title.value.trim()) $title.value = f.name.replace(/\.json$/i,"");
       const info = analyzeBlocks(obj.blocks);
-      setPreview({
-        file:{name:f.name,size:f.size},
-        blocks: obj.blocks.length,
-        size:`${info.sizeX} x ${info.sizeY} x ${info.sizeZ}`,
-        frontYaw:(obj.frontYaw ?? null),
-        yaw_offset_quarter:Number($yawOffset.value||"0")
-      });
+      setPreview({ file:{name:f.name,size:f.size}, blocks: obj.blocks.length, size:`${info.sizeX} x ${info.sizeY} x ${info.sizeZ}`, frontYaw:(obj.frontYaw ?? null), yaw_offset_quarter:Number($yawOffset.value||"0") });
       loadPalette().finally(()=>rerender());
     } catch (e) {
       setPreview("JSONとして読み込めません: " + (e?.message || String(e)));
@@ -434,6 +471,8 @@
     }catch{}
 
     setResult("送信中...");
+    $after.style.display = "none";
+
     try {
       const resp = await fetch("/api/submit", {
         method: "POST",
@@ -449,7 +488,23 @@
         $loginLink.style.display = "inline-block";
       }
 
-      setResult({ http: resp.status, ok: resp.ok, ...data });
+      const out = { http: resp.status, ok: resp.ok, ...data };
+      setResult(out);
+
+      // ★成功したら導線を出す
+      if(resp.ok && data && data.ok){
+        const submissionNo = data.submission_no ? Number(data.submission_no) : 0;
+        const id = data.id ? String(data.id) : "";
+        const unitUrl = submissionNo
+          ? `/unit.html?id=${encodeURIComponent(String(submissionNo))}`
+          : (id ? `/unit.html?id=${encodeURIComponent(id)}` : "/unit.html");
+
+        $goUnit.href = unitUrl;
+        $goMine.href = "/?mine=1";
+        $goHome.href = "/";
+        $after.style.display = "block";
+      }
+
     } catch (e) {
       setResult("送信失敗: " + (e?.message || String(e)));
     }
