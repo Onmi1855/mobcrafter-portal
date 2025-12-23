@@ -1,4 +1,3 @@
-<!-- === index.txt (UPDATED FULL) === -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -133,8 +132,6 @@
       display:flex;
       gap:6px;
       align-items:center;
-      flex-wrap:wrap;
-      max-width: calc(100% - 20px);
     }
     .badge{
       font-size:11px;
@@ -145,10 +142,6 @@
       color:#0f172a;
       backdrop-filter: blur(6px);
     }
-    .badge.status-pending{ background:rgba(254, 243, 199, .92); border-color:rgba(245, 158, 11, .35); }
-    .badge.status-approved{ background:rgba(220, 252, 231, .92); border-color:rgba(34, 197, 94, .35); }
-    .badge.status-rejected{ background:rgba(254, 226, 226, .92); border-color:rgba(239, 68, 68, .35); }
-
     .btn-dl{
       position:absolute;
       top:10px;
@@ -365,8 +358,8 @@
 <script>
 (() => {
   // ====== API ======
-  const API_PUBLIC_LIST = "/api/public/submissions?limit=60&offset=0";
-  const API_MY_LIST = "/api/my/submissions?scope=all"; // ★ pendingも含める
+  const API_PUBLIC_LIST = "/api/public/submissions";
+  const API_MY_LIST = "/api/my/submissions?scope=approved"; // ログイン必須 / 自分の承認済みのみ
   const API_JSON = (id) => `/api/public/submissions/${id}/json`;
   const API_DL   = (id) => `/api/public/submissions/${id}/download`;
 
@@ -389,6 +382,10 @@
   let meIsAdmin = false;
   let meUserId = null;
 
+  function whoamiNext(path){
+    return `${API_WHOAMI}?next=${encodeURIComponent(path)}`;
+  }
+
   function normEmail(v){
     const s = String(v || "").trim().toLowerCase();
     return (s && s.includes("@")) ? s : "";
@@ -409,31 +406,30 @@
       let data = null;
       try { data = JSON.parse(text); } catch { data = null; }
 
+      authActionLink.href = `/api/login?next=${encodeURIComponent("/")}`;
+      postLink.href = meEmail ? "/submit.html" : `/api/login?next=${encodeURIComponent("/submit.html")}`;
+
       if(!r.ok || !data){
         authState.textContent = "unknown";
         authActionLink.textContent = "ログイン";
         authActionLink.className = "";
-        authActionLink.href = `/api/login?next=${encodeURIComponent("/")}`;
-        postLink.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
         return;
       }
 
       const email = normEmail(data.email);
       const isAdmin = Boolean(data.is_admin);
-      const uid = String(data.user_id || data.userId || data.uid || "").trim();
+      const uid = String(data.user_id || "").trim();
 
       if(!email){
         authState.textContent = "logged out";
         authActionLink.textContent = "ログイン";
         authActionLink.className = "";
-        authActionLink.href = `/api/login?next=${encodeURIComponent("/")}`;
-        postLink.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
         return;
       }
 
       meEmail = email;
       meIsAdmin = isAdmin;
-      meUserId = uid || email || null;
+      meUserId = uid || null;
 
       authState.textContent = "logged in";
       authEmailWrap.style.display = "inline";
@@ -447,13 +443,14 @@
       authActionLink.href = "/cdn-cgi/access/logout?returnTo=" + encodeURIComponent(location.origin + "/");
 
       postLink.href = "/submit.html";
+
       mineWrap.style.display = "inline-flex";
     }catch{
       authState.textContent = "unknown";
       authActionLink.textContent = "ログイン";
       authActionLink.className = "";
-      authActionLink.href = `/api/login?next=${encodeURIComponent("/")}`;
-      postLink.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
+      authActionLink.href = whoamiNext("/");
+      postLink.href = whoamiNext("/submit.html");
       mineWrap.style.display = "none";
       meEmail = null;
       meIsAdmin = false;
@@ -574,25 +571,17 @@
     else location.href = `/unit.html?id=${encodeURIComponent(String(it.id))}`;
   }
 
-  function statusBadgeHtml(st){
-    if(!st) return "";
-    const s = String(st).toLowerCase();
-    if(s !== "pending" && s !== "approved" && s !== "rejected") return "";
-    return `<span class="badge status-${escapeHtml(s)}">${escapeHtml(s)}</span>`;
-  }
-
   function renderCard(it){
     const card = document.createElement("article");
     card.className = "card";
 
-    const canEdit = !!(meEmail && (it.authorEmail || it.authorId) && String(it.authorEmail || it.authorId).toLowerCase() === String(meEmail).toLowerCase());
+    const canEdit = !!(meUserId && it.authorId && String(it.authorId) === String(meUserId));
 
     card.innerHTML = `
       <div class="thumbwrap">
         <canvas class="thumb" width="480" height="280"></canvas>
         <div class="pill">
           <span class="badge">${escapeHtml(it.mod || "Forge")}</span>
-          ${it.status ? statusBadgeHtml(it.status) : ""}
         </div>
         <a class="btn-dl" href="${escapeHtml(API_DL(it.id))}" download>Download</a>
         ${canEdit ? `<a class="btn-edit" href="#">編集</a>` : ``}
@@ -639,6 +628,7 @@
 
   function applyFilter(){
     const kw = String(q.value||"").trim().toLowerCase();
+
     let arr = items.slice();
 
     if(kw){
@@ -663,49 +653,53 @@
     }
   }
 
+  async function fetchList(useMine){
+    const url = useMine ? API_MY_LIST : API_PUBLIC_LIST;
+    const r = await fetch(url, { cache:"no-store", credentials:"include" });
+    const text = await r.text().catch(()=> "");
+    let data = null;
+    try { data = JSON.parse(text); } catch { data = null; }
+
+    if(!r.ok){
+      throw new Error(`list HTTP ${r.status}\n${text ? ("body: " + text.slice(0,240)) : ""}`);
+    }
+
+    // my/submissions は {ok:true, items:[...]}、public は {items:[...]}
+    const arr = (data && Array.isArray(data.items)) ? data.items : [];
+    return arr;
+  }
+
   async function load(){
     hideError();
     grid.innerHTML = "";
-
     try{
-      const useMine = !!(mineOnly && mineOnly.checked);
-      const url = useMine ? API_MY_LIST : API_PUBLIC_LIST;
+      const useMine = !!(mineOnly && mineOnly.checked && meUserId);
+      const arr = await fetchList(useMine);
 
-      const r = await fetch(url, { cache:"no-store", credentials:"include" });
-      if(!r.ok){
-        const t = await r.text().catch(()=> "");
-        throw new Error(`list HTTP ${r.status}\n${t ? ("body: " + t.slice(0,200)) : ""}`);
-      }
+      items = arr.map(r => {
+        const created = asDateIso(r.created_at || r.createdAt || r.created);
+        const createdText = created ? created.slice(0,10) : "";
+        const tags = normalizeTags(r.tags);
+        const no = resolveNo(r);
 
-      const data = await r.json();
-      const arr = Array.isArray(data.items) ? data.items : [];
-
-      items = arr.map(r => ({
-        id: String(r.id),
-        no: resolveNo(r),
-        status: r.status ? String(r.status) : null, // my側はstatus入る
-        name: r.title || r.name || "Untitled",
-        desc: r.description || "",
-        tags: normalizeTags(r.tags),
-        author: r.author_name || r.authorName || "unknown",
-        authorEmail: r.author_email || r.authorEmail || "",
-        authorId: r.author_id || r.authorId || (r.author_email || r.authorEmail || ""),
-        dl: Number(r.download_count ?? r.downloadCount ?? 0),
-        mod: r.mod_version || r.modVersion || "Forge",
-        created: asDateIso(r.created_at || r.createdAt || r.created) || "",
-        createdText: (asDateIso(r.created_at || r.createdAt || r.created) || "").slice(0,10),
-      }));
+        return ({
+          id: String(r.id),
+          no,
+          name: r.title || r.name || "Untitled",
+          desc: r.description || "",
+          tags,
+          author: r.author_name || r.authorName || "unknown",
+          authorId: r.author_id || r.authorId || "",
+          dl: Number(r.download_count ?? r.downloadCount ?? 0),
+          mod: r.mod_version || r.modVersion || "Forge",
+          created: created || "",
+          createdText,
+        });
+      });
 
       applyFilter();
     }catch(e){
       showError("一覧の取得に失敗しました。\n" + String(e.message || e));
-    }
-  }
-
-  function applyMineFromQuery(){
-    const p = new URLSearchParams(location.search);
-    if(p.get("mine") === "1" && mineOnly){
-      mineOnly.checked = true;
     }
   }
 
@@ -716,7 +710,6 @@
 
   (async () => {
     await loadWhoami();
-    applyMineFromQuery();
     await load();
   })();
 })();
