@@ -1,3 +1,4 @@
+<!-- === index.txt (UPDATED FULL) === -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -364,8 +365,8 @@
 <script>
 (() => {
   // ====== API ======
-  const API_PUBLIC_LIST = "/api/public/submissions";
-  const API_MY_LIST = "/api/my/submissions?scope=all";
+  const API_PUBLIC_LIST = "/api/public/submissions?limit=60&offset=0";
+  const API_MY_LIST = "/api/my/submissions?scope=all"; // ★ pendingも含める
   const API_JSON = (id) => `/api/public/submissions/${id}/json`;
   const API_DL   = (id) => `/api/public/submissions/${id}/download`;
 
@@ -419,7 +420,7 @@
 
       const email = normEmail(data.email);
       const isAdmin = Boolean(data.is_admin);
-      const uid = String(data.user_id || "").trim();
+      const uid = String(data.user_id || data.userId || data.uid || "").trim();
 
       if(!email){
         authState.textContent = "logged out";
@@ -432,7 +433,7 @@
 
       meEmail = email;
       meIsAdmin = isAdmin;
-      meUserId = uid || null;
+      meUserId = uid || email || null;
 
       authState.textContent = "logged in";
       authEmailWrap.style.display = "inline";
@@ -584,7 +585,7 @@
     const card = document.createElement("article");
     card.className = "card";
 
-    const canEdit = !!(meUserId && it.authorId && String(it.authorId) === String(meUserId));
+    const canEdit = !!(meEmail && (it.authorEmail || it.authorId) && String(it.authorEmail || it.authorId).toLowerCase() === String(meEmail).toLowerCase());
 
     card.innerHTML = `
       <div class="thumbwrap">
@@ -682,12 +683,13 @@
       items = arr.map(r => ({
         id: String(r.id),
         no: resolveNo(r),
-        status: r.status ? String(r.status) : null, // ★my側はstatus入る想定
+        status: r.status ? String(r.status) : null, // my側はstatus入る
         name: r.title || r.name || "Untitled",
         desc: r.description || "",
         tags: normalizeTags(r.tags),
         author: r.author_name || r.authorName || "unknown",
-        authorId: r.author_id || r.authorId || "",
+        authorEmail: r.author_email || r.authorEmail || "",
+        authorId: r.author_id || r.authorId || (r.author_email || r.authorEmail || ""),
         dl: Number(r.download_count ?? r.downloadCount ?? 0),
         mod: r.mod_version || r.modVersion || "Forge",
         created: asDateIso(r.created_at || r.createdAt || r.created) || "",
@@ -701,7 +703,6 @@
   }
 
   function applyMineFromQuery(){
-    // ★ submit から /?mine=1 で戻された時に自動ON
     const p = new URLSearchParams(location.search);
     if(p.get("mine") === "1" && mineOnly){
       mineOnly.checked = true;
