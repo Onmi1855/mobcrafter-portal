@@ -27,7 +27,7 @@
     .toplinks a{ color:#2563eb; text-decoration:none; border:1px solid rgba(37,99,235,.25); padding:6px 10px; border-radius:999px; background:#fff; }
     .pill{ display:inline-flex; align-items:center; gap:8px; font-size:12px; color:#64748b; }
     .pill code{ background:rgba(148,163,184,.15); border:1px solid rgba(148,163,184,.25); padding:2px 6px; border-radius:999px; color:#0f172a; }
-  
+
     .canvaswrap{ width:100%; max-width:920px; margin:10px 0 0; }
     .canvaswrap canvas{ width:100%; height:auto; display:block; border-radius:12px; }
 </style>
@@ -335,30 +335,80 @@
     return Math.min(6, Math.max(2, bin));
   }
 
+  // ★変更点：spanX/spanYの近似をやめ、投影後の外接矩形から scale/offset を決める
   function renderThumbToCanvas(canvas, unitJson, extraOffsetQuarter){
     const ctx = canvas.getContext("2d");
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0,0,w,h);
+
     const g = ctx.createLinearGradient(0,0,0,h);
     g.addColorStop(0,"rgba(37,99,235,.10)");
     g.addColorStop(1,"rgba(22,163,74,.08)");
     ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+
     const blocks0 = unitJson.blocks;
     const qTurns = yawToQuarterTurns(unitJson.frontYaw, extraOffsetQuarter);
     const bin = chooseBinSize(blocks0.length);
     const blocks = binBlocks(blocks0, bin);
+
     function drawPass(turns, alpha){
       const transformed = blocks.map(b=>{
         const r = rotateXZ(b.dx, b.dz, turns);
         return {dx:r.x, dy:b.dy, dz:r.z, blockId:b.blockId};
       });
+
       const inf = analyzeBlocks(transformed);
-      const spanX = inf.sizeX + inf.sizeZ;
-      const spanY = inf.sizeY;
-      const s = Math.max(1.8, Math.min(w/(spanX+6), h/(spanY+10)) * 1.6);
-      const ox = w*0.5, oy = h*0.80;
+
+      // 0起点に正規化した座標で、投影(s=1)の外接矩形を計算
+      let minPX = Infinity, maxPX = -Infinity;
+      let minPY = Infinity, maxPY = -Infinity;
+
+      for(const b of transformed){
+        const x = (b.dx - inf.minX);
+        const y = (b.dy - inf.minY);
+        const z = (b.dz - inf.minZ);
+
+        // 投影（s=1）
+        const sx0 = (x - z);
+        const sy0 = (x + z) * 0.5 - y;
+
+        // drawIsoCube が実際に使う面積（s=1のとき）
+        // x: [sx0-1, sx0+1]
+        // y: [sy0-0.5, sy0+1.5]
+        minPX = Math.min(minPX, sx0 - 1);
+        maxPX = Math.max(maxPX, sx0 + 1);
+        minPY = Math.min(minPY, sy0 - 0.5);
+        maxPY = Math.max(maxPY, sy0 + 1.5);
+      }
+
+      const rangeX = Math.max(1e-6, (maxPX - minPX));
+      const rangeY = Math.max(1e-6, (maxPY - minPY));
+
+      // 余白（固定UI変更なし。見切れ防止だけのための最小マージン）
+      const margin = 18;
+
+      // canvas内に必ず収めるscale
+      const s = Math.max(
+        1.8,
+        Math.min(
+          (w - margin*2) / rangeX,
+          (h - margin*2) / rangeY
+        )
+      );
+
+      const cx = (minPX + maxPX) * 0.5;
+      const cy = (minPY + maxPY) * 0.5;
+
+      // 外接矩形中心を canvas 中心へ
+      const ox = (w * 0.5) - (cx * s);
+      const oy = (h * 0.5) - (cy * s);
+
       transformed.sort((a,b)=> (a.dx+a.dz) - (b.dx+b.dz) || (a.dy - b.dy));
-      ctx.save(); ctx.globalAlpha = alpha; ctx.translate(ox, oy);
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(ox, oy);
+
       const stroke = (s >= 3);
       for(const b of transformed){
         const x = (b.dx - inf.minX), y = (b.dy - inf.minY), z = (b.dz - inf.minZ);
@@ -366,6 +416,7 @@
       }
       ctx.restore();
     }
+
     if(qTurns == null){ drawPass(0, 1.0); drawPass(2, 0.33); }
     else{ drawPass(qTurns, 1.0); }
   }
