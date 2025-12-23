@@ -252,11 +252,19 @@
       border-radius:999px;
       background:#fff;
       white-space:nowrap;
+      display:inline-flex;
+      align-items:center;
     }
     .authbar a.primary{
       background:#2563eb;
       border-color:#2563eb;
       color:#fff;
+    }
+    /* ログアウトだけ赤 */
+    .authbar a.logout{
+      background:#fee2e2;
+      border-color:#fecaca;
+      color:#991b1b;
     }
   </style>
 </head>
@@ -306,12 +314,11 @@
         <span id="authAdminWrap" style="display:none;">Admin: <code id="authAdmin"></code></span>
       </div>
       <div class="right">
-        <!-- 未ログイン時: ログイン / 投稿（投稿はログイン後submitへ） -->
-        <a id="authLoginLink" href="/api/whoami">ログイン</a>
+        <!-- 投稿は常に表示（未ログインならログイン経由で submit に飛ばす） -->
         <a id="postLink" class="primary" href="/submit.html">投稿</a>
 
-        <!-- ログイン時: ログアウト / 投稿 -->
-        <a id="logoutLink" href="#">ログアウト</a>
+        <!-- ログイン/ログアウトは同じ位置で1つだけ -->
+        <a id="authActionBtn" href="#">checking...</a>
       </div>
     </div>
   </div>
@@ -335,14 +342,27 @@
   const authEmail = document.getElementById("authEmail");
   const authAdminWrap = document.getElementById("authAdminWrap");
   const authAdmin = document.getElementById("authAdmin");
-  const authLoginLink = document.getElementById("authLoginLink");
-  const logoutLink = document.getElementById("logoutLink");
-  if (logoutLink) logoutLink.href = "/cdn-cgi/access/logout?returnTo=" + encodeURIComponent(location.origin + "/");
-  const authLogoutLink = document.getElementById("authLogoutLink");
   const postLink = document.getElementById("postLink");
+  const authActionBtn = document.getElementById("authActionBtn");
 
   function whoamiNext(path){
     return `${API_WHOAMI}?next=${encodeURIComponent(path)}`;
+  }
+
+  function setAuthButtonLoggedOut(){
+    authActionBtn.textContent = "ログイン";
+    authActionBtn.classList.remove("logout");
+    // ログイン後はユーザー側ページへ戻す（止まる体験を回避）
+    authActionBtn.href = whoamiNext("/u/index.html");
+  }
+
+  function setAuthButtonLoggedIn(){
+    authActionBtn.textContent = "ログアウト";
+    authActionBtn.classList.add("logout");
+    // AccessのログアウトURL（worker側ではなく固定）
+    authActionBtn.href =
+      "/cdn-cgi/access/logout?returnTo=" +
+      encodeURIComponent(location.origin + "/");
   }
 
   async function loadWhoami(){
@@ -351,21 +371,16 @@
       authEmailWrap.style.display = "none";
       authAdminWrap.style.display = "none";
 
-      // public top は「ログイン状態は optional」
       const r = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
       const text = await r.text();
       let data = null;
       try { data = JSON.parse(text); } catch { data = null; }
 
-      // loginリンクは「戻れる導線」にしておく
-      authLoginLink.href = whoamiNext("/");
-
       if(!r.ok || !data){
         authState.textContent = "unknown";
-        // 未ログイン扱い：投稿はログイン後submitへ
+        // 未ログイン扱い：投稿はログイン後 submit へ
         postLink.href = whoamiNext("/submit.html");
-        authLogoutLink.style.display = "none";
-        authLoginLink.style.display = "inline-flex";
+        setAuthButtonLoggedOut();
         return;
       }
 
@@ -375,8 +390,7 @@
       if(!email){
         authState.textContent = "logged out";
         postLink.href = whoamiNext("/submit.html");
-        authLogoutLink.style.display = "none";
-        authLoginLink.style.display = "inline-flex";
+        setAuthButtonLoggedOut();
         return;
       }
 
@@ -387,16 +401,14 @@
       authAdminWrap.style.display = "inline";
       authAdmin.textContent = isAdmin ? "true" : "false";
 
-      // ログイン済み：投稿は直行、ログアウト表示、ログインは隠す
+      // ログイン済み：投稿は直行
       postLink.href = "/submit.html";
-      authLogoutLink.style.display = "inline-flex";
-      authLoginLink.style.display = "none";
+      setAuthButtonLoggedIn();
+
     }catch{
       authState.textContent = "unknown";
-      authLoginLink.href = whoamiNext("/");
       postLink.href = whoamiNext("/submit.html");
-      authLogoutLink.style.display = "none";
-      authLoginLink.style.display = "inline-flex";
+      setAuthButtonLoggedOut();
     }
   }
 
