@@ -406,8 +406,8 @@
       let data = null;
       try { data = JSON.parse(text); } catch { data = null; }
 
-      authActionLink.href = whoamiNext("/");
-      postLink.href = whoamiNext("/submit.html"); // 未ログイン時はログイン→submitへ戻す
+      authActionLink.href = `/api/login?next=${encodeURIComponent("/")}`;
+      postLink.href = meEmail ? "/submit.html" : `/api/login?next=${encodeURIComponent("/submit.html")}`;
 
       if(!r.ok || !data){
         authState.textContent = "unknown";
