@@ -669,39 +669,49 @@
     return arr;
   }
 
-  async function load(){
-    hideError();
-    grid.innerHTML = "";
-    try{
-      const useMine = !!(mineOnly && mineOnly.checked && meUserId);
-      const arr = await fetchList(useMine);
+async function load(){
+  hideError();
+  grid.innerHTML = "";
+  try{
+    // mineOnly がONなら /api/my/submissions を叩く（ログイン必須）
+    const useMine = !!(mineOnly && mineOnly.checked);
 
-      items = arr.map(r => {
-        const created = asDateIso(r.created_at || r.createdAt || r.created);
-        const createdText = created ? created.slice(0,10) : "";
-        const tags = normalizeTags(r.tags);
-        const no = resolveNo(r);
+    const url = useMine
+      ? "/api/my/submissions?scope=approved"
+      : "/api/public/submissions";
 
-        return ({
-          id: String(r.id),
-          no,
-          name: r.title || r.name || "Untitled",
-          desc: r.description || "",
-          tags,
-          author: r.author_name || r.authorName || "unknown",
-          authorId: r.author_id || r.authorId || "",
-          dl: Number(r.download_count ?? r.downloadCount ?? 0),
-          mod: r.mod_version || r.modVersion || "Forge",
-          created: created || "",
-          createdText,
-        });
-      });
+    const r = await fetch(url, { cache:"no-store", credentials:"include" });
 
-      applyFilter();
-    }catch(e){
-      showError("一覧の取得に失敗しました。\n" + String(e.message || e));
+    if(!r.ok){
+      const t = await r.text().catch(()=> "");
+      throw new Error(`list HTTP ${r.status}\n${t ? ("body: " + t.slice(0,200)) : ""}`);
     }
+
+    const data = await r.json();
+
+    // my は {ok:true, items:[...]}, public は {items:[...]}
+    const arr = Array.isArray(data.items) ? data.items : [];
+
+    items = arr.map(r => ({
+      id: String(r.id),
+      no: resolveNo(r),
+      name: r.title || r.name || "Untitled",
+      desc: r.description || "",
+      tags: normalizeTags(r.tags),
+      author: r.author_name || r.authorName || "unknown",
+      authorId: r.author_id || r.authorId || "",
+      dl: Number(r.download_count ?? r.downloadCount ?? 0),
+      mod: r.mod_version || r.modVersion || "Forge",
+      created: asDateIso(r.created_at || r.createdAt || r.created) || "",
+      createdText: (asDateIso(r.created_at || r.createdAt || r.created) || "").slice(0,10),
+    }));
+
+    applyFilter();
+  }catch(e){
+    showError("一覧の取得に失敗しました。\n" + String(e.message || e));
   }
+}
+
 
   q.addEventListener("input", applyFilter);
   sort.addEventListener("change", applyFilter);
