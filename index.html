@@ -745,7 +745,7 @@
     const card = document.createElement("article");
     card.className = "card";
 
-    const canEdit = Boolean(useMine && meEmail && it.authorEmail && String(it.authorEmail) === String(meEmail));
+    const canEdit = Boolean(meEmail && it.authorEmail && String(it.authorEmail) === String(meEmail));
 
     card.innerHTML = `
       <div class="thumbwrap">
@@ -844,7 +844,7 @@
     hideError();
     grid.innerHTML = "";
     try{
-      const useMine = !!(mineOnly && mineOnly.checked && meUserId);
+      const useMine = !!(mineOnly && mineOnly.checked && meEmail);
       const arr = await fetchList(useMine);
 
       items = arr.map(r => {
