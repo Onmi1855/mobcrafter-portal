@@ -119,6 +119,62 @@
   const canvas = document.getElementById("canvas");
 
   let parsedJson = null;
+  let jsonDirty = false;
+
+  // --- Edit mode (B案) ---
+  const params = new URLSearchParams(location.search);
+  const editId = params.get("edit"); // submission UUID
+  const isEditMode = Boolean(editId);
+
+  function setEditUi(){
+    if(!isEditMode) return;
+    document.title = "MobCrafter - Unit Edit";
+    const h = document.querySelector("h1");
+    if(h) h.textContent = "ユニット編集";
+    const btn = document.getElementById("btnSubmit");
+    if(btn) btn.textContent = "更新";
+  }
+
+  async function loadForEdit(){
+    if(!isEditMode) return;
+    setResult("編集データ読込中...");
+    try{
+      // meta
+      const metaResp = await fetch(`/api/submissions/${encodeURIComponent(editId)}`, { cache:"no-store", credentials:"include" });
+      if(!metaResp.ok) throw new Error("meta HTTP " + metaResp.status);
+      const meta = await metaResp.json();
+      const item = meta && meta.item ? meta.item : meta;
+      if(item){
+        $title.value = item.title || "";
+        $desc.value  = item.description || "";
+        $tags.value  = Array.isArray(item.tags) ? item.tags.join(", ") : (item.tags || "");
+        $mv.value    = item.mod_version || "";
+        if(item.yaw_offset_quarter != null){
+          $yawOffset.value = String(item.yaw_offset_quarter);
+        }
+      }
+
+      // json (no DL count)
+      const jsonResp = await fetch(`/api/submissions/${encodeURIComponent(editId)}/json`, { cache:"no-store", credentials:"include" });
+      if(!jsonResp.ok) throw new Error("json HTTP " + jsonResp.status);
+      const raw = await jsonResp.text();
+      let parsed = null;
+      try{ parsed = JSON.parse(raw); }catch{ parsed=null; }
+      if(!parsed || !Array.isArray(parsed.blocks)){
+        setResult("編集JSONが不正です");
+        return;
+      }
+
+      parsedJson = parsed;
+      jsonDirty = false;
+      $preview.textContent = JSON.stringify(summarize(parsedJson), null, 2);
+      rerender();
+      updateButtonState();
+      setResult({ ok:true, mode:"edit", id: editId });
+    }catch(e){
+      setResult("編集データ読込失敗: " + (e?.message || String(e)));
+    }
+  }
   let isLoggedIn = false;
   let loggedInEmail = ""; // ★追加：whoami で取れた email を保持
 
@@ -377,7 +433,11 @@
   }
 
   // 初回：ログイン確認
-  loadWhoami().finally(updateButtonState);
+  loadWhoami().finally(() => {
+    updateButtonState();
+    setEditUi();
+    loadForEdit();
+  });
 
   $file.addEventListener("change", async () => {
     parsedJson = null; setResult("未送信"); setPreview("{}");
@@ -416,19 +476,29 @@
     const email = normEmail(loggedInEmail);
     const authorName = email ? email.split("@")[0].slice(0, 60) : "unknown";
 
-    const payload = {
+    const commonMeta = {
       title: $title.value.trim(),
       description: $desc.value.trim(),
       tags: ($tags.value||"").split(",").map(s=>s.trim()).filter(Boolean),
       mod_version: $mv.value.trim(),
       yaw_offset_quarter: Number($yawOffset.value || "0"),
-
-      // ★追加：サーバ側で author を確実に保存できるように送る
-      author_email: email,
-      author_name: authorName,
-
-      json: parsedJson
     };
+
+    let payload = null;
+
+    if(!isEditMode){
+      payload = {
+        ...commonMeta,
+
+        // ★追加：サーバ側で author を確実に保存できるように送る
+        author_email: email,
+        author_name: authorName,
+
+        json: parsedJson
+      };
+    }else{
+      payload = { ...commonMeta };
+    }
 
 
     // ownerUuid は必ず消す（念押し）
@@ -440,30 +510,12 @@
 
     setResult("送信中...");
     try {
-            const url = isEditMode ? `/api/submissions/${encodeURIComponent(editId)}` : "/api/submit";
-      const method = isEditMode ? "PUT" : "POST";
-      const resp = await fetch(url, {
-        method,
+      const resp = await fetch(isEditMode ? `/api/submissions/${encodeURIComponent(editId)}` : "/api/submit", {
+        method: isEditMode ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
         credentials: "include"
       });
-
-      // edit mode: if a new file was chosen, replace JSON too
-      if (isEditMode && $file.files && $file.files[0]) {
-        const jsonText = JSON.stringify(payload.json);
-        const resp2 = await fetch(`/api/submissions/${encodeURIComponent(editId)}/json`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: jsonText,
-          credentials: "include"
-        });
-        if (!resp2.ok) {
-          const t2 = await resp2.text();
-          setResult({ ok:false, http: resp2.status, error:"json_put_failed", detail: t2.slice(0, 240) });
-          return;
-        }
-      }
 
       const text = await resp.text();
       let data; try { data = JSON.parse(text); } catch { data = { raw: text }; }
@@ -472,7 +524,26 @@
         $loginLink.style.display = "inline-block";
       }
 
-      setResult({ http: resp.status, ok: resp.ok, ...data });
+            // In edit mode, if user chose a new JSON file, update JSON separately
+      if (isEditMode && resp.ok && jsonDirty) {
+        try {
+          const jr = await fetch(`/api/submissions/${encodeURIComponent(editId)}/json`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ json: parsedJson }),
+            credentials: "include"
+          });
+          const jt = await jr.text();
+          let jd; try { jd = JSON.parse(jt); } catch { jd = { raw: jt }; }
+          // Merge json-update result (do not overwrite main ok/http)
+          data = { ...data, json_update: { http: jr.status, ok: jr.ok, ...jd } };
+          if (jr.ok) jsonDirty = false;
+        } catch (e) {
+          data = { ...data, json_update_error: (e?.message || String(e)) };
+        }
+      }
+
+setResult({ http: resp.status, ok: resp.ok, ...data });
     } catch (e) {
       setResult("送信失敗: " + (e?.message || String(e)));
     }
@@ -482,66 +553,3 @@
 
 </body>
 </html>
-
-  // ----- Edit mode (owner/admin) -----
-  const params = new URLSearchParams(location.search);
-  const editId = params.get("edit"); // submission UUID
-  let isEditMode = Boolean(editId);
-  let editLoaded = false;
-
-  if (isEditMode) {
-    document.title = "MobCrafter - Unit Edit";
-    const h = document.querySelector("h1");
-    if (h) h.textContent = "ユニット編集";
-    if ($btn) $btn.textContent = "更新";
-  }
-
-  async function loadForEdit() {
-    if (!isEditMode || editLoaded) return;
-    setResult("編集データ読込中...");
-    try {
-      const [metaResp, jsonResp] = await Promise.all([
-        fetch(`/api/submissions/${encodeURIComponent(editId)}`, { credentials: "include" }),
-        fetch(`/api/submissions/${encodeURIComponent(editId)}/json`, { credentials: "include" })
-      ]);
-
-      if (!metaResp.ok) {
-        const t = await metaResp.text();
-        setResult({ ok:false, http: metaResp.status, error: "meta_fetch_failed", detail: t.slice(0, 200) });
-        return;
-      }
-      if (!jsonResp.ok) {
-        const t = await jsonResp.text();
-        setResult({ ok:false, http: jsonResp.status, error: "json_fetch_failed", detail: t.slice(0, 200) });
-        return;
-      }
-
-      const meta = await metaResp.json();
-      const item = meta && meta.item ? meta.item : null;
-      if (item) {
-        $title.value = item.title || "";
-        $desc.value  = item.description || "";
-        $tags.value  = item.tags || "";
-        $mv.value    = item.mod_version || "";
-        // yaw offset: keep current selection (user can adjust)
-      }
-
-      const rawJsonText = await jsonResp.text();
-      let parsed = null;
-      try { parsed = JSON.parse(rawJsonText); } catch { parsed = null; }
-      if (!parsed || !Array.isArray(parsed.blocks)) {
-        setResult({ ok:false, error:"invalid_existing_json" });
-        return;
-      }
-
-      parsedJson = parsed;
-      // show preview info
-      $preview.textContent = JSON.stringify(summarize(parsedJson), null, 2);
-      rerender();
-      updateButtonState();
-      editLoaded = true;
-      setResult({ ok:true, mode:"edit", id: editId });
-    } catch (e) {
-      setResult("編集データ読込失敗: " + (e?.message || String(e)));
-    }
-  }
