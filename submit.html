@@ -95,6 +95,7 @@
 
   <label>結果</label>
   <pre id="result">未送信</pre>
+  <div id="afterSuccess" class="mini" style="display:none; margin-top:8px;"></div>
 </div>
 
 <script>
@@ -625,6 +626,24 @@
       }
 
 setResult({ http: resp.status, ok: resp.ok, ...data });
+
+      // ✅ 送信成功時：一覧へ戻る案内（自動遷移は短め・好みでOFF可能）
+      try {
+        const $after = document.getElementById("afterSuccess");
+        if ($after && resp.ok && (data && (data.ok === true || data.id || data.submission_no || data.unit_id))) {
+          const backUrl = "/";
+          let sec = 2;
+          $after.style.display = "block";
+          const tick = () => {
+            $after.innerHTML = `送信完了。<a href="${backUrl}">一覧に戻る</a>（${sec}秒で自動で戻ります）`;
+            if (sec <= 0) { location.href = backUrl; return; }
+            sec -= 1;
+            setTimeout(tick, 1000);
+          };
+          tick();
+        }
+      } catch (_) {}
+
     } catch (e) {
       setResult("送信失敗: " + (e?.message || String(e)));
     }
