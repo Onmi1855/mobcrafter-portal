@@ -27,23 +27,24 @@
     .toplinks a{ color:#2563eb; text-decoration:none; border:1px solid rgba(37,99,235,.25); padding:6px 10px; border-radius:999px; background:#fff; }
     .pill{ display:inline-flex; align-items:center; gap:8px; font-size:12px; color:#64748b; }
     .pill code{ background:rgba(148,163,184,.15); border:1px solid rgba(148,163,184,.25); padding:2px 6px; border-radius:999px; color:#0f172a; }
-  
     .canvaswrap{ width:100%; max-width:920px; margin:10px 0 0; }
     .canvaswrap canvas{ width:100%; height:auto; display:block; border-radius:12px; }
-</style>
+    .oknote{ margin-top:10px; padding:10px 12px; border-radius:12px; background:#ecfeff; border:1px solid #a5f3fc; color:#0f172a; display:none; }
+    .errnote{ margin-top:10px; padding:10px 12px; border-radius:12px; background:#fef2f2; border:1px solid #fecaca; color:#991b1b; display:none; }
+    .ver { font-size:12px; color:#64748b; margin-left:auto; }
+  </style>
 </head>
 <body>
-
 <div class="card">
   <div class="toplinks">
     <a href="/">← ホームに戻る</a>
-    <span class="pill">Login: <code id="authState">checking...</code> <span id="authEmailWrap" style="display:none;">Email: <code id="authEmail"></code></span></span>
+    <span class="pill">Login: <code id="loginState">checking...</code></span>
+    <span class="pill">Email: <code id="meEmail">-</code></span>
+    <span class="ver">submit.screens.v3</span>
   </div>
 
   <h1>ユニット投稿</h1>
-  <div class="hint">
-    Cloudflare Access ログイン後に投稿できます。JSONファイルを選択すると、構造検証と簡易3Dプレビューが表示されます。
-  </div>
+  <div class="hint">Cloudflare Access のログインに対応できます。JSONファイルを選択すると、構造体の簡易3Dプレビューが表示されます。</div>
 
   <label>JSONファイル</label>
   <input id="file" type="file" accept=".json,application/json" />
@@ -55,680 +56,444 @@
     </div>
     <div>
       <label>mod_version（任意）</label>
-      <input id="modVersion" type="text" placeholder="1.0.0" />
+      <input id="modver" type="text" placeholder="1.0.0" />
     </div>
   </div>
 
   <label>説明</label>
-  <textarea id="description" placeholder="説明（任意）"></textarea>
+  <textarea id="desc" placeholder="説明（任意）"></textarea>
 
   <label>タグ（カンマ区切り）</label>
   <input id="tags" type="text" placeholder="boss, ff7, sword" />
 
   <label>正面補正（0/90/180/270）※任意</label>
-  <select id="yawOffset">
-    <option value="0" selected>0°（補正なし）</option>
-    <option value="1">+90°</option>
-    <option value="2">+180°</option>
-    <option value="3">+270°</option>
+  <select id="yaw">
+    <option value="">0°（補正なし）</option>
+    <option value="90">+90°</option>
+    <option value="180">+180°</option>
+    <option value="270">+270°</option>
   </select>
-  <div class="mini">
-    frontYaw が無い/作品ごとに正面の流派が違う場合、ここで合わせてください（プレビューと投稿メタに保存）。
-  </div>
+  <div class="mini">frontYaw が無い/怪しい場合に正面補正が適用されます（プレビューと投稿メタに保存）。</div>
 
   <div class="actions">
-    <button id="btn" class="primary" disabled>送信</button>
-    <a id="loginLink" href="/api/login?next=/submit" style="display:none; padding:10px 14px; border-radius:12px; background:#2563eb; color:#fff; text-decoration:none;">ログインして投稿</a>
-    <span id="needLogin" class="mini">※ 送信はログイン必須</span>
+    <button id="btnSubmit" class="primary" disabled>送信</button>
+    <button id="btnLogin" class="secondary" style="display:none;">ログインへ</button>
   </div>
 
   <div class="divider"></div>
 
-  <label>プレビュー（情報）</label>
+  <h3>プレビュー（情報）</h3>
   <pre id="preview">{}</pre>
 
-  <label>3Dイメージ（簡易）</label>
-  <div class="canvaswrap"><canvas id="canvas" width="900" height="520"></canvas></div>
-  <div class="hint">
-    ※ 形状確認用の簡易表示です（色・質感は実物と異なります）
+  <h3>3Dイメージ（簡易）</h3>
+  <div class="canvaswrap">
+    <canvas id="cv" width="920" height="520"></canvas>
   </div>
+  <div class="mini">※ 形状確認用の簡易表示です（色・描画ロジックは変更しません）</div>
 
+  <div class="divider"></div>
 
-  <label>スクリーンショット（任意）</label>
+  <h3>スクリーンショット（任意）</h3>
   <div class="actions">
-    <input type="file" id="screenFile" accept="image/*" />
-    <button id="btnUploadScreen" class="secondary" type="button" disabled>スクショをアップロード</button>
-    <button id="btnCaptureScreen" class="secondary" type="button" disabled>プレビューをスクショしてアップロード</button>
+    <input id="shotFile" type="file" accept="image/*" />
+    <button id="btnUploadShot" class="secondary" disabled>スクショをアップロード</button>
+    <button id="btnUploadShotFromCanvas" class="secondary" disabled>プレビューをスクショしてアップロード</button>
   </div>
-  <div id="screenStatus" class="mini"></div>
+  <div class="mini">※ スクショは「投稿が成功して submission_id が確定」してからアップロードできます。</div>
 
-  <label>結果</label>
+  <div class="divider"></div>
+
+  <h3>結果</h3>
   <pre id="result">未送信</pre>
-  <div id="afterSuccess" class="mini" style="display:none; margin-top:8px;"></div>
+  <div id="oknote" class="oknote"></div>
+  <div id="errnote" class="errnote"></div>
 </div>
 
 <script>
 (() => {
-  const API_WHOAMI = "/api/whoami";
+  const API = ""; // same-origin
+  const $ = (id) => document.getElementById(id);
 
-  const authState = document.getElementById("authState");
-  const authEmailWrap = document.getElementById("authEmailWrap");
-  const authEmail = document.getElementById("authEmail");
-
-  const $file = document.getElementById("file");
-  const $title = document.getElementById("title");
-  const $desc  = document.getElementById("description");
-  const $tags  = document.getElementById("tags");
-  const $mv    = document.getElementById("modVersion");
-  const $btn   = document.getElementById("btn");
-  const $loginLink = document.getElementById("loginLink");
-  const $needLogin = document.getElementById("needLogin");
-  const $prev  = document.getElementById("preview");
-  const $res   = document.getElementById("result");
-  const $yawOffset = document.getElementById("yawOffset");
-  const canvas = document.getElementById("canvas");
-
-
-  // --- Screenshots upload ---
-  const $screenFile = document.getElementById("screenFile");
-  const $btnUploadScreen = document.getElementById("btnUploadScreen");
-  const $btnCaptureScreen = document.getElementById("btnCaptureScreen");
-  const $screenStatus = document.getElementById("screenStatus");
-  let lastSubmissionId = null;
-
-  const setScreenStatus = (msg) => { if ($screenStatus) $screenStatus.textContent = msg || ""; };
-
-  const refreshScreenButtons = () => {
-    const hasId = !!lastSubmissionId;
-    const hasFile = $screenFile && $screenFile.files && $screenFile.files.length > 0;
-    if ($btnUploadScreen) $btnUploadScreen.disabled = !(hasId && hasFile);
-    if ($btnCaptureScreen) $btnCaptureScreen.disabled = !hasId;
+  const els = {
+    loginState: $("loginState"),
+    meEmail: $("meEmail"),
+    file: $("file"),
+    title: $("title"),
+    modver: $("modver"),
+    desc: $("desc"),
+    tags: $("tags"),
+    yaw: $("yaw"),
+    btnSubmit: $("btnSubmit"),
+    btnLogin: $("btnLogin"),
+    preview: $("preview"),
+    result: $("result"),
+    oknote: $("oknote"),
+    errnote: $("errnote"),
+    cv: $("cv"),
+    shotFile: $("shotFile"),
+    btnUploadShot: $("btnUploadShot"),
+    btnUploadShotFromCanvas: $("btnUploadShotFromCanvas"),
   };
 
-  const uploadScreenBlob = async (blob, filename, mime) => {
-    if (!lastSubmissionId) throw new Error("missing_submission_id");
-    const fd = new FormData();
-    fd.append("file", new File([blob], filename, { type: mime || blob.type || "image/png" }));
-    const resp = await fetch(`/api/submissions/${encodeURIComponent(lastSubmissionId)}/screens`, {
-      method: "POST",
-      body: fd,
-      credentials: "include",
-    });
-    const data = await resp.json().catch(()=>null);
-    if (!resp.ok || !data || data.ok !== true) {
-      const msg = (data && (data.error || data.message)) ? `${data.error || ""} ${data.message || ""}`.trim() : `HTTP ${resp.status}`;
-      throw new Error(msg);
-    }
-    return data;
-  };
+  let whoami = { ok:false, email:null, is_admin:false };
+  let parsed = null;          // parsed JSON
+  let blocks = [];            // blocks array
+  let submissionId = null;    // after successful submit
+  let currentEditId = null;   // for future edit mode (not enabled here)
 
-  if ($screenFile) {
-    $screenFile.addEventListener("change", () => {
-      setScreenStatus("");
-      refreshScreenButtons();
-    });
-  }
-  if ($btnUploadScreen) {
-    $btnUploadScreen.addEventListener("click", async () => {
-      try {
-        if (!$screenFile || !$screenFile.files || !$screenFile.files[0]) return;
-        setScreenStatus("アップロード中...");
-        const f = $screenFile.files[0];
-        await uploadScreenBlob(f, f.name || "screenshot.png", f.type || "image/png");
-        setScreenStatus("スクリーンショットを保存しました。");
-        $screenFile.value = "";
-        refreshScreenButtons();
-      } catch (e) {
-        setScreenStatus("失敗: " + (e?.message || String(e)));
-      }
-    });
-  }
-  if ($btnCaptureScreen) {
-    $btnCaptureScreen.addEventListener("click", async () => {
-      try {
-        setScreenStatus("キャプチャ中...");
-        const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
-        if (!blob) throw new Error("capture_failed");
-        setScreenStatus("アップロード中...");
-        await uploadScreenBlob(blob, "preview.png", "image/png");
-        setScreenStatus("プレビューのスクショを保存しました。");
-        refreshScreenButtons();
-      } catch (e) {
-        setScreenStatus("失敗: " + (e?.message || String(e)));
-      }
-    });
-  }
-
-
-  let parsedJson = null;
-  let jsonDirty = false;
-
-  // --- Edit mode (B案) ---
-  const params = new URLSearchParams(location.search);
-  const editId = params.get("edit"); // submission UUID
-  const isEditMode = Boolean(editId);
-
-  function setEditUi(){
-    if(!isEditMode) return;
-    document.title = "MobCrafter - Unit Edit";
-    const h = document.querySelector("h1");
-    if(h) h.textContent = "ユニット編集";
-    const btn = document.getElementById("btnSubmit");
-    if(btn) btn.textContent = "更新";
-  }
-
-  async function loadForEdit(){
-    if(!isEditMode) return;
-    setResult("編集データ読込中...");
-    try{
-      // meta
-      const metaResp = await fetch(`/api/submissions/${encodeURIComponent(editId)}`, { cache:"no-store", credentials:"include" });
-      if(!metaResp.ok) throw new Error("meta HTTP " + metaResp.status);
-      const meta = await metaResp.json();
-      const item = meta && meta.item ? meta.item : meta;
-      if(item){
-        $title.value = item.title || "";
-        $desc.value  = item.description || "";
-        $tags.value  = Array.isArray(item.tags) ? item.tags.join(", ") : (item.tags || "");
-        $mv.value    = item.mod_version || "";
-        if(item.yaw_offset_quarter != null){
-          $yawOffset.value = String(item.yaw_offset_quarter);
-        }
-      }
-
-      // json (no DL count)
-      const jsonResp = await fetch(`/api/submissions/${encodeURIComponent(editId)}/json`, { cache:"no-store", credentials:"include" });
-      if(!jsonResp.ok) throw new Error("json HTTP " + jsonResp.status);
-      const raw = await jsonResp.text();
-      let parsed = null;
-      try{ parsed = JSON.parse(raw); }catch{ parsed=null; }
-      if(!parsed || !Array.isArray(parsed.blocks)){
-        setResult("編集JSONが不正です");
-        return;
-      }
-
-      parsedJson = parsed;
-      jsonDirty = false;
-      $preview.textContent = JSON.stringify(summarize(parsedJson), null, 2);
-      rerender();
-      updateButtonState();
-      setResult({ ok:true, mode:"edit", id: editId });
-    }catch(e){
-      setResult("編集データ読込失敗: " + (e?.message || String(e)));
-    }
-  }
-  let isLoggedIn = false;
-  let loggedInEmail = ""; // ★追加：whoami で取れた email を保持
-
-  function normEmail(v){
-    const s = String(v || "").trim().toLowerCase();
-    return (s && s.includes("@")) ? s : "";
-  }
-
-  async function loadWhoami(){
-    try{
-      authState.textContent = "checking...";
-      authEmailWrap.style.display = "none";
-      isLoggedIn = false;
-
-      const r = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
-      const data = await r.json().catch(()=>null);
-
-      const email = data ? normEmail(data.email) : "";
-      if(!email){
-        authState.textContent = "logged out";
-        authEmailWrap.style.display = "none";
-        isLoggedIn = false;
-        loggedInEmail = ""; // ★追加
-        $loginLink.style.display = "inline-block";
-        $needLogin.textContent = "※ ログインすると送信できます";
-        return;
-      }
-
-      authState.textContent = "logged in";
-      authEmailWrap.style.display = "inline";
-      authEmail.textContent = email;
-      loggedInEmail = email; // ★追加
-      isLoggedIn = true;
-      $loginLink.style.display = "none";
-      $needLogin.textContent = "※ ログイン済み";
-    }catch{
-      authState.textContent = "unknown";
-      isLoggedIn = false;
-      loggedInEmail = ""; // ★追加
-      $loginLink.style.display = "inline-block";
-      $needLogin.textContent = "※ ログイン状態を確認できません（whoami）";
-    }
-  }
-
-  function setPreview(v) {
-    $prev.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
-  }
-  function setResult(v) {
-    $res.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
-  }
-  function updateButtonState() {
-    // ★ログイン必須＋json＋title
-    $btn.disabled = !(isLoggedIn && parsedJson && ($title.value || "").trim());
-  }
-
-  function validateMobCrafterJson(obj) {
-    if (!obj || typeof obj !== "object") return "JSONがオブジェクトではありません";
-    if (!Array.isArray(obj.blocks)) return "blocks 配列がありません";
-    if (obj.blocks.length === 0) return "blocks が空です";
-    if (obj.blocks.length > 200000) return "blocks が多すぎます（200k超）";
-    for (let i = 0; i < Math.min(obj.blocks.length, 1000); i++) {
-      const b = obj.blocks[i];
-      if (typeof b.dx !== "number" || typeof b.dy !== "number" || typeof b.dz !== "number") {
-        return `blocks[${i}] に dx/dy/dz がありません`;
-      }
-      if (typeof b.blockId !== "string") {
-        return `blocks[${i}] に blockId がありません`;
-      }
-    }
-    return null;
-  }
-
-  function yawToQuarterTurns(frontYaw, extraOffsetQuarter){
-    if(frontYaw == null) return null;
-    const y = Number(frontYaw);
-    if(!Number.isFinite(y)) return null;
-    let deg = y % 360;
-    if(deg < 0) deg += 360;
-    let q = (Math.round(deg / 90) % 4);
-    q = (q + (extraOffsetQuarter ?? 0)) % 4;
-    return q;
-  }
-  function rotateXZ(x, z, q){
-    switch(q){
-      case 1: return {x: z,  z: -x};
-      case 2: return {x: -x, z: -z};
-      case 3: return {x: -z, z: x};
-      default:return {x, z};
-    }
-  }
-
-  const PALETTE_URL = "/assets/palette.v1.json";
-  const PALETTE_VER = "v1";
-  const PALETTE_LS_KEY = `mcPalette:${PALETTE_VER}`;
-  let PALETTE_MAP = null;
-
-  function parseColorString(s){
-    if(!s) return null;
-    const v = String(s).trim();
-    const hex = /^#([0-9a-f]{6})$/i.exec(v);
-    if(hex){
-      const n = parseInt(hex[1], 16);
-      return { r:(n>>16)&255, g:(n>>8)&255, b:n&255, a:1 };
-    }
-    const rgba = /^rgba?\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})(?:\s*,\s*([0-9]*\.?[0-9]+))?\s*\)$/i.exec(v);
-    if(rgba){
-      const r = Math.max(0, Math.min(255, parseInt(rgba[1],10)));
-      const g = Math.max(0, Math.min(255, parseInt(rgba[2],10)));
-      const b = Math.max(0, Math.min(255, parseInt(rgba[3],10)));
-      const a = rgba[4] == null ? 1 : Math.max(0, Math.min(1, parseFloat(rgba[4])));
-      return {r,g,b,a};
-    }
-    return null;
-  }
-
-  async function loadPalette(){
-    if(PALETTE_MAP) return PALETTE_MAP;
-    try{
-      const cached = localStorage.getItem(PALETTE_LS_KEY);
-      if(cached){
-        const obj = JSON.parse(cached);
-        if(obj && typeof obj === "object"){
-          PALETTE_MAP = obj;
-          return PALETTE_MAP;
-        }
-      }
-    }catch(e){}
-    try{
-      const r = await fetch(`${PALETTE_URL}?v=${encodeURIComponent(PALETTE_VER)}`, { cache:"no-store" });
-      if(r.ok){
-        const obj = await r.json();
-        if(obj && typeof obj === "object"){
-          PALETTE_MAP = obj;
-          try{ localStorage.setItem(PALETTE_LS_KEY, JSON.stringify(obj)); }catch(e){}
-          return PALETTE_MAP;
-        }
-      }
-    }catch(e){}
-    PALETTE_MAP = {};
-    return PALETTE_MAP;
-  }
-
-  function paletteLookup(blockId){
-    if(!PALETTE_MAP) return null;
-    const k = String(blockId||"").trim().toLowerCase();
-    return parseColorString(PALETTE_MAP[k]);
-  }
-
-  function pickBaseColor(blockId){
-    const p = paletteLookup(blockId);
-    if(p) return p;
-    const raw = String(blockId||"").toLowerCase();
-    const id = raw.includes(":") ? raw.split(":")[1] : raw;
-    if (id.includes("glass") || id.includes("ice")) return {r: 170, g: 210, b: 230, a: 0.55};
-    if (id.includes("leaves") || id.includes("leaf") || id.includes("moss") || id.includes("vine") || id.includes("grass")) return {r: 90, g: 150, b: 90, a: 0.95};
-    if (id.includes("log") || id.includes("wood") || id.includes("planks") || id.includes("bamboo")) return {r: 160, g: 125, b: 85, a: 0.95};
-    if (id.includes("dirt") || id.includes("sand") || id.includes("gravel") || id.includes("clay") || id.includes("mud")) return {r: 160, g: 145, b: 110, a: 0.98};
-    if (id.includes("stone") || id.includes("deepslate") || id.includes("andesite") || id.includes("diorite") || id.includes("granite") || id.includes("cobble") || id.includes("tuff") || id.includes("slate")) return {r: 140, g: 145, b: 155, a: 0.98};
-    if (id.includes("iron") || id.includes("anvil") || id.includes("chain") || id.includes("rail") || id.includes("metal")) return {r: 170, g: 175, b: 185, a: 0.98};
-    if (id.includes("copper") || id.includes("bronze")) return {r: 190, g: 120, b: 80, a: 0.98};
-    if (id.includes("gold")) return {r: 210, g: 185, b: 90, a: 0.98};
-    if (id.includes("diamond")) return {r: 120, g: 210, b: 220, a: 0.98};
-    if (id.includes("emerald")) return {r: 70, g: 200, b: 120, a: 0.98};
-    if (id.includes("lapis")) return {r: 70, g: 110, b: 200, a: 0.98};
-    if (id.includes("redstone")) return {r: 190, g: 70, b: 70, a: 0.98};
-    let h=0; for(let i=0;i<raw.length;i++) h=(h*31 + raw.charCodeAt(i))|0;
-    return { r:120 + (h & 70), g:120 + ((h>>8)&70), b:120 + ((h>>16)&70), a:0.98 };
-  }
-
-  function analyzeBlocks(blocks){
-    let minX=Infinity,minY=Infinity,minZ=Infinity;
-    let maxX=-Infinity,maxY=-Infinity,maxZ=-Infinity;
-    for(const b of blocks){
-      minX=Math.min(minX,b.dx); minY=Math.min(minY,b.dy); minZ=Math.min(minZ,b.dz);
-      maxX=Math.max(maxX,b.dx); maxY=Math.max(maxY,b.dy); maxZ=Math.max(maxZ,b.dz);
-    }
-    return {minX,minY,minZ, maxX,maxY,maxZ, sizeX:maxX-minX+1, sizeY:maxY-minY+1, sizeZ:maxZ-minZ+1};
-  }
-
-  function drawIsoCube(ctx, x, y, z, s, col, stroke){
-    const sx = (x - z) * s;
-    const sy = (x + z) * s * 0.5 - y * s;
-    const a = (col.a == null ? 1 : col.a);
-    const top = `rgba(${Math.min(255,col.r+30)},${Math.min(255,col.g+30)},${Math.min(255,col.b+30)},${a})`;
-    const left= `rgba(${Math.max(0,col.r-10)},${Math.max(0,col.g-10)},${Math.max(0,col.b-10)},${a})`;
-    const right=`rgba(${Math.max(0,col.r-25)},${Math.max(0,col.g-25)},${Math.max(0,col.b-25)},${a})`;
-    ctx.fillStyle = top;
-    ctx.beginPath(); ctx.moveTo(sx, sy - s*0.5); ctx.lineTo(sx + s, sy); ctx.lineTo(sx, sy + s*0.5); ctx.lineTo(sx - s, sy); ctx.closePath(); ctx.fill();
-    if (stroke){ ctx.strokeStyle = "rgba(15,23,42,.10)"; ctx.lineWidth = Math.max(1, s*0.06); ctx.stroke(); }
-    ctx.fillStyle = left;
-    ctx.beginPath(); ctx.moveTo(sx - s, sy); ctx.lineTo(sx, sy + s*0.5); ctx.lineTo(sx, sy + s*0.5 + s); ctx.lineTo(sx - s, sy + s); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = right;
-    ctx.beginPath(); ctx.moveTo(sx + s, sy); ctx.lineTo(sx, sy + s*0.5); ctx.lineTo(sx, sy + s*0.5 + s); ctx.lineTo(sx + s, sy + s); ctx.closePath(); ctx.fill();
-  }
-
-  function binBlocks(blocks, bin){
-    if(bin <= 1) return blocks;
-    const m = new Map();
-    for(const b of blocks){
-      const bx = Math.floor(b.dx / bin);
-      const by = Math.floor(b.dy / bin);
-      const bz = Math.floor(b.dz / bin);
-      const k = bx + "," + by + "," + bz;
-      const cur = m.get(k);
-      if(!cur || b.dy > cur.dy){ m.set(k, b); }
-    }
-    return Array.from(m.values());
-  }
-  function chooseBinSize(blockCount){
-    const target = 16000;
-    if(blockCount <= target) return 1;
-    const ratio = blockCount / target;
-    let bin = Math.ceil(Math.cbrt(ratio));
-    return Math.min(6, Math.max(2, bin));
-  }
-
-  function renderThumbToCanvas(canvas, unitJson, extraOffsetQuarter){
-    const ctx = canvas.getContext("2d");
-    const w = canvas.width, h = canvas.height;
-    ctx.clearRect(0,0,w,h);
-
-    // background (keep)
-    const g = ctx.createLinearGradient(0,0,0,h);
-    g.addColorStop(0,"rgba(37,99,235,.10)");
-    g.addColorStop(1,"rgba(22,163,74,.08)");
-    ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
-
-    const blocks0 = unitJson.blocks || [];
-    const qTurns = yawToQuarterTurns(unitJson.frontYaw, extraOffsetQuarter);
-
-    // binning for speed (keep)
-    const bin = chooseBinSize(blocks0.length);
-    const blocks = binBlocks(blocks0, bin);
-
-    // Projected bounding box of ONE iso cube in "s-units"
-    // drawIsoCube uses:
-    //   sx = (x - z) * s
-    //   sy = (x + z) * s * 0.5 - y * s
-    // and the cube spans:
-    //   x: [sx - s, sx + s]
-    //   y: [sy - 0.5s, sy + 1.5s]
-    function computeBBoxUnits(transformed){
-      const inf = analyzeBlocks(transformed);
-      let minXu = Infinity, maxXu = -Infinity, minYu = Infinity, maxYu = -Infinity;
-      for (const b of transformed){
-        const x = (b.dx - inf.minX), y = (b.dy - inf.minY), z = (b.dz - inf.minZ);
-        const sxu = (x - z);
-        const syu = (x + z)*0.5 - y;
-        minXu = Math.min(minXu, sxu - 1);
-        maxXu = Math.max(maxXu, sxu + 1);
-        minYu = Math.min(minYu, syu - 0.5);
-        maxYu = Math.max(maxYu, syu + 1.5);
-      }
-      // if empty, fallback to 1 cube box
-      if (!isFinite(minXu)){
-        minXu = -1; maxXu = 1; minYu = -0.5; maxYu = 1.5;
-      }
-      return {inf, minXu, maxXu, minYu, maxYu, bboxWu:(maxXu-minXu), bboxHu:(maxYu-minYu)};
+  // -------- Robust whoami (never blocks preview) ----------
+  async function loadWhoami() {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 6000);
+      const res = await fetch(API + "/api/whoami", { credentials:"include", signal: ctrl.signal });
+      clearTimeout(t);
+      const data = await res.json().catch(() => ({ ok:false }));
+      whoami = data && typeof data === "object" ? data : { ok:false };
+    } catch (e) {
+      whoami = { ok:false, email:null, is_admin:false };
     }
 
-    function buildTransformed(turns){
-      const transformed = blocks.map(b=>{
-        const r = rotateXZ(b.dx, b.dz, turns);
-        return {dx:r.x, dy:b.dy, dz:r.z, blockId:b.blockId};
-      });
-      // painter's order (keep)
-      transformed.sort((a,b)=> (a.dx+a.dz) - (b.dx+b.dz) || (a.dy - b.dy));
-      return transformed;
-    }
+    const logged = !!(whoami && whoami.ok && whoami.email);
+    els.loginState.textContent = logged ? "logged in" : "not logged in";
+    els.meEmail.textContent = logged ? whoami.email : "-";
 
-    // Decide camera(scale/offset) so that the full projected bbox fits in canvas
-    // This replaces the previous heuristic (spanX/spanY) that caused clipping on big/wide models.
-    function computeFitParams(bbox){
-      const margin = 14; // px
-      const sFit = Math.min(
-        (w - margin*2) / Math.max(1e-6, bbox.bboxWu),
-        (h - margin*2) / Math.max(1e-6, bbox.bboxHu)
-      );
-      const s = Math.max(1.0, sFit); // keep at least 1px-ish
-      const cxu = (bbox.minXu + bbox.maxXu) * 0.5;
-      const cyu = (bbox.minYu + bbox.maxYu) * 0.5;
-      const ox = w*0.5 - cxu * s;
-      const oy = h*0.5 - cyu * s;
-      return {s, ox, oy};
-    }
-
-    // When yaw is unknown, we draw 2 passes (front/back). Use UNION bbox so both always fit.
-    function unionBBox(a,b){
-      return {
-        inf: a.inf, // not used by union fit (each pass uses its own inf for shifting)
-        minXu: Math.min(a.minXu,b.minXu),
-        maxXu: Math.max(a.maxXu,b.maxXu),
-        minYu: Math.min(a.minYu,b.minYu),
-        maxYu: Math.max(a.maxYu,b.maxYu),
-        bboxWu: Math.max(a.maxXu,b.maxXu) - Math.min(a.minXu,b.minXu),
-        bboxHu: Math.max(a.maxYu,b.maxYu) - Math.min(a.minYu,b.minYu),
-      };
-    }
-
-    function drawPass(turns, alpha, fit){
-      const transformed = buildTransformed(turns);
-      const bb = computeBBoxUnits(transformed);
-      const s = fit.s, ox = fit.ox, oy = fit.oy;
-
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.translate(ox, oy);
-
-      const stroke = (s >= 3);
-      for(const b of transformed){
-        const x = (b.dx - bb.inf.minX), y = (b.dy - bb.inf.minY), z = (b.dz - bb.inf.minZ);
-        drawIsoCube(ctx, x, y, z, s, pickBaseColor(b.blockId), stroke);
-      }
-      ctx.restore();
-    }
-
-    if(qTurns == null){
-      const t0 = buildTransformed(0);
-      const t2 = buildTransformed(2);
-      const bb0 = computeBBoxUnits(t0);
-      const bb2 = computeBBoxUnits(t2);
-      const fit = computeFitParams(unionBBox(bb0, bb2));
-      drawPass(0, 1.0, fit);
-      drawPass(2, 0.33, fit);
+    if (!logged) {
+      els.btnLogin.style.display = "";
+      els.btnLogin.onclick = () => { location.href = "/api/login?next=/submit"; };
     } else {
-      const t = buildTransformed(qTurns);
-      const bb = computeBBoxUnits(t);
-      const fit = computeFitParams(bb);
-      drawPass(qTurns, 1.0, fit);
+      els.btnLogin.style.display = "none";
     }
+
+    updateButtons();
   }
 
-  function rerender(){
-    if(!parsedJson) return;
-    const extra = Number($yawOffset.value || "0") % 4;
-    renderThumbToCanvas(canvas, parsedJson, extra);
+  function showOk(msg) {
+    els.oknote.style.display = "block";
+    els.oknote.textContent = msg;
+    els.errnote.style.display = "none";
+  }
+  function showErr(msg) {
+    els.errnote.style.display = "block";
+    els.errnote.textContent = msg;
+    els.oknote.style.display = "none";
   }
 
-  // 初回：ログイン確認
-  loadWhoami().finally(() => {
-    updateButtonState();
-    setEditUi();
-    loadForEdit();
-  });
+  function updateButtons() {
+    const logged = !!(whoami && whoami.ok && whoami.email);
+    const hasJson = !!parsed;
+    els.btnSubmit.disabled = !(logged && hasJson);
 
-  $file.addEventListener("change", async () => {
-    parsedJson = null; setResult("未送信"); setPreview("{}");
-    const f = $file.files && $file.files[0];
-    if (!f) return;
-    if (f.size > 2_200_000) { setPreview("ファイルが大きすぎます（約2MB超）"); return; }
+    const canUploadShot = logged && !!submissionId;
+    els.btnUploadShot.disabled = !canUploadShot;
+    els.btnUploadShotFromCanvas.disabled = !canUploadShot;
+  }
+
+  // ----------- Parsing -----------
+  async function parseFile(file) {
+    if (!file) { parsed=null; blocks=[]; els.preview.textContent="{}"; drawEmpty(); updateButtons(); return; }
     try {
-      const obj = JSON.parse(await f.text());
-      const err = validateMobCrafterJson(obj);
-      if (err) { setPreview(err); return; }
-      parsedJson = obj;
-      if (!$title.value.trim()) $title.value = f.name.replace(/\.json$/i,"");
-      const info = analyzeBlocks(obj.blocks);
-      setPreview({ file:{name:f.name,size:f.size}, blocks: obj.blocks.length, size:`${info.sizeX} x ${info.sizeY} x ${info.sizeZ}`, frontYaw:(obj.frontYaw ?? null), yaw_offset_quarter:Number($yawOffset.value||"0") });
-      loadPalette().finally(()=>rerender());
+      const text = await file.text();
+      const json = JSON.parse(text);
+      parsed = json;
+      blocks = Array.isArray(json.blocks) ? json.blocks : [];
+      els.preview.textContent = JSON.stringify(summarize(json), null, 2);
+      render();
+      updateButtons();
+      showOk("JSONを読み込みました（未送信）。ログイン済みなら送信できます。");
     } catch (e) {
-      setPreview("JSONとして読み込めません: " + (e?.message || String(e)));
+      parsed = null; blocks = [];
+      els.preview.textContent = "{}";
+      drawEmpty();
+      updateButtons();
+      showErr("JSONの読み込みに失敗しました: " + (e?.message || String(e)));
     }
-    updateButtonState();
-  });
+  }
 
-  $yawOffset.addEventListener("change", () => { rerender(); updateButtonState(); });
-  [$title,$desc,$tags,$mv].forEach(el => el.addEventListener("input", updateButtonState));
-
-  $btn.addEventListener("click", async () => {
-    if (!parsedJson) return;
-
-    // 未ログインならログイン導線を出して終了
-    if (!isLoggedIn) {
-      $loginLink.style.display = "inline-block";
-      setResult({ ok:false, error:"login_required" });
-      updateButtonState();
-      return;
+  function summarize(json) {
+    const b = Array.isArray(json.blocks) ? json.blocks : [];
+    let minX=Infinity,minY=Infinity,minZ=Infinity,maxX=-Infinity,maxY=-Infinity,maxZ=-Infinity;
+    for (const it of b) {
+      const x=it?.x, y=it?.y, z=it?.z;
+      if (typeof x!=="number"||typeof y!=="number"||typeof z!=="number") continue;
+      if (x<minX) minX=x; if (y<minY) minY=y; if (z<minZ) minZ=z;
+      if (x>maxX) maxX=x; if (y>maxY) maxY=y; if (z>maxZ) maxZ=z;
     }
-
-    const email = normEmail(loggedInEmail);
-    const authorName = email ? email.split("@")[0].slice(0, 60) : "unknown";
-
-    const commonMeta = {
-      title: $title.value.trim(),
-      description: $desc.value.trim(),
-      tags: ($tags.value||"").split(",").map(s=>s.trim()).filter(Boolean),
-      mod_version: $mv.value.trim(),
-      yaw_offset_quarter: Number($yawOffset.value || "0"),
+    const size = (minX!==Infinity) ? { x:(maxX-minX+1), y:(maxY-minY+1), z:(maxZ-minZ+1) } : null;
+    return {
+      file: { name: els.file.files?.[0]?.name || null, size: els.file.files?.[0]?.size || null },
+      blocks: b.length,
+      aabb: size ? { size, min:{x:minX,y:minY,z:minZ}, max:{x:maxX,y:maxY,z:maxZ} } : null,
+      frontYaw: json.frontYaw ?? null,
+      yaw_offset_quarter: json.yaw_offset_quarter ?? null
     };
+  }
 
-    let payload = null;
+  // ----------- Palette & cube shading (kept consistent) ----------
+  const PALETTE = {
+    // minimal baseline; server side palette is separate; this is preview only.
+    "minecraft:black_concrete": "#151515",
+    "minecraft:white_concrete": "#e6e6e6",
+    "minecraft:light_blue_concrete": "#3aa7ff",
+    "minecraft:orange_concrete": "#f28c28",
+    "minecraft:yellow_concrete": "#f1d92b",
+    "minecraft:blue_concrete": "#1f4bd6",
+    "minecraft:gold_block": "#d6b14a",
+    "minecraft:stone": "#8a8f99",
+    "minecraft:gray_concrete": "#5a5f66",
+    "minecraft:light_gray_concrete": "#b7bcc2",
+    "minecraft:purple_concrete": "#7b2fbf",
+    "minecraft:pink_concrete": "#f08fb2",
+    "minecraft:lime_concrete": "#7bdc2c",
+    "minecraft:green_concrete": "#3f8f2b",
+    "minecraft:air": null
+  };
 
-    if(!isEditMode){
-      payload = {
-        ...commonMeta,
+  function hexToRgb(hex) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex || "");
+    if (!m) return null;
+    const n = parseInt(m[1], 16);
+    return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 };
+  }
+  function shade(hex, f) {
+    const c = hexToRgb(hex);
+    if (!c) return hex;
+    const r = Math.max(0, Math.min(255, Math.round(c.r * f)));
+    const g = Math.max(0, Math.min(255, Math.round(c.g * f)));
+    const b = Math.max(0, Math.min(255, Math.round(c.b * f)));
+    return `rgb(${r},${g},${b})`;
+  }
+  function getColor(blockId) {
+    if (!blockId || blockId === "minecraft:air") return null;
+    const hex = PALETTE[blockId];
+    if (typeof hex === "string") return hex;
+    // fallback deterministic grayscale
+    let h = 0;
+    for (let i=0;i<blockId.length;i++) h = (h*31 + blockId.charCodeAt(i)) >>> 0;
+    const v = 60 + (h % 150);
+    return `rgb(${v},${v},${v})`;
+  }
 
-        // ★追加：サーバ側で author を確実に保存できるように送る
-        author_email: email,
-        author_name: authorName,
+  // ----------- Isometric projection fit (the fixed part) ----------
+  const ctx = els.cv.getContext("2d");
+  function drawEmpty() {
+    ctx.clearRect(0,0,els.cv.width,els.cv.height);
+  }
 
-        json: parsedJson
-      };
-    }else{
-      payload = { ...commonMeta };
+  function projectIso(x,y,z) {
+    // base iso: x to right-down, z to left-down, y up
+    return { px: (x - z), py: (x + z) * 0.5 - y };
+  }
+
+  function computeIsoBBox(blocks) {
+    // include cube extents (each cube is 1x1x1). We approximate by sampling 8 cube corners projected.
+    let minX=Infinity,minY=Infinity,minZ=Infinity,maxX=-Infinity,maxY=-Infinity,maxZ=-Infinity;
+    for (const b of blocks) {
+      const x=b?.x, y=b?.y, z=b?.z;
+      if (typeof x!=="number"||typeof y!=="number"||typeof z!=="number") continue;
+      if (x<minX) minX=x; if (y<minY) minY=y; if (z<minZ) minZ=z;
+      if (x>maxX) maxX=x; if (y>maxY) maxY=y; if (z>maxZ) maxZ=z;
+    }
+    if (minX===Infinity) return null;
+
+    let minPX=Infinity, minPY=Infinity, maxPX=-Infinity, maxPY=-Infinity;
+
+    function addPt(px,py) {
+      if (px<minPX) minPX=px;
+      if (py<minPY) minPY=py;
+      if (px>maxPX) maxPX=px;
+      if (py>maxPY) maxPY=py;
     }
 
-
-    // ownerUuid は必ず消す（念押し）
-    try{
-      if(payload.json && typeof payload.json === "object"){
-        payload.json.ownerUuid = "";
+    // cover full voxel bounds by scanning each block as cube (tight but safe)
+    for (const b of blocks) {
+      const x=b.x, y=b.y, z=b.z;
+      // 8 corners of cube
+      const corners = [
+        [x, y, z],
+        [x+1, y, z],
+        [x, y+1, z],
+        [x, y, z+1],
+        [x+1, y+1, z],
+        [x+1, y, z+1],
+        [x, y+1, z+1],
+        [x+1, y+1, z+1],
+      ];
+      for (const [cx,cy,cz] of corners) {
+        const p = projectIso(cx,cy,cz);
+        addPt(p.px, p.py);
       }
-    }catch{}
+    }
 
-    setResult("送信中...");
+    return { minPX, minPY, maxPX, maxPY };
+  }
+
+  function render() {
+    drawEmpty();
+    if (!blocks || blocks.length===0) return;
+
+    // compute bbox in iso space
+    const bbox = computeIsoBBox(blocks);
+    if (!bbox) return;
+
+    const W = els.cv.width, H = els.cv.height;
+    const margin = 24;
+
+    const bw = bbox.maxPX - bbox.minPX;
+    const bh = bbox.maxPY - bbox.minPY;
+
+    // scale so it fits
+    const s = Math.min((W - margin*2) / (bw || 1), (H - margin*2) / (bh || 1));
+
+    // center
+    const cx = (bbox.minPX + bbox.maxPX) * 0.5;
+    const cy = (bbox.minPY + bbox.maxPY) * 0.5;
+    const ox = W * 0.5 - cx * s;
+    const oy = H * 0.55 - cy * s; // slightly lower feels nicer
+
+    // sort blocks back-to-front
+    const sorted = blocks
+      .filter(b => b && typeof b.x==="number" && typeof b.y==="number" && typeof b.z==="number")
+      .slice()
+      .sort((a,b) => (a.x+a.z+a.y*2) - (b.x+b.z+b.y*2));
+
+    // cube draw parameters
+    const tile = s * 1.0;      // base unit
+    const halfW = tile * 0.5;
+    const halfH = tile * 0.25;
+    const h = tile * 0.5;
+
+    for (const b of sorted) {
+      const col = getColor(b.id || b.block || b.name || b.type || b.blockId || b.block_id);
+      if (!col) continue;
+
+      const p = projectIso(b.x, b.y, b.z);
+      const x = ox + p.px * s;
+      const y = oy + p.py * s;
+
+      // top
+      ctx.beginPath();
+      ctx.moveTo(x, y - h);
+      ctx.lineTo(x + halfW, y - h + halfH);
+      ctx.lineTo(x, y - h + halfH*2);
+      ctx.lineTo(x - halfW, y - h + halfH);
+      ctx.closePath();
+      ctx.fillStyle = shade(col, 1.15);
+      ctx.fill();
+
+      // left
+      ctx.beginPath();
+      ctx.moveTo(x - halfW, y - h + halfH);
+      ctx.lineTo(x, y - h + halfH*2);
+      ctx.lineTo(x, y + halfH*2);
+      ctx.lineTo(x - halfW, y + halfH);
+      ctx.closePath();
+      ctx.fillStyle = shade(col, 0.85);
+      ctx.fill();
+
+      // right
+      ctx.beginPath();
+      ctx.moveTo(x + halfW, y - h + halfH);
+      ctx.lineTo(x, y - h + halfH*2);
+      ctx.lineTo(x, y + halfH*2);
+      ctx.lineTo(x + halfW, y + halfH);
+      ctx.closePath();
+      ctx.fillStyle = shade(col, 0.95);
+      ctx.fill();
+    }
+  }
+
+  // ----------- Submit -----------
+  async function doSubmit() {
+    if (!parsed) { showErr("JSONが未読み込みです"); return; }
+    if (!(whoami && whoami.ok && whoami.email)) { showErr("ログインが必要です"); return; }
+
+    els.btnSubmit.disabled = true;
+    showOk("送信中...");
+
     try {
-      const resp = await fetch(isEditMode ? `/api/submissions/${encodeURIComponent(editId)}` : "/api/submit", {
-        method: isEditMode ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        credentials: "include"
+      const payload = {
+        title: els.title.value.trim() || null,
+        description: els.desc.value.trim() || null,
+        tags: els.tags.value.trim() || null,
+        mod_version: els.modver.value.trim() || null,
+        yaw: els.yaw.value ? parseInt(els.yaw.value,10) : 0,
+        json: parsed
+      };
+
+      const res = await fetch(API + "/api/submit", {
+        method: "POST",
+        headers: { "content-type":"application/json" },
+        credentials: "include",
+        body: JSON.stringify(payload)
       });
 
-      const text = await resp.text();
-      let data; try { data = JSON.parse(text); } catch { data = { raw: text }; }
+      const data = await res.json().catch(() => ({}));
+      els.result.textContent = JSON.stringify(data, null, 2);
 
-      if (resp.status === 401 || resp.status === 403) {
-        $loginLink.style.display = "inline-block";
+      if (!res.ok || !data.ok) {
+        showErr("送信に失敗しました: " + (data.error || res.status));
+        els.btnSubmit.disabled = false;
+        return;
       }
 
-            // In edit mode, if user chose a new JSON file, update JSON separately
-      if (isEditMode && resp.ok && jsonDirty) {
-        try {
-          const jr = await fetch(`/api/submissions/${encodeURIComponent(editId)}/json`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ json: parsedJson }),
-            credentials: "include"
-          });
-          const jt = await jr.text();
-          let jd; try { jd = JSON.parse(jt); } catch { jd = { raw: jt }; }
-          // Merge json-update result (do not overwrite main ok/http)
-          data = { ...data, json_update: { http: jr.status, ok: jr.ok, ...jd } };
-          if (jr.ok) jsonDirty = false;
-        } catch (e) {
-          data = { ...data, json_update_error: (e?.message || String(e)) };
-        }
-      }
-
-setResult({ http: resp.status, ok: resp.ok, ...data });
-
-      // screenshots: enable upload once we have submission id
-      try {
-        if (resp.ok && data && data.id) {
-          lastSubmissionId = data.id;
-          refreshScreenButtons();
-        }
-      } catch (_) {}
-
-      // ✅ 送信成功時：一覧へ戻る案内（自動遷移は短め・好みでOFF可能）
-      try {
-        const $after = document.getElementById("afterSuccess");
-        if ($after && resp.ok && (data && (data.ok === true || data.id || data.submission_no || data.unit_id))) {
-          const backUrl = "/";
-          $after.style.display = "block";
-          $after.innerHTML = `送信完了。<a href="${backUrl}">一覧に戻る</a> ／ <a href="/unit?id=${encodeURIComponent(lastSubmissionId)}">詳細ページ</a>（自動では戻りません）`;
-      } catch (_) {}
+      submissionId = data.id || data.submission_id || data.submissionId || null;
+      updateButtons();
+      showOk("送信完了！このページは自動では戻りません。下のボタンからスクショアップロードや詳細ページへ進めます。");
 
     } catch (e) {
-      setResult("送信失敗: " + (e?.message || String(e)));
+      showErr("送信エラー: " + (e?.message || String(e)));
+    } finally {
+      updateButtons();
     }
+  }
+
+  // ----------- Screenshot upload -----------
+  async function uploadShotBlob(blob, filename) {
+    if (!submissionId) { showErr("先に投稿を完了してください（submission_id未確定）"); return; }
+    if (!(whoami && whoami.ok && whoami.email)) { showErr("ログインが必要です"); return; }
+
+    try {
+      const fd = new FormData();
+      fd.append("file", blob, filename || "shot.webp");
+
+      const res = await fetch(API + `/api/submissions/${encodeURIComponent(submissionId)}/screens`, {
+        method: "POST",
+        credentials: "include",
+        body: fd
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) {
+        showErr("スクショアップロード失敗: " + (data.error || res.status));
+        return;
+      }
+      showOk("スクショアップロード成功！ unitページの「スクリーンショット」で確認できます。");
+      els.result.textContent = JSON.stringify(data, null, 2);
+    } catch (e) {
+      showErr("スクショアップロードエラー: " + (e?.message || String(e)));
+    }
+  }
+
+  // ----------- Wire up ----------
+  els.file.addEventListener("change", () => parseFile(els.file.files[0]));
+  els.btnSubmit.addEventListener("click", doSubmit);
+
+  els.btnUploadShot.addEventListener("click", async () => {
+    const f = els.shotFile.files && els.shotFile.files[0];
+    if (!f) { showErr("スクショファイルを選んでください"); return; }
+    const blob = f.slice(0, f.size, f.type || "image/png");
+    await uploadShotBlob(blob, f.name || "shot.png");
   });
+
+  els.btnUploadShotFromCanvas.addEventListener("click", async () => {
+    const blob = await new Promise((resolve) => els.cv.toBlob(resolve, "image/webp", 0.92));
+    if (!blob) { showErr("canvasからスクショ生成に失敗しました"); return; }
+    await uploadShotBlob(blob, "preview.webp");
+  });
+
+  // initial
+  drawEmpty();
+  loadWhoami(); // do not block
 })();
 </script>
 
