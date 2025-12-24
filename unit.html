@@ -49,6 +49,7 @@
 
       <div class="actions">
         <a id="downloadBtn" class="btn primary" href="#" download>Download JSON</a>
+        <a id="editBtn" class="btn" href="#" style="display:none">編集</a>
         <button id="copyBtn" class="btn" type="button">使い方をコピー</button>
       </div>
 
@@ -77,6 +78,8 @@
 <script>
 (() => {
   const API_LIST = "/api/public/submissions";
+  const API_U = (no) => `/api/public/u/${no}`;
+  const API_WHOAMI = "/api/whoami";
   const API_JSON = (id) => `/api/public/submissions/${id}/json`;
   const API_DL   = (id) => `/api/public/submissions/${id}/download`;
 
@@ -124,14 +127,16 @@
     }
 
     const isNo = /^\d+$/.test(key);
-    const list = await fetchApprovedList();
 
     let item = null;
     if(isNo){
       const no = Number(key);
-      item = list.find(x => Number(x.submission_no ?? 0) === no) || null;
+      const r = await fetch(API_U(no), { cache:"no-store" });
+      const data = await r.json().catch(()=>null);
+      if(r.ok && data && data.ok && data.item) item = data.item;
     }else{
-      item = list.find(x => String(x.id) === key) || null;
+      // 現状は一覧（submission_no）からの遷移を前提にしています
+      item = null;
     }
 
     if(!item){
@@ -156,6 +161,23 @@
 
     el("downloadBtn").href = API_DL(item.id);
     el("howto").textContent = buildHowTo(item.unit_id);
+
+    // 編集（投稿者 or 管理者のみ）
+    try{
+      const rMe = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
+      const me = await rMe.json().catch(()=>null);
+      const meEmail = String(me && me.email || "").trim().toLowerCase();
+      const meIsAdmin = Boolean(me && me.is_admin);
+
+      const ownerEmail = String(item.author_email || "").trim().toLowerCase();
+      const canEdit = !!(meIsAdmin || (meEmail && ownerEmail && meEmail === ownerEmail));
+
+      if (canEdit) {
+        const eb = el("editBtn");
+        eb.href = `/submit?edit=${encodeURIComponent(item.id)}`;
+        eb.style.display = "inline-flex";
+      }
+    }catch{}
 
     let jsonLoaded = false;
     const jsonDetails = el("jsonDetails");
