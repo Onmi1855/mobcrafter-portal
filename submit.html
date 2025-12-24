@@ -721,16 +721,8 @@ setResult({ http: resp.status, ok: resp.ok, ...data });
         const $after = document.getElementById("afterSuccess");
         if ($after && resp.ok && (data && (data.ok === true || data.id || data.submission_no || data.unit_id))) {
           const backUrl = "/";
-          let sec = 2;
           $after.style.display = "block";
-          const tick = () => {
-            $after.innerHTML = `送信完了。<a href="${backUrl}">一覧に戻る</a>（${sec}秒で自動で戻ります）`;
-            if (sec <= 0) { location.href = backUrl; return; }
-            sec -= 1;
-            setTimeout(tick, 1000);
-          };
-          tick();
-        }
+          $after.innerHTML = `送信完了。<a href="${backUrl}">一覧に戻る</a> ／ <a href="/unit?id=${encodeURIComponent(lastSubmissionId)}">詳細ページ</a>（自動では戻りません）`;
       } catch (_) {}
 
     } catch (e) {
