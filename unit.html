@@ -95,6 +95,8 @@
   const API_DL   = (id) => `/api/public/submissions/${id}/download`;
   const API_PUBLIC_SCREENS = (id)=>`/api/public/submissions/${encodeURIComponent(id)}/screens`;
   const API_PUBLIC_SCREEN  = (sid)=>`/api/public/screens/${encodeURIComponent(sid)}`;
+  const API_PRIVATE_SCREENS = (id)=>`/api/submissions/${encodeURIComponent(id)}/screens`;
+  const API_PRIVATE_SCREEN  = (sid)=>`/api/screens/${encodeURIComponent(sid)}`;
 
   // auth state (filled by /api/whoami)
   let isLoggedIn = false;
@@ -163,7 +165,9 @@
     grid.innerHTML = "";
     msg.textContent = "読み込み中...";
     try{
-      const r = await fetch(API_PUBLIC_SCREENS(submissionId), { cache:"no-store" });
+      const isAuthed = !!(auth && auth.email);
+      const url = isAuthed ? API_PRIVATE_SCREENS(submissionId) : API_PUBLIC_SCREENS(submissionId);
+      const r = await fetch(url, { cache:"no-store", credentials: "include" });
       const data = await r.json().catch(()=>null);
       if(!r.ok || !data || data.ok !== true){
         msg.textContent = "取得できませんでした。";
@@ -179,7 +183,7 @@
         const img = document.createElement("img");
         img.loading = "lazy";
         img.alt = "screenshot";
-        img.src = API_PUBLIC_SCREEN(s.id);
+        img.src = (isAuthed ? API_PRIVATE_SCREEN(s.id) : API_PUBLIC_SCREEN(s.id));
         grid.appendChild(img);
       }
       det.open = true;
