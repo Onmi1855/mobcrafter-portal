@@ -93,6 +93,15 @@
     ※ 形状確認用の簡易表示です（色・質感は実物と異なります）
   </div>
 
+
+  <label>スクリーンショット（任意）</label>
+  <div class="actions">
+    <input type="file" id="screenFile" accept="image/*" />
+    <button id="btnUploadScreen" class="secondary" type="button" disabled>スクショをアップロード</button>
+    <button id="btnCaptureScreen" class="secondary" type="button" disabled>プレビューをスクショしてアップロード</button>
+  </div>
+  <div id="screenStatus" class="mini"></div>
+
   <label>結果</label>
   <pre id="result">未送信</pre>
   <div id="afterSuccess" class="mini" style="display:none; margin-top:8px;"></div>
@@ -118,6 +127,78 @@
   const $res   = document.getElementById("result");
   const $yawOffset = document.getElementById("yawOffset");
   const canvas = document.getElementById("canvas");
+
+
+  // --- Screenshots upload ---
+  const $screenFile = document.getElementById("screenFile");
+  const $btnUploadScreen = document.getElementById("btnUploadScreen");
+  const $btnCaptureScreen = document.getElementById("btnCaptureScreen");
+  const $screenStatus = document.getElementById("screenStatus");
+  let lastSubmissionId = null;
+
+  const setScreenStatus = (msg) => { if ($screenStatus) $screenStatus.textContent = msg || ""; };
+
+  const refreshScreenButtons = () => {
+    const hasId = !!lastSubmissionId;
+    const hasFile = $screenFile && $screenFile.files && $screenFile.files.length > 0;
+    if ($btnUploadScreen) $btnUploadScreen.disabled = !(hasId && hasFile);
+    if ($btnCaptureScreen) $btnCaptureScreen.disabled = !hasId;
+  };
+
+  const uploadScreenBlob = async (blob, filename, mime) => {
+    if (!lastSubmissionId) throw new Error("missing_submission_id");
+    const fd = new FormData();
+    fd.append("file", new File([blob], filename, { type: mime || blob.type || "image/png" }));
+    const resp = await fetch(`/api/submissions/${encodeURIComponent(lastSubmissionId)}/screens`, {
+      method: "POST",
+      body: fd,
+      credentials: "include",
+    });
+    const data = await resp.json().catch(()=>null);
+    if (!resp.ok || !data || data.ok !== true) {
+      const msg = (data && (data.error || data.message)) ? `${data.error || ""} ${data.message || ""}`.trim() : `HTTP ${resp.status}`;
+      throw new Error(msg);
+    }
+    return data;
+  };
+
+  if ($screenFile) {
+    $screenFile.addEventListener("change", () => {
+      setScreenStatus("");
+      refreshScreenButtons();
+    });
+  }
+  if ($btnUploadScreen) {
+    $btnUploadScreen.addEventListener("click", async () => {
+      try {
+        if (!$screenFile || !$screenFile.files || !$screenFile.files[0]) return;
+        setScreenStatus("アップロード中...");
+        const f = $screenFile.files[0];
+        await uploadScreenBlob(f, f.name || "screenshot.png", f.type || "image/png");
+        setScreenStatus("スクリーンショットを保存しました。");
+        $screenFile.value = "";
+        refreshScreenButtons();
+      } catch (e) {
+        setScreenStatus("失敗: " + (e?.message || String(e)));
+      }
+    });
+  }
+  if ($btnCaptureScreen) {
+    $btnCaptureScreen.addEventListener("click", async () => {
+      try {
+        setScreenStatus("キャプチャ中...");
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+        if (!blob) throw new Error("capture_failed");
+        setScreenStatus("アップロード中...");
+        await uploadScreenBlob(blob, "preview.png", "image/png");
+        setScreenStatus("プレビューのスクショを保存しました。");
+        refreshScreenButtons();
+      } catch (e) {
+        setScreenStatus("失敗: " + (e?.message || String(e)));
+      }
+    });
+  }
+
 
   let parsedJson = null;
   let jsonDirty = false;
@@ -626,6 +707,14 @@
       }
 
 setResult({ http: resp.status, ok: resp.ok, ...data });
+
+      // screenshots: enable upload once we have submission id
+      try {
+        if (resp.ok && data && data.id) {
+          lastSubmissionId = data.id;
+          refreshScreenButtons();
+        }
+      } catch (_) {}
 
       // ✅ 送信成功時：一覧へ戻る案内（自動遷移は短め・好みでOFF可能）
       try {
