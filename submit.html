@@ -78,7 +78,7 @@
 
   <div class="actions">
     <button id="btn" class="primary" disabled>送信</button>
-    <a id="loginLink" href="/api/login?next=/submit.html" style="display:none; padding:10px 14px; border-radius:12px; background:#2563eb; color:#fff; text-decoration:none;">ログインして投稿</a>
+    <a id="loginLink" href="/api/login?next=/submit" style="display:none; padding:10px 14px; border-radius:12px; background:#2563eb; color:#fff; text-decoration:none;">ログインして投稿</a>
     <span id="needLogin" class="mini">※ 送信はログイン必須</span>
   </div>
 
@@ -395,35 +395,116 @@
     const ctx = canvas.getContext("2d");
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0,0,w,h);
+
+    // background (keep)
     const g = ctx.createLinearGradient(0,0,0,h);
     g.addColorStop(0,"rgba(37,99,235,.10)");
     g.addColorStop(1,"rgba(22,163,74,.08)");
     ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
-    const blocks0 = unitJson.blocks;
+
+    const blocks0 = unitJson.blocks || [];
     const qTurns = yawToQuarterTurns(unitJson.frontYaw, extraOffsetQuarter);
+
+    // binning for speed (keep)
     const bin = chooseBinSize(blocks0.length);
     const blocks = binBlocks(blocks0, bin);
-    function drawPass(turns, alpha){
+
+    // Projected bounding box of ONE iso cube in "s-units"
+    // drawIsoCube uses:
+    //   sx = (x - z) * s
+    //   sy = (x + z) * s * 0.5 - y * s
+    // and the cube spans:
+    //   x: [sx - s, sx + s]
+    //   y: [sy - 0.5s, sy + 1.5s]
+    function computeBBoxUnits(transformed){
+      const inf = analyzeBlocks(transformed);
+      let minXu = Infinity, maxXu = -Infinity, minYu = Infinity, maxYu = -Infinity;
+      for (const b of transformed){
+        const x = (b.dx - inf.minX), y = (b.dy - inf.minY), z = (b.dz - inf.minZ);
+        const sxu = (x - z);
+        const syu = (x + z)*0.5 - y;
+        minXu = Math.min(minXu, sxu - 1);
+        maxXu = Math.max(maxXu, sxu + 1);
+        minYu = Math.min(minYu, syu - 0.5);
+        maxYu = Math.max(maxYu, syu + 1.5);
+      }
+      // if empty, fallback to 1 cube box
+      if (!isFinite(minXu)){
+        minXu = -1; maxXu = 1; minYu = -0.5; maxYu = 1.5;
+      }
+      return {inf, minXu, maxXu, minYu, maxYu, bboxWu:(maxXu-minXu), bboxHu:(maxYu-minYu)};
+    }
+
+    function buildTransformed(turns){
       const transformed = blocks.map(b=>{
         const r = rotateXZ(b.dx, b.dz, turns);
         return {dx:r.x, dy:b.dy, dz:r.z, blockId:b.blockId};
       });
-      const inf = analyzeBlocks(transformed);
-      const spanX = inf.sizeX + inf.sizeZ;
-      const spanY = inf.sizeY;
-      const s = Math.max(1.8, Math.min(w/(spanX+6), h/(spanY+10)) * 1.6);
-      const ox = w*0.5, oy = h*0.80;
+      // painter's order (keep)
       transformed.sort((a,b)=> (a.dx+a.dz) - (b.dx+b.dz) || (a.dy - b.dy));
-      ctx.save(); ctx.globalAlpha = alpha; ctx.translate(ox, oy);
+      return transformed;
+    }
+
+    // Decide camera(scale/offset) so that the full projected bbox fits in canvas
+    // This replaces the previous heuristic (spanX/spanY) that caused clipping on big/wide models.
+    function computeFitParams(bbox){
+      const margin = 14; // px
+      const sFit = Math.min(
+        (w - margin*2) / Math.max(1e-6, bbox.bboxWu),
+        (h - margin*2) / Math.max(1e-6, bbox.bboxHu)
+      );
+      const s = Math.max(1.0, sFit); // keep at least 1px-ish
+      const cxu = (bbox.minXu + bbox.maxXu) * 0.5;
+      const cyu = (bbox.minYu + bbox.maxYu) * 0.5;
+      const ox = w*0.5 - cxu * s;
+      const oy = h*0.5 - cyu * s;
+      return {s, ox, oy};
+    }
+
+    // When yaw is unknown, we draw 2 passes (front/back). Use UNION bbox so both always fit.
+    function unionBBox(a,b){
+      return {
+        inf: a.inf, // not used by union fit (each pass uses its own inf for shifting)
+        minXu: Math.min(a.minXu,b.minXu),
+        maxXu: Math.max(a.maxXu,b.maxXu),
+        minYu: Math.min(a.minYu,b.minYu),
+        maxYu: Math.max(a.maxYu,b.maxYu),
+        bboxWu: Math.max(a.maxXu,b.maxXu) - Math.min(a.minXu,b.minXu),
+        bboxHu: Math.max(a.maxYu,b.maxYu) - Math.min(a.minYu,b.minYu),
+      };
+    }
+
+    function drawPass(turns, alpha, fit){
+      const transformed = buildTransformed(turns);
+      const bb = computeBBoxUnits(transformed);
+      const s = fit.s, ox = fit.ox, oy = fit.oy;
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(ox, oy);
+
       const stroke = (s >= 3);
       for(const b of transformed){
-        const x = (b.dx - inf.minX), y = (b.dy - inf.minY), z = (b.dz - inf.minZ);
+        const x = (b.dx - bb.inf.minX), y = (b.dy - bb.inf.minY), z = (b.dz - bb.inf.minZ);
         drawIsoCube(ctx, x, y, z, s, pickBaseColor(b.blockId), stroke);
       }
       ctx.restore();
     }
-    if(qTurns == null){ drawPass(0, 1.0); drawPass(2, 0.33); }
-    else{ drawPass(qTurns, 1.0); }
+
+    if(qTurns == null){
+      const t0 = buildTransformed(0);
+      const t2 = buildTransformed(2);
+      const bb0 = computeBBoxUnits(t0);
+      const bb2 = computeBBoxUnits(t2);
+      const fit = computeFitParams(unionBBox(bb0, bb2));
+      drawPass(0, 1.0, fit);
+      drawPass(2, 0.33, fit);
+    } else {
+      const t = buildTransformed(qTurns);
+      const bb = computeBBoxUnits(t);
+      const fit = computeFitParams(bb);
+      drawPass(qTurns, 1.0, fit);
+    }
   }
 
   function rerender(){
