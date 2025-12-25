@@ -634,7 +634,7 @@ if ($screenFile && $screenPreview) {
 
     setResult("送信中...");
     try {
-      const resp = await fetch(isEditMode ? `/api/submissions/${encodeURIComponent(editId)}` : "/api/submit", {
+      const resp = await fetch(isEditMode ? `/api/submissions/${encodeURIComponent(editId)}` : "/api/my/submissions", {
         method: isEditMode ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
