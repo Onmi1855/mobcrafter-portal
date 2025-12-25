@@ -96,6 +96,25 @@
   <label>結果</label>
   <pre id="result">未送信</pre>
   <div id="afterSuccess" class="mini" style="display:none; margin-top:8px;"></div>
+  <!-- === Screenshot Upload (after success only) === -->
+<div id="screenBox" style="display:none; margin-top:12px; padding:12px; border:1px dashed #cbd5e1; border-radius:12px; background:#f8fafc;">
+  <div><strong>スクリーンショット（任意）</strong></div>
+  <div class="mini">※ JSON 投稿成功後のみアップロードできます</div>
+
+  <label style="margin-top:8px;">画像ファイル</label>
+  <input id="screenFile" type="file" accept="image/*" />
+
+  <div style="display:flex; gap:14px; align-items:center; margin-top:8px;">
+    <label><input type="radio" name="thumbMode" value="3d" checked> サムネ：3D</label>
+    <label><input type="radio" name="thumbMode" value="screen"> サムネ：このスクショ</label>
+  </div>
+
+  <div class="actions">
+    <button id="btnUploadScreen" class="secondary">スクショをアップロード</button>
+    <span id="screenResult" class="mini"></span>
+  </div>
+</div>
+
 </div>
 
 <script>
@@ -121,6 +140,7 @@
 
   let parsedJson = null;
   let jsonDirty = false;
+  let lastSubmissionId = "";
 
   // --- Edit mode (B案) ---
   const params = new URLSearchParams(location.search);
@@ -630,18 +650,26 @@ setResult({ http: resp.status, ok: resp.ok, ...data });
       // ✅ 送信成功時：自動で戻さず「成功」を明確表示（ユーザーが選んで遷移）
       try {
         const $after = document.getElementById("afterSuccess");
-        if ($after && resp.ok) {
-          // Worker 側の返却キー揺れに耐える（unit_id / id / submission_id etc）
-          const unitId =
-            (data && (data.unit_id || data.unitId || data.id || data.submission_id || data.submissionId)) || "";
-          const unitUrl = unitId ? ("/unit?id=" + encodeURIComponent(unitId)) : "";
-          const backUrl = "/";
-          $after.style.display = "block";
-          $after.innerHTML =
-            `✅ 送信完了。` +
-            (unitUrl ? ` <a href="${unitUrl}">個別ページを見る</a>` : ``) +
-            ` / <a href="${backUrl}">一覧に戻る</a>`;
-        }
+if ($after && resp.ok) {
+  const unitId =
+    (data && (data.unit_id || data.unitId || data.id || data.submission_id || data.submissionId)) || "";
+
+  lastSubmissionId = unitId;
+
+  const unitUrl = unitId ? ("/unit?id=" + encodeURIComponent(unitId)) : "";
+  const backUrl = "/";
+
+  $after.style.display = "block";
+  $after.innerHTML =
+    `✅ 送信完了。` +
+    (unitUrl ? ` <a href="${unitUrl}">個別ページを見る</a>` : ``) +
+    ` / <a href="${backUrl}">一覧に戻る</a>`;
+
+  // ★ ここでスクショ UI を解放
+  const box = document.getElementById("screenBox");
+  if (box && unitId) box.style.display = "block";
+}
+
       } catch (_) {}
 } catch (e) {
       setResult("送信失敗: " + (e?.message || String(e)));
