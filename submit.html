@@ -732,7 +732,7 @@ if ($btnUpload) {
 
     try {
       const r = await fetch(
-        `/api/my/submissions/${encodeURIComponent(lastSubmissionId)}/screens`,
+        `/api/submissions/${encodeURIComponent(lastSubmissionId)}/screens`,
         {
           method: "POST",
           body: fd,
