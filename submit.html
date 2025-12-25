@@ -627,24 +627,23 @@
 
 setResult({ http: resp.status, ok: resp.ok, ...data });
 
-      // ✅ 送信成功時：一覧へ戻る案内（自動遷移は短め・好みでOFF可能）
+      // ✅ 送信成功時：自動で戻さず「成功」を明確表示（ユーザーが選んで遷移）
       try {
         const $after = document.getElementById("afterSuccess");
-        if ($after && resp.ok && (data && (data.ok === true || data.id || data.submission_no || data.unit_id))) {
+        if ($after && resp.ok) {
+          // Worker 側の返却キー揺れに耐える（unit_id / id / submission_id etc）
+          const unitId =
+            (data && (data.unit_id || data.unitId || data.id || data.submission_id || data.submissionId)) || "";
+          const unitUrl = unitId ? ("/unit?id=" + encodeURIComponent(unitId)) : "";
           const backUrl = "/";
-          let sec = 2;
           $after.style.display = "block";
-          const tick = () => {
-            $after.innerHTML = `送信完了。<a href="${backUrl}">一覧に戻る</a>（${sec}秒で自動で戻ります）`;
-            if (sec <= 0) { location.href = backUrl; return; }
-            sec -= 1;
-            setTimeout(tick, 1000);
-          };
-          tick();
+          $after.innerHTML =
+            `✅ 送信完了。` +
+            (unitUrl ? ` <a href="${unitUrl}">個別ページを見る</a>` : ``) +
+            ` / <a href="${backUrl}">一覧に戻る</a>`;
         }
       } catch (_) {}
-
-    } catch (e) {
+} catch (e) {
       setResult("送信失敗: " + (e?.message || String(e)));
     }
   });
