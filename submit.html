@@ -679,10 +679,17 @@ setResult({ http: resp.status, ok: resp.ok, ...data });
       try {
         const $after = document.getElementById("afterSuccess");
 if ($after && resp.ok) {
-  const unitId =
-    (data && (data.unit_id || data.unitId || data.id || data.submission_id || data.submissionId)) || "";
+const submissionId =
+  (data && (data.id || data.submission_id || data.submissionId)) || "";
 
-  lastSubmissionId = unitId;
+const unitId =
+  (data && (data.unit_id || data.unitId)) || "";
+
+lastSubmissionId = submissionId; // ★スクショ用は submissionId
+
+// 表示用リンクは unitId を使う（これはOK）
+const unitUrl = unitId ? ("/unit?id=" + encodeURIComponent(unitId)) : "";
+
 
   const unitUrl = unitId ? ("/unit?id=" + encodeURIComponent(unitId)) : "";
   const backUrl = "/";
