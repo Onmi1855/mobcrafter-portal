@@ -565,52 +565,6 @@
   [$title,$desc,$tags,$mv].forEach(el => el.addEventListener("input", updateButtonState));
 
   $btn.addEventListener("click", async () => {
-    // === Screenshot upload ===
-const $btnUpload = document.getElementById("btnUploadScreen");
-const $screenFile = document.getElementById("screenFile");
-const $screenResult = document.getElementById("screenResult");
-
-if ($btnUpload) {
-  $btnUpload.addEventListener("click", async () => {
-    if (!lastSubmissionId) {
-      $screenResult.textContent = "submission_id が取得できていません";
-      return;
-    }
-    const f = $screenFile.files && $screenFile.files[0];
-    if (!f) {
-      $screenResult.textContent = "画像を選択してください";
-      return;
-    }
-
-    const fd = new FormData();
-    fd.append("file", f);
-
-    const thumbMode =
-      document.querySelector('input[name="thumbMode"]:checked')?.value || "3d";
-    fd.append("thumb_mode", thumbMode);
-
-    $screenResult.textContent = "アップロード中...";
-
-    try {
-      const r = await fetch(`/api/submissions/${encodeURIComponent(lastSubmissionId)}/screens`, {
-        method: "POST",
-        body: fd,
-        credentials: "include"
-      });
-      const t = await r.text();
-      let d; try { d = JSON.parse(t); } catch { d = { raw: t }; }
-
-      if (!r.ok) {
-        $screenResult.textContent = "失敗: " + r.status;
-        return;
-      }
-      $screenResult.textContent = "アップロード成功";
-    } catch (e) {
-      $screenResult.textContent = "アップロード失敗";
-    }
-  });
-}
-
     if (!parsedJson) return;
 
     // 未ログインならログイン導線を出して終了
@@ -721,6 +675,57 @@ if ($after && resp.ok) {
       setResult("送信失敗: " + (e?.message || String(e)));
     }
   });
+  // === Screenshot upload (standalone) ===
+const $btnUpload = document.getElementById("btnUploadScreen");
+const $screenFile = document.getElementById("screenFile");
+const $screenResult = document.getElementById("screenResult");
+
+if ($btnUpload) {
+  $btnUpload.addEventListener("click", async () => {
+    if (!lastSubmissionId) {
+      $screenResult.textContent = "submission_id が取得できていません";
+      return;
+    }
+
+    const f = $screenFile.files && $screenFile.files[0];
+    if (!f) {
+      $screenResult.textContent = "画像を選択してください";
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append("file", f);
+
+    const thumbMode =
+      document.querySelector('input[name="thumbMode"]:checked')?.value || "3d";
+    fd.append("thumb_mode", thumbMode);
+
+    $screenResult.textContent = "アップロード中...";
+
+    try {
+      const r = await fetch(
+        `/api/my/submissions/${encodeURIComponent(lastSubmissionId)}/screens`,
+        {
+          method: "POST",
+          body: fd,
+          credentials: "include"
+        }
+      );
+
+      const t = await r.text();
+      let d; try { d = JSON.parse(t); } catch { d = { raw:t }; }
+
+      if (!r.ok) {
+        $screenResult.textContent = "失敗: " + r.status;
+        return;
+      }
+      $screenResult.textContent = "アップロード成功";
+    } catch (e) {
+      $screenResult.textContent = "アップロード失敗";
+    }
+  });
+}
+
 })();
 </script>
 
