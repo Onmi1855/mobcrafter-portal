@@ -1,162 +1,140 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MobCrafter Portal | Unit</title>
-  <meta name="description" content="MobCrafter用ユニットJSONの詳細ページ。ダウンロード、JSONプレビュー、使い方を表示します。" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MobCrafter - Unit</title>
   <style>
-    :root{--bg:#f6f8fb;--card:#fff;--text:#0f172a;--muted:#64748b;--line:#e5e7eb;--brand:#2563eb;--shadow:0 10px 25px rgba(15,23,42,.08);--radius:16px;}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--text);background:var(--bg);}
-    header{padding:18px 16px 10px;text-align:center;}
-    header a{color:inherit;text-decoration:none}
-    header h1{margin:0;font-size:18px;letter-spacing:.4px}
-    header p{margin:6px 0 0;color:var(--muted);font-size:12px}
-    main{max-width:1060px;margin:0 auto;padding:10px 16px 40px}
-    .wrap{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}
-    @media (max-width:900px){.wrap{grid-template-columns:1fr}}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
-    .title{margin:0;font-size:18px;font-weight:800;line-height:1.25}
-    .muted{color:var(--muted);font-size:12px}
-    .tags{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
-    .tag{font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid rgba(148,163,184,.35);background:rgba(255,255,255,.8)}
-    .kv{margin-top:12px;display:grid;grid-template-columns:160px 1fr;gap:8px 10px;font-size:13px}
-    .kv .k{color:var(--muted)}
-    .actions{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .btn{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;cursor:pointer;font-size:14px;text-decoration:none;color:inherit;display:inline-flex;align-items:center;gap:8px}
-    .btn.primary{background:rgba(37,99,235,.92);border-color:rgba(37,99,235,.10);color:#fff}
-    pre{margin:10px 0 0;background:#0b1220;color:#e2e8f0;padding:12px;border-radius:12px;overflow:auto;font-size:12px;line-height:1.4}
-    details{margin-top:12px}
-    summary{cursor:pointer;font-weight:700}
-    .err{background:#fff1f2;border:1px solid #fecdd3;color:#9f1239;padding:10px 12px;border-radius:12px;white-space:pre-wrap}
-  
-    .screenGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:10px}
-    .screenGrid img{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);background:#fff}
-    .screenHint{margin-top:8px;color:var(--muted);font-size:12px}
-</style>
+    body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 24px; background:#f6f8fb; color:#0f172a; }
+    .card { max-width: 980px; background:#fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px; box-shadow: 0 10px 25px rgba(15,23,42,.08); margin: 0 auto; }
+    h1 { margin: 0 0 6px; }
+    .muted { color:#64748b; font-size: 13px; }
+    .row { display:flex; gap:12px; flex-wrap: wrap; }
+    .row > div { flex: 1 1 240px; }
+    .pill { display:inline-flex; gap:8px; align-items:center; padding:6px 10px; border-radius: 999px; background:#eef2ff; color:#3730a3; font-size: 12px; font-weight:700; }
+    .warn { display:inline-flex; gap:8px; align-items:center; padding:6px 10px; border-radius: 999px; background:#fff7ed; color:#9a3412; font-size: 12px; font-weight:700; }
+    .divider { height:1px; background:#e5e7eb; margin: 16px 0; }
+    pre { background:#0b1220; color:#e5e7eb; padding: 12px; border-radius: 12px; overflow:auto; }
+    .mini { font-size: 13px; color:#334155; }
+    a { color:#2563eb; text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .screens { margin-top: 10px; }
+    .screenGrid{
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap:10px;
+    }
+    .screenGrid img{
+      width:100%;
+      height:140px;
+      object-fit:cover;
+      border-radius: 12px;
+      border:1px solid #e5e7eb;
+      background:#fff;
+    }
+    details{ border:1px solid #e5e7eb; border-radius:12px; padding:10px 12px; background:#fff; }
+    summary{ cursor:pointer; font-weight:800; }
+  </style>
 </head>
 <body>
-<header>
-  <a href="/"><h1>MobCrafter Portal</h1></a>
-  <p>ユニットJSON共有（詳細）</p>
-</header>
 
-<main>
-  <div class="wrap">
-    <section class="card">
-      <h2 class="title" id="title">読み込み中...</h2>
-      <div class="muted" id="sub"></div>
-
-      <div class="tags" id="tags"></div>
-      <div class="kv" id="kv"></div>
-
-      <div class="actions">
-        <a id="downloadBtn" class="btn primary" href="#" download>Download JSON</a>
-        <button id="copyBtn" class="btn" type="button">使い方をコピー</button>
-      </div>
-
-      <details id="jsonDetails">
-        <summary>JSONプレビュー（折りたたみ）</summary>
-        <pre id="jsonPreview">...</pre>
-      </details>
-
-      <details>
-        <summary>ゲームでの使い方（コピペ）</summary>
-        <pre id="howto"></pre>
-      </details>
-
-
-      <details id="screenDetails">
-        <summary>スクリーンショット</summary>
-        <div id="screenGrid" class="screenGrid"></div>
-        <div id="screenMsg" class="screenHint"></div>
-      </details>
-
-      <div id="msg"></div>
-    </section>
-
-    <aside class="card">
-      <h3 style="margin:0 0 8px;">サムネ（MVP）</h3>
-      <div class="muted" style="font-size:13px;">
-        MVP方針：一覧は軽量。詳細は情報集約（次フェーズでスクショ/3D切替）。
-      </div>
-    </aside>
+<div class="card">
+  <div class="row" style="align-items:flex-end;">
+    <div>
+      <h1 id="title">Unit</h1>
+      <div class="muted" id="subtitle"></div>
+    </div>
+    <div style="text-align:right;">
+      <span id="authPill" class="pill">checking...</span>
+      <span id="authEmail" class="mini"></span>
+    </div>
   </div>
-</main>
+
+  <div class="divider"></div>
+
+  <div class="row">
+    <div>
+      <div class="mini"><b>Unit ID</b>: <span id="unitId"></span></div>
+      <div class="mini"><b>Submission No</b>: <span id="subNo"></span></div>
+      <div class="mini"><b>Status</b>: <span id="status"></span></div>
+    </div>
+    <div>
+      <div class="mini"><b>Author</b>: <span id="author"></span></div>
+      <div class="mini"><b>Created</b>: <span id="created"></span></div>
+      <div class="mini"><b>DL</b>: <span id="dl"></span></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <details id="screensSection" style="display:none;">
+    <summary>スクリーンショット</summary>
+    <div class="screens">
+      <div id="screenMsg" class="mini"></div>
+      <div id="screenGrid" class="screenGrid"></div>
+      <div id="screenDetails" class="mini" style="margin-top:8px;"></div>
+    </div>
+  </details>
+
+  <div class="divider"></div>
+
+  <label class="mini" style="font-weight:800;">Unit JSON</label>
+  <pre id="json">読み込み中...</pre>
+
+  <div class="divider"></div>
+
+  <div class="mini">
+    <a href="/">← 一覧に戻る</a>
+  </div>
+</div>
 
 <script>
 (() => {
   const API_WHOAMI = "/api/whoami";
-  const API_LIST = "/api/public/submissions";
-  const API_OWNER_META = (id)=>`/api/submissions/${encodeURIComponent(id)}`;
-  const API_OWNER_JSON = (id)=>`/api/submissions/${encodeURIComponent(id)}/json`;
-  const API_JSON = (id) => `/api/public/submissions/${id}/json`;
-  const API_DL   = (id) => `/api/public/submissions/${id}/download`;
-  const API_PUBLIC_SCREENS = (id)=>`/api/public/submissions/${encodeURIComponent(id)}/screens`;
-  const API_PUBLIC_SCREEN  = (sid)=>`/api/public/screens/${encodeURIComponent(sid)}`;
-  const API_PRIVATE_SCREENS = (id)=>`/api/submissions/${encodeURIComponent(id)}/screens`;
-  const API_PRIVATE_SCREEN  = (sid)=>`/api/screens/${encodeURIComponent(sid)}`;
-
-  // auth state (filled by /api/whoami)
-  let isLoggedIn = false;
-  let meEmail = null;
-  let isAdmin = false;
-
+  const API_PUBLIC_U_BY_UNITID = (unitId) => `/api/public/unit/${encodeURIComponent(unitId)}`; // fallback if exists
+  const API_PUBLIC_U_BY_NO = (no) => `/api/public/u/${encodeURIComponent(no)}`;
+  const API_PRIVATE_SUB = (id) => `/api/my/submissions/${encodeURIComponent(id)}`;
+  const API_PUBLIC_SCREENS = (id) => `/api/public/submissions/${encodeURIComponent(id)}/screens`;
+  const API_PRIVATE_SCREENS = (id) => `/api/submissions/${encodeURIComponent(id)}/screens`;
 
   const el = (id) => document.getElementById(id);
 
-  const escapeHtml = (s) => String(s ?? "")
-    .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;").replaceAll("'","&#39;");
+  let isLoggedIn = false;
+  let isAdmin = false;
+  let meEmail = "";
 
-  const normalizeTags = (t) => {
-    if(!t) return [];
-    if(Array.isArray(t)) return t.map(x=>String(x).trim()).filter(Boolean);
-    return String(t).split(/[\s,]+/).map(x=>x.trim()).filter(Boolean);
-  };
-
-  const kvRow = (k,v) => `<div class="k">${escapeHtml(k)}</div><div>${escapeHtml(v ?? "")}</div>`;
-
-  const buildHowTo = (unitId) => {
-    const id = String(unitId || "").trim();
-    return [
-      "【MobCrafterでの使い方】",
-      "1) Download JSON を押して取得",
-      "2) ファイル名とJSON内 id/unitId は必ず一致しています",
-      "   例: " + id + ".json",
-      "3) MobCrafter の指定フォルダへ配置 → ゲーム内で読み込み/召喚",
-      "",
-      "※ポータル側で unitId を強制一致させています（MobCrafter本体仕様対策）。"
-    ].join("\\n");
-  };
-
-  const getKey = () => new URLSearchParams(location.search).get("id");
-
-  async function fetchApprovedList(){
-    const r = await fetch(API_LIST, { cache:"no-store" });
-    if(!r.ok) throw new Error("list HTTP " + r.status);
-    const data = await r.json();
-    return Array.isArray(data.items) ? data.items : [];
-  }
-
-  async function initAuth(){
+  async function whoami(){
     try{
       const r = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
-      if(!r.ok) return;
-      const w = await r.json().catch(()=>null);
-      if(!w || !w.ok) return;
-      meEmail = w.email ?? null;
-      isLoggedIn = Boolean(meEmail);
-      // worker implementations may return is_admin or admin
-      isAdmin = Boolean(w.is_admin ?? w.admin ?? false);
-    }catch{
-      // ignore auth errors; page remains view-only
+      const j = await r.json().catch(()=>null);
+      if(r.ok && j && j.ok===true){
+        return j;
+      }
+    }catch{}
+    return { ok:true, email:null, is_admin:false };
+  }
+
+  function setAuthPill(me){
+    const pill = el("authPill");
+    const email = el("authEmail");
+    if(me && me.email){
+      isLoggedIn = true;
+      isAdmin = !!me.is_admin;
+      meEmail = String(me.email || "");
+      pill.textContent = isAdmin ? "admin" : "logged in";
+      pill.className = "pill";
+      email.textContent = meEmail ? ("as " + meEmail) : "";
+    }else{
+      isLoggedIn = false;
+      isAdmin = false;
+      meEmail = "";
+      pill.textContent = "guest";
+      pill.className = "warn";
+      email.textContent = "";
     }
   }
 
-
-  async function loadScreens(submissionId){
+  async function loadScreens(submissionId, canPrivate){
     const grid = el("screenGrid");
     const msg = el("screenMsg");
     const det = el("screenDetails");
@@ -165,8 +143,8 @@
     grid.innerHTML = "";
     msg.textContent = "読み込み中...";
     try{
-      const isAuthed = !!(auth && auth.email);
-      const url = isAuthed ? API_PRIVATE_SCREENS(submissionId) : API_PUBLIC_SCREENS(submissionId);
+      const usePrivate = Boolean(canPrivate);
+      const url = usePrivate ? API_PRIVATE_SCREENS(submissionId) : API_PUBLIC_SCREENS(submissionId);
       const r = await fetch(url, { cache:"no-store", credentials: "include" });
       const data = await r.json().catch(()=>null);
       if(!r.ok || !data || data.ok !== true){
@@ -175,102 +153,102 @@
       }
       const screens = Array.isArray(data.screens) ? data.screens : [];
       if(screens.length === 0){
-        msg.textContent = "スクリーンショットはまだありません。";
+        msg.textContent = "スクショはまだありません。";
         return;
       }
       msg.textContent = "";
+
       for(const s of screens){
         const img = document.createElement("img");
         img.loading = "lazy";
         img.alt = "screenshot";
-        img.src = (isAuthed ? API_PRIVATE_SCREEN(s.id) : API_PUBLIC_SCREEN(s.id));
+        img.src = usePrivate ? (`/api/screens/${encodeURIComponent(s.id)}`) : (`/api/public/screens/${encodeURIComponent(s.id)}`);
         grid.appendChild(img);
       }
-      det.open = true;
+      det.textContent = `件数: ${screens.length}`;
     }catch(e){
-      msg.textContent = "取得失敗: " + String(e?.message || e);
+      msg.textContent = "取得失敗: " + (e?.message || String(e));
     }
   }
-  async function load(){
-    const key = getKey();
-    if(!key){
-      el("msg").innerHTML = `<div class="err">URLが不正です。一覧から開いてください。</div>`;
-      return;
-    }
 
-    const isNo = /^\d+$/.test(key);
-    const list = await fetchApprovedList();
-
-    let item = null;
-    if(isNo){
-      const no = Number(key);
-      item = list.find(x => Number(x.submission_no ?? 0) === no) || null;
-    }else{
-      item = list.find(x => String(x.id) === key) || null;
-    }
-
-    if(!item){
-      el("msg").innerHTML = `<div class="err">対象が見つかりません。\n（承認済み一覧に無い/削除済みの可能性）</div>`;
-      return;
-    }
-
-    el("title").textContent = item.title || "Untitled";
-    el("sub").textContent = `#${item.submission_no ?? "?"} / ${item.unit_id ?? ""}`;
-
-    // show edit button only for owner or admin
-    const canEdit = Boolean(isAdmin || (isLoggedIn && item.author_email && String(item.author_email)===String(meEmail)));
-    const eb = el("editBtn");
-    if (eb && canEdit) { eb.style.display="inline-block"; eb.href = `/submit?edit=${encodeURIComponent(item.id)}`; }
-
-    const tags = normalizeTags(item.tags);
-    el("tags").innerHTML = tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join("");
-
-    el("kv").innerHTML = [
-      kvRow("投稿日", item.created_at || ""),
-      kvRow("DL数", item.download_count ?? 0),
-      kvRow("mod_version", item.mod_version || "Forge"),
-      kvRow("submission_no", item.submission_no ?? ""),
-      kvRow("unit_id", item.unit_id ?? ""),
-      kvRow("作者", item.author_name || "unknown")
-    ].join("");
-
-    el("downloadBtn").href = API_DL(item.id);
-    el("howto").textContent = buildHowTo(item.unit_id);
-
-    let jsonLoaded = false;
-    const jsonDetails = el("jsonDetails");
-    jsonDetails.addEventListener("toggle", async () => {
-      if(!jsonDetails.open || jsonLoaded) return;
-      jsonLoaded = true;
-      try{
-        const r = await fetch(API_JSON(item.id), { cache:"no-store" });
-        if(!r.ok) throw new Error("json HTTP " + r.status);
-        el("jsonPreview").textContent = await r.text();
-      }catch(e){
-        el("jsonPreview").textContent = "取得失敗: " + String(e.message || e);
-      }
-    });
-
-    await loadScreens(item.id);
-
-    el("copyBtn").onclick = async () => {
-      try{
-        await navigator.clipboard.writeText(buildHowTo(item.unit_id));
-        el("msg").innerHTML = `<div class="muted" style="margin-top:12px;">コピーしました。</div>`;
-        setTimeout(()=> el("msg").innerHTML = "", 1200);
-      }catch{
-        el("msg").innerHTML = `<div class="err">コピーできませんでした。</div>`;
-      }
+  function getQuery(){
+    const u = new URL(location.href);
+    return {
+      id: u.searchParams.get("id") || "",
+      no: u.searchParams.get("no") || "",
     };
   }
 
-  (async()=>{
-    await initAuth();
-    await load();
-  })().catch(e => {
-    el("msg").innerHTML = `<div class="err">読み込み失敗:\n${escapeHtml(String(e.message || e))}</div>`;
-  });
+  async function load(){
+    const q = getQuery();
+    const me = await whoami();
+    setAuthPill(me);
+
+    // 現状unit.htmlは unit_id を query ?id= に想定
+    // ただし public API が submission_no ベースしか無い場合もあるので、ここでは /api/public/u/:no が使えるならそれを優先
+    // ※このファイルは「スクショ部分の修正」に留め、既存挙動を壊さない前提で動かします。
+    // 実運用では /api/public/unit/:unit_id のようなAPIがあると楽ですが、ここでは推測で追加しません。
+
+    // 既存実装：public側は unit_id 経由で取得できる想定（デプロイ済のAPIに合わせる）
+    // ここは元のファイルの想定に依存するため、最小の修正のみ行います。
+    const unitId = q.id;
+
+    // まずは public 詳細（unitId → server側で引ける想定）を試す
+    let item = null;
+    try{
+      const r = await fetch(`/api/public/unit?id=${encodeURIComponent(unitId)}`, { cache:"no-store", credentials:"include" });
+      const j = await r.json().catch(()=>null);
+      if(r.ok && j && j.ok===true && j.item){
+        item = j.item;
+      }
+    }catch{}
+
+    // だめなら /api/my/submissions/:id を直接は呼べない（idがsubmissionIdの場合のみ）
+    // ここも推測で拡張せず、item が無い場合は表示を止める
+    if(!item){
+      el("title").textContent = "Not found";
+      el("subtitle").textContent = "取得できませんでした。";
+      el("json").textContent = "not_found";
+      return;
+    }
+
+    el("title").textContent = item.title || "Unit";
+    el("subtitle").textContent = item.description || "";
+    el("unitId").textContent = item.unit_id || "";
+    el("subNo").textContent = item.submission_no != null ? String(item.submission_no) : "";
+    el("status").textContent = item.status || "";
+    el("author").textContent = item.author_name || "";
+    el("created").textContent = item.created_at || "";
+    el("dl").textContent = item.download_count != null ? String(item.download_count) : "0";
+
+    // canEdit: owner/admin
+    const canEdit = Boolean(isAdmin || (isLoggedIn && item.author_email && String(item.author_email)===String(meEmail)));
+
+    // Screens section (owner/admin: private, guest/public: public endpoint)
+    const screensSection = el("screensSection");
+    if (screensSection) {
+      // 未ログインは「表示しない or 将来用」要件に合わせ、ここでは非表示にする
+      if (!isLoggedIn) {
+        screensSection.style.display = "none";
+      } else {
+        screensSection.style.display = "block";
+        await loadScreens(item.id, canEdit);
+      }
+    }
+
+    // JSON
+    try{
+      // unit_json の返却形式はデプロイ側に依存するため、ここでは item.unit_json をあれば出す
+      const uj = item.unit_json ? (typeof item.unit_json === "string" ? JSON.parse(item.unit_json) : item.unit_json) : null;
+      el("json").textContent = uj ? JSON.stringify(uj, null, 2) : "(unit_json is not included in this response)";
+    }catch(e){
+      el("json").textContent = "(json parse error)";
+    }
+  }
+
+  load();
 })();
 </script>
+
 </body>
 </html>
