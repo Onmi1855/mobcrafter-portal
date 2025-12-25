@@ -679,17 +679,14 @@ setResult({ http: resp.status, ok: resp.ok, ...data });
       try {
         const $after = document.getElementById("afterSuccess");
 if ($after && resp.ok) {
-const submissionId =
-  (data && (data.id || data.submission_id || data.submissionId)) || "";
+if ($after && resp.ok) {
+  const submissionId =
+    (data && (data.id || data.submission_id || data.submissionId)) || "";
 
-const unitId =
-  (data && (data.unit_id || data.unitId)) || "";
+  const unitId =
+    (data && (data.unit_id || data.unitId)) || "";
 
-lastSubmissionId = submissionId; // ★スクショ用は submissionId
-
-// 表示用リンクは unitId を使う（これはOK）
-const unitUrl = unitId ? ("/unit?id=" + encodeURIComponent(unitId)) : "";
-
+  lastSubmissionId = submissionId; // ★スクショ用は submissionId
 
   const unitUrl = unitId ? ("/unit?id=" + encodeURIComponent(unitId)) : "";
   const backUrl = "/";
@@ -700,9 +697,11 @@ const unitUrl = unitId ? ("/unit?id=" + encodeURIComponent(unitId)) : "";
     (unitUrl ? ` <a href="${unitUrl}">個別ページを見る</a>` : ``) +
     ` / <a href="${backUrl}">一覧に戻る</a>`;
 
-  // ★ ここでスクショ UI を解放
+  // ★ ここでスクショ UI を解放（submissionId がある時だけ）
   const box = document.getElementById("screenBox");
-  if (box && unitId) box.style.display = "block";
+  if (box && submissionId) box.style.display = "block";
+}
+
 }
 
       } catch (_) {}
