@@ -103,6 +103,11 @@
 
   <label style="margin-top:8px;">画像ファイル</label>
   <input id="screenFile" type="file" accept="image/*" />
+  <img
+  id="screenPreview"
+  style="display:none; max-width:100%; margin-top:8px; border-radius:8px; border:1px solid #e5e7eb;"
+/>
+
 
   <div style="display:flex; gap:14px; align-items:center; margin-top:8px;">
     <label><input type="radio" name="thumbMode" value="3d" checked> サムネ：3D</label>
@@ -563,6 +568,23 @@
 
   $yawOffset.addEventListener("change", () => { rerender(); updateButtonState(); });
   [$title,$desc,$tags,$mv].forEach(el => el.addEventListener("input", updateButtonState));
+  // === Screenshot local preview ===
+const $screenFile = document.getElementById("screenFile");
+const $screenPreview = document.getElementById("screenPreview");
+
+if ($screenFile && $screenPreview) {
+  $screenFile.addEventListener("change", () => {
+    const f = $screenFile.files && $screenFile.files[0];
+    if (!f) {
+      $screenPreview.style.display = "none";
+      return;
+    }
+    const url = URL.createObjectURL(f);
+    $screenPreview.src = url;
+    $screenPreview.style.display = "block";
+  });
+}
+
 
   $btn.addEventListener("click", async () => {
     if (!parsedJson) return;
