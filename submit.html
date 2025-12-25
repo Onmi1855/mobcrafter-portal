@@ -697,9 +697,9 @@ if ($after && resp.ok) {
       setResult("送信失敗: " + (e?.message || String(e)));
     }
   });
-  // === Screenshot upload (standalone) ===
+// === Screenshot upload (standalone) ===
 const $btnUpload = document.getElementById("btnUploadScreen");
-const $screenFile = document.getElementById("screenFile");
+// ※ $screenFile は上で定義済みのものを再利用する
 const $screenResult = document.getElementById("screenResult");
 
 if ($btnUpload) {
