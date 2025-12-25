@@ -193,7 +193,7 @@
 
       parsedJson = parsed;
       jsonDirty = false;
-      $preview.textContent = JSON.stringify(summarize(parsedJson), null, 2);
+      $prev.textContent = JSON.stringify(summarize(parsedJson), null, 2);
       rerender();
       updateButtonState();
       setResult({ ok:true, mode:"edit", id: editId });
