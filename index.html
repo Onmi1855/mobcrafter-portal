@@ -121,9 +121,14 @@
       position:relative;
     }
     canvas.thumb{
-      width:100%;
-      height:140px;
-      image-rendering:pixelated;
+img.thumbimg{
+  width:100%;
+  height:140px;
+  object-fit:cover;
+  image-rendering:auto;
+  display:block;
+}
+
     }
     .pill{
       position:absolute;
@@ -751,7 +756,10 @@
 
     card.innerHTML = `
       <div class="thumbwrap">
-        <canvas class="thumb" width="480" height="280"></canvas>
+        ${useScreenThumb
+  ? `<img class="thumbimg" src="${escapeHtml(API_PUBLIC_SCREEN(it.thumbScreenId))}" alt="" />`
+  : `<canvas class="thumb" width="480" height="280"></canvas>`
+}
         <div class="pill">
           <span class="badge">${escapeHtml(it.mod || "Forge")}</span>
         </div>
