@@ -762,9 +762,9 @@ img.thumbimg{
     card.innerHTML = `
       <div class="thumbwrap">
         ${useScreenThumb
-  ? `<img class="thumbimg" src="${escapeHtml(API_PUBLIC_SCREEN(it.thumbScreenId))}" alt="" />`
-  : `<canvas class="thumb" width="480" height="280"></canvas>`
-}
+          ? `<img class="thumbimg" src="${escapeHtml(API_PUBLIC_SCREEN(it.thumbScreenId))}" alt="" />`
+          : `<canvas class="thumb" width="480" height="280"></canvas>`
+        }
         <div class="pill">
           <span class="badge">${escapeHtml(it.mod || "Forge")}</span>
         </div>
@@ -798,6 +798,23 @@ img.thumbimg{
         goUnit(it);
       });
     }
+
+    // canvasがある時だけ3D描画（スクショ時は何もしない）
+    const canvas = card.querySelector("canvas.thumb");
+    if (canvas) {
+      (async () => {
+        try{
+          const j = await fetchUnitJson(it.id);
+          await loadPalette();
+          const yaw = Number(yawUi.value || 270);
+          drawIso(canvas, j.blocks, yaw);
+        }catch{}
+      })();
+    }
+
+    return card;
+  }
+
 
     const canvas = card.querySelector("canvas.thumb");
     (async () => {
