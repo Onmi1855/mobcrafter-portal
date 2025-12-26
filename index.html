@@ -362,6 +362,7 @@
   const API_MY_LIST = "/api/my/submissions?scope=approved"; // ログイン必須 / 自分の承認済みのみ
   const API_JSON = (id) => `/api/public/submissions/${id}/json`;
   const API_DL   = (id) => `/api/public/submissions/${id}/download`;
+  const API_PUBLIC_SCREEN = (screenId) => `/api/public/screens/${encodeURIComponent(screenId)}`;
 
   // ====== AUTH ======
   const API_WHOAMI = "/api/whoami";
@@ -746,6 +747,7 @@
     card.className = "card";
 
     const canEdit = Boolean(meEmail && it.authorEmail && String(it.authorEmail) === String(meEmail));
+    const useScreenThumb = (it.thumbMode === "screen" && it.thumbScreenId);
 
     card.innerHTML = `
       <div class="thumbwrap">
@@ -866,6 +868,9 @@
           mod: r.mod_version || r.modVersion || "Forge",
           created: created || "",
           createdText,
+            // ★追加
+  thumbMode: (r.thumb_mode || r.thumbMode || "").toLowerCase(),
+  thumbScreenId: r.thumb_screen_id || r.thumbScreenId || null,
         });
       });
 
