@@ -24,6 +24,7 @@
     .muted { color:#666; font-size: 13px; }
     .pill { display:inline-block; padding: 2px 8px; border-radius: 999px; background:#eee; font-size: 12px; }
     .pill.red { background:#ffe3e3; }
+    .pill.green { background:#e6ffed; }
     .tags { display:flex; flex-wrap: wrap; gap: 6px; }
     .tag { background:#eef; border:1px solid #dde; padding:2px 8px; border-radius: 999px; font-size: 12px; }
     a { color: #0b57d0; }
@@ -43,6 +44,24 @@
   <div class="muted">
     ※ 管理者のみ。APIは <code>/api/admin/*</code> を叩きます（同一オリジン）。<br>
     ※ Cloudflare Access（Google OAuth）で <code>mobcrafter.net/api/admin*</code> を保護している前提です。
+  </div>
+
+  <!-- ✅ A: ログイン状態 + ログイン/ログアウト導線 -->
+  <div class="card">
+    <div class="row" style="justify-content: space-between;">
+      <div class="row" style="gap:10px;">
+        <span class="pill" id="authPill">auth: checking...</span>
+        <span class="muted" id="authInfo">-</span>
+      </div>
+      <div class="row" style="gap:8px;">
+        <button id="btnLogin" class="primary" style="display:none;">ログイン</button>
+        <button id="btnLogout" class="danger" style="display:none;">ログアウト</button>
+      </div>
+    </div>
+    <div class="mini" style="margin-top:8px;">
+      ※ ログインは <code>/api/login?next=/admin</code> に遷移します（Access通過後に戻ります）。<br>
+      ※ ログアウトは Cloudflare Access の <code>/cdn-cgi/access/logout</code> を使用します。
+    </div>
   </div>
 
   <div class="card">
@@ -124,35 +143,6 @@
 
 <script>
 (() => {
-    // ★ Access セッション確立（admin叩く前に whoami を踏む）
-async function warmupAccessSession(){
-  try{
-    const r = await fetch("/api/whoami", {
-      cache: "no-store",
-      credentials: "include",
-      redirect: "manual", // ★ここ重要：別オリジンに飛ばされても例外になりにくい
-    });
-
-    // Access保護でログイン画面に飛ばされる場合、ここが「opaqueredirect」になりがち
-    if (r.type === "opaqueredirect" || r.status === 0) {
-      location.href = "/api/login?next=" + encodeURIComponent("/admin");
-      return false;
-    }
-
-    const data = await r.json().catch(()=>null);
-    if (!data || !data.email) {
-      location.href = "/api/login?next=" + encodeURIComponent("/admin");
-      return false;
-    }
-    return true;
-  }catch(e){
-    // ここに来る場合もあるので、潔くトップレベル遷移でログインさせる
-    location.href = "/api/login?next=" + encodeURIComponent("/admin");
-    return false;
-  }
-}
-
-
   const API_BASE = "/api/admin";
 
   const $status = document.getElementById("status");
@@ -174,8 +164,15 @@ async function warmupAccessSession(){
   const $btnSaveJson = document.getElementById("btnSaveJson");
   const $dlgStatus = document.getElementById("dlgStatus");
 
+  // ✅ A: auth UI
+  const $authPill = document.getElementById("authPill");
+  const $authInfo = document.getElementById("authInfo");
+  const $btnLogin = document.getElementById("btnLogin");
+  const $btnLogout = document.getElementById("btnLogout");
+
   let items = [];
   let currentEdit = null; // {id, item}
+  let authState = { email: null, is_admin: false };
 
   function log(v) {
     $log.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
@@ -198,6 +195,58 @@ async function warmupAccessSession(){
       }
     } catch {}
     return [];
+  }
+
+  function renderAuthUI(st) {
+    const loggedIn = !!(st && st.email);
+    const isAdmin = !!(st && st.is_admin);
+
+    if (loggedIn) {
+      $authPill.textContent = isAdmin ? "auth: admin" : "auth: user";
+      $authPill.className = "pill green";
+      $authInfo.textContent = `${st.email}${isAdmin ? " (admin)" : ""}`;
+      $btnLogin.style.display = "none";
+      $btnLogout.style.display = "";
+    } else {
+      $authPill.textContent = "auth: logged out";
+      $authPill.className = "pill red";
+      $authInfo.textContent = "未ログイン（ログインしてから再読み込みしてください）";
+      $btnLogin.style.display = "";
+      $btnLogout.style.display = "none";
+    }
+
+    // 未ログイン時は操作ボタンを抑止（押しても401になるがUX改善）
+    $reload.disabled = !loggedIn;
+    $status.disabled = !loggedIn;
+    $q.disabled = !loggedIn;
+    $includeDeleted.disabled = !loggedIn;
+  }
+
+  // ✅ A: whoami を “状態取得” 用に使う
+  async function fetchWhoamiState() {
+    try{
+      const r = await fetch("/api/whoami", {
+        cache: "no-store",
+        credentials: "include",
+        redirect: "manual"
+      });
+
+      // Access保護でログイン画面に飛ばされる場合、opaque redirect になりがち
+      if (r.type === "opaqueredirect" || r.status === 0) {
+        return { email: null, is_admin: false, ok: true, hint: "opaqueredirect" };
+      }
+
+      const data = await r.json().catch(()=>null);
+      if (!data) return { email: null, is_admin: false, ok: false, error: "invalid_json" };
+
+      return {
+        ok: true,
+        email: data.email || null,
+        is_admin: !!data.is_admin
+      };
+    } catch(e){
+      return { email: null, is_admin: false, ok: false, error: String(e?.message || e) };
+    }
   }
 
   function buildListQuery() {
@@ -308,6 +357,12 @@ async function warmupAccessSession(){
   }
 
   async function load() {
+    if (!authState.email) {
+      $list.innerHTML = `<div class="muted">未ログインのため一覧を取得できません（上の「ログイン」からログインしてください）</div>`;
+      $count.textContent = `0件`;
+      return;
+    }
+
     log(`loading...`);
     try {
       const data = await api(buildListQuery(), "GET");
@@ -409,7 +464,7 @@ async function warmupAccessSession(){
         description: $editDesc.value,
         tags: $editTags.value
       };
-      const r = await api(`submissions/${encodeURIComponent(id)}`, "PUT", body); // /api/admin/submissions/:id
+      const r = await api(`submissions/${encodeURIComponent(id)}`, "PUT", body);
       $dlgStatus.textContent = "meta saved";
       log({ ok: true, action: "admin_meta_update", id, response: r });
       await load();
@@ -438,7 +493,7 @@ async function warmupAccessSession(){
     $btnSaveJson.disabled = true;
     $dlgStatus.textContent = "saving json...";
     try {
-      const r = await api(`submissions/${encodeURIComponent(id)}/json`, "PUT", { json: obj }); // /api/admin/submissions/:id/json
+      const r = await api(`submissions/${encodeURIComponent(id)}/json`, "PUT", { json: obj });
       $dlgStatus.textContent = "json saved";
       log({ ok: true, action: "admin_json_replace", id, response: r });
       await load();
@@ -461,9 +516,34 @@ async function warmupAccessSession(){
   });
   $includeDeleted.addEventListener("change", load);
 
+  // ✅ A: login/logout wiring
+  $btnLogin.addEventListener("click", () => {
+    location.href = "/api/login?next=" + encodeURIComponent("/admin");
+  });
+
+  $btnLogout.addEventListener("click", () => {
+    const returnTo = encodeURIComponent(location.origin + "/admin");
+    location.href = "/cdn-cgi/access/logout?returnTo=" + returnTo;
+  });
+
   (async () => {
-    const ok = await warmupAccessSession();
-    if (ok) await load();
+    // 初回：ログイン状態表示
+    const st = await fetchWhoamiState();
+    authState = { email: st.email || null, is_admin: !!st.is_admin };
+    renderAuthUI(authState);
+
+    if (!st.ok) {
+      log({ ok: false, error: "whoami_failed", detail: st });
+      $list.innerHTML = `<div class="muted">whoami 取得に失敗（ログ参照）</div>`;
+      return;
+    }
+
+    // ログイン済みなら一覧ロード
+    if (authState.email) await load();
+    else {
+      log("not logged in (admin list skipped)");
+      $list.innerHTML = `<div class="muted">未ログインです。上の「ログイン」からログインしてください。</div>`;
+    }
   })();
 
 })();
