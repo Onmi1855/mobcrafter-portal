@@ -371,6 +371,7 @@ img.thumbimg{
   const API_JSON = (id) => `/api/public/submissions/${id}/json`;
   const API_DL   = (id) => `/api/public/submissions/${id}/download`;
   const API_PUBLIC_SCREEN = (screenId) => `/api/public/screens/${encodeURIComponent(screenId)}`;
+  const API_PRIVATE_SCREEN = (screenId) => `/api/screens/${encodeURIComponent(screenId)}`;
 
   // ====== AUTH ======
   const API_WHOAMI = "/api/whoami";
