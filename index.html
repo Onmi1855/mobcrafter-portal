@@ -793,18 +793,20 @@ const statusBadge = (st && st !== "approved")
       : "";
 // ★ pending / rejected は最初から private を使う（白紙防止）
    const initialSrc = (meEmail && st !== "approved") ? privateSrc : publicSrc;
-  const initialIsPrivate = (initialSrc === privateSrc);
+    const initialIsPrivate = (initialSrc === privateSrc);
 
-card.innerHTML = `
-  <div class="thumbwrap">
-    ${useScreenThumb
-      ? `<img class="thumbimg"
-             src="${escapeHtml(initialSrc)}"
-             alt=""
-             data-public-src="${escapeHtml(publicSrc)}"
-             data-private-src="${escapeHtml(privateSrc)}"
-             data-tried-private="${initialIsPrivate ? "1" : "0"}"
-           />`
+    card.innerHTML = `
+      <div class="thumbwrap">
+        ${useScreenThumb
+          ? `<img class="thumbimg"
+                  src="${escapeHtml(initialSrc)}"
+                  alt=""
+                  data-public-src="${escapeHtml(publicSrc)}"
+                  data-private-src="${escapeHtml(privateSrc)}"
+                  data-tried-private="${initialIsPrivate ? "1" : "0"}"
+                />`
+          : `<canvas class="thumb" width="480" height="280"></canvas>`
+        }
         <div class="pill">
           <span class="badge">${escapeHtml(it.mod || "Forge")}</span>
           ${statusBadge}
@@ -812,6 +814,7 @@ card.innerHTML = `
         <a class="btn-dl" href="${escapeHtml(API_DL(it.id))}" download>Download</a>
         ${canEdit ? `<a class="btn-edit" href="${escapeHtml(`/submit?edit=${encodeURIComponent(it.id)}`)}">編集</a>` : ``}
       </div>
+
       <div class="card-body">
         <p class="title">${escapeHtml(it.name)}</p>
         <div class="meta">
@@ -824,6 +827,7 @@ card.innerHTML = `
         <div class="tagline">${escapeHtml(it.tags.join(" / "))}</div>
       </div>
     `;
+
 
     card.addEventListener("click", (e) => {
       const a = e.target && e.target.closest ? e.target.closest("a") : null;
