@@ -6,7 +6,7 @@
   <title>MobCrafter - Unit</title>
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 24px; background:#f6f8fb; color:#0f172a; }
-    .card { max-width: 1060px; background:#fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px; box-shadow: 0 10px 25px rgba(15,23,42,.08); margin: 0 auto; }
+    .card { max-width: 1100px; background:#fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px; box-shadow: 0 10px 25px rgba(15,23,42,.08); margin: 0 auto; }
     h1 { margin: 0 0 6px; }
     .muted { color:#64748b; font-size: 13px; }
     .row { display:flex; gap:12px; flex-wrap: wrap; }
@@ -19,47 +19,36 @@
     a { color:#2563eb; text-decoration:none; }
     a:hover { text-decoration:underline; }
 
-    /* media */
-    .mediaWrap{
+    .grid2{
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap:12px;
     }
-    @media (max-width: 860px){
-      .mediaWrap{ grid-template-columns: 1fr; }
-    }
-    .mediaCard{
-      border:1px solid #e5e7eb;
-      border-radius:12px;
-      background:#fff;
-      padding:10px;
-    }
-    .mediaTitle{
-      font-weight:900;
-      font-size:13px;
-      margin:0 0 8px;
-      color:#0f172a;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-    }
-    .mediaTitle .sub{
-      font-weight:600;
-      color:#64748b;
-      font-size:12px;
+    @media (max-width: 920px){
+      .grid2{ grid-template-columns: 1fr; }
     }
 
-    .canvaswrap{ width:100%; }
-    .canvaswrap canvas{
+    .box{
+      border:1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 12px;
+      background:#fff;
+    }
+    .boxtitle{
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:8px;
+      font-weight:900;
+    }
+    canvas{
       width:100%;
       height:auto;
       display:block;
-      border-radius:12px;
-      border:1px solid #e5e7eb;
       background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:12px;
     }
 
+    .screens { margin-top: 6px; }
     .screenGrid{
       display:grid;
       grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -72,46 +61,19 @@
       border-radius: 12px;
       border:1px solid #e5e7eb;
       background:#fff;
-      cursor:pointer;
+      cursor: zoom-in;
     }
-
-    /* lightbox */
-    .lb{
-      position:fixed; inset:0;
-      background:rgba(15,23,42,.75);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding:24px;
-      z-index:9999;
-    }
-    .lb img{
-      max-width:min(1100px, 100%);
-      max-height: min(90vh, 100%);
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.2);
-      background:#000;
-    }
-    .lb .hint{
-      position:fixed;
-      bottom:14px;
-      left:50%;
-      transform:translateX(-50%);
-      color:rgba(255,255,255,.85);
-      font-size:12px;
-    }
-
     details{ border:1px solid #e5e7eb; border-radius:12px; padding:10px 12px; background:#fff; }
-    summary{ cursor:pointer; font-weight:900; }
-    .err{
-      margin-top:10px;
-      padding:10px 12px;
-      border-radius:12px;
+    summary{ cursor:pointer; font-weight:800; }
+
+    .errbox{
+      border:1px solid #fecaca;
       background:#fff1f2;
-      border:1px solid #fecdd3;
       color:#9f1239;
-      display:none;
-      white-space:pre-wrap;
+      padding:10px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      white-space: pre-wrap;
     }
   </style>
 </head>
@@ -128,8 +90,6 @@
       <span id="authEmail" class="mini"></span>
     </div>
   </div>
-
-  <div id="err" class="err"></div>
 
   <div class="divider"></div>
 
@@ -148,27 +108,28 @@
 
   <div class="divider"></div>
 
-  <!-- ✅ Media -->
-  <div class="mediaWrap">
-    <div class="mediaCard">
-      <div class="mediaTitle">
+  <div id="err" style="display:none;" class="errbox"></div>
+
+  <div class="grid2" style="margin-top:12px;">
+    <div class="box">
+      <div class="boxtitle">
         <span>3D（submit同等の簡易3D）</span>
-        <span class="sub">Yaw補正: <span id="yawText">0</span></span>
+        <span class="mini">Yaw補正: <b id="yawText">0</b></span>
       </div>
-      <div class="canvaswrap">
-        <canvas id="canvas3d" width="900" height="520"></canvas>
-      </div>
+      <canvas id="canvas3d" width="900" height="520"></canvas>
       <div class="muted" style="margin-top:8px;">※ 形状確認用の簡易表示です（色・質感は実物と異なります）</div>
     </div>
 
-    <div class="mediaCard">
-      <div class="mediaTitle">
+    <div class="box">
+      <div class="boxtitle">
         <span>スクリーンショット</span>
-        <span class="sub" id="screenCount"></span>
+        <span class="mini" id="screenCount"></span>
       </div>
-      <div id="screenMsg" class="mini">読み込み中...</div>
-      <div id="screenGrid" class="screenGrid"></div>
-      <div id="screenDetails" class="mini" style="margin-top:8px;"></div>
+      <div class="screens">
+        <div id="screenMsg" class="mini">読み込み中...</div>
+        <div id="screenGrid" class="screenGrid"></div>
+        <div id="screenDetails" class="mini" style="margin-top:8px;"></div>
+      </div>
     </div>
   </div>
 
@@ -186,51 +147,57 @@
   </div>
 </div>
 
-<div id="lb" class="lb">
-  <img id="lbImg" alt="preview" />
-  <div class="hint">クリック or ESC で閉じる</div>
-</div>
-
 <script>
 (() => {
-  // ====== API ======
+  // ----------------------------
+  // API endpoints
+  // ----------------------------
   const API_WHOAMI = "/api/whoami";
 
-  // メタ取得候補（存在するものだけ生き残る）
-  const API_PUBLIC_U_BY_NO = (no) => `/api/public/u/${encodeURIComponent(no)}`;
-  const API_PUBLIC_UNIT_Q  = (id) => `/api/public/unit?id=${encodeURIComponent(id)}`;
-  const API_PUBLIC_SUB_META = (id) => `/api/public/submissions/${encodeURIComponent(id)}`;
+  // 公開 詳細（unit_id 想定）
+  const API_PUBLIC_DETAIL_BY_UNITID = (unitId) => `/api/public/unit?id=${encodeURIComponent(unitId)}`;
 
-  // JSONは（一覧で使ってる）public submissions/:id/json を最優先
+  // 公開 詳細（submission_no 想定）
+  const API_PUBLIC_DETAIL_BY_NO = (no) => `/api/public/u/${encodeURIComponent(no)}`;
+
+  // 公開 JSON（submission_id 想定）
   const API_PUBLIC_JSON = (submissionId) => `/api/public/submissions/${encodeURIComponent(submissionId)}/json`;
 
-  // screens
+  // 公開 スクショ一覧（submission_id 想定）
   const API_PUBLIC_SCREENS = (submissionId) => `/api/public/submissions/${encodeURIComponent(submissionId)}/screens`;
-  const API_PRIVATE_SCREENS = (submissionId) => `/api/submissions/${encodeURIComponent(submissionId)}/screens`;
-  const API_PUBLIC_SCREEN_IMG = (screenId) => `/api/public/screens/${encodeURIComponent(screenId)}`;
-  const API_PRIVATE_SCREEN_IMG = (screenId) => `/api/screens/${encodeURIComponent(screenId)}`;
+  const API_PUBLIC_SCREEN_FILE = (screenId) => `/api/public/screens/${encodeURIComponent(screenId)}`;
+
+  // private（admin/owner）
+  const API_PRIVATE_SUB_META = (id) => `/api/submissions/${encodeURIComponent(id)}`;
+  const API_PRIVATE_JSON = (id) => `/api/submissions/${encodeURIComponent(id)}/json`;
+  const API_PRIVATE_SCREENS = (id) => `/api/submissions/${encodeURIComponent(id)}/screens`;
+  const API_PRIVATE_SCREEN_FILE = (screenId) => `/api/screens/${encodeURIComponent(screenId)}`;
 
   const el = (id) => document.getElementById(id);
-  const err = el("err");
-
-  function showError(msg){
-    err.style.display = "block";
-    err.textContent = msg;
-  }
-  function hideError(){
-    err.style.display = "none";
-    err.textContent = "";
-  }
 
   let isLoggedIn = false;
   let isAdmin = false;
   let meEmail = "";
 
+  function looksLikeUuid(v){
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||"").trim());
+  }
+  function looksLikeInt(v){
+    return /^[0-9]+$/.test(String(v||"").trim());
+  }
+
+  function showError(msg){
+    const box = el("err");
+    if(!box) return;
+    box.style.display = "block";
+    box.textContent = msg;
+  }
+
   async function whoami(){
     try{
       const r = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
       const j = await r.json().catch(()=>null);
-      if(r.ok && j && j.ok === true){
+      if(r.ok && j && j.ok===true){
         return j;
       }
     }catch{}
@@ -257,114 +224,85 @@
     }
   }
 
+  async function fetchJsonMaybe(url){
+    try{
+      const r = await fetch(url, { cache:"no-store", credentials:"include" });
+      const j = await r.json().catch(()=>null);
+      if(r.ok && j) return j;
+      return null;
+    }catch{
+      return null;
+    }
+  }
+
+  function normalizeItem(resp){
+    // resp: {ok:true,item:{...}} or {item:{...}} or direct item
+    if(!resp) return null;
+    if(resp.item && typeof resp.item === "object") return resp.item;
+    if(resp.ok === true && resp.item && typeof resp.item === "object") return resp.item;
+    if(typeof resp === "object") return resp;
+    return null;
+  }
+
   function getQuery(){
     const u = new URL(location.href);
-    return { id: (u.searchParams.get("id") || "").trim() };
-  }
-  function looksLikeNo(v){
-    return /^[0-9]+$/.test(String(v||"").trim());
-  }
-
-  async function fetchJson(submissionId){
-    const r = await fetch(API_PUBLIC_JSON(submissionId), { cache:"no-store", credentials:"include" });
-    if(!r.ok){
-      const t = await r.text().catch(()=> "");
-      throw new Error(`json HTTP ${r.status}\n${t.slice(0,240)}`);
-    }
-    return await r.json();
+    return {
+      id: u.searchParams.get("id") || "",
+      no: u.searchParams.get("no") || "",
+    };
   }
 
-  // ====== Screens ======
-  function openLightbox(src){
-    const box = el("lb");
-    const img = el("lbImg");
-    img.src = src;
-    box.style.display = "flex";
-  }
-  function closeLightbox(){
-    const box = el("lb");
-    const img = el("lbImg");
-    box.style.display = "none";
-    img.src = "";
-  }
-  (function initLightbox(){
-    const box = el("lb");
-    box.addEventListener("click", closeLightbox);
-    window.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeLightbox(); });
-  })();
-
+  // ----------------------------
+  // Screens
+  // ----------------------------
   async function loadScreens(submissionId, canPrivate){
     const grid = el("screenGrid");
     const msg = el("screenMsg");
     const det = el("screenDetails");
-    const cnt = el("screenCount");
+    const count = el("screenCount");
+    if (!grid || !msg || !det || !count) return;
 
     grid.innerHTML = "";
     msg.textContent = "読み込み中...";
     det.textContent = "";
-    cnt.textContent = "";
+    count.textContent = "";
 
-    // public を先に試し、owner/admin なら private を優先して取り直す（pendingも拾える）
-    async function fetchScreens(url){
-      const r = await fetch(url, { cache:"no-store", credentials:"include" });
+    try{
+      const usePrivate = Boolean(canPrivate);
+      const url = usePrivate ? API_PRIVATE_SCREENS(submissionId) : API_PUBLIC_SCREENS(submissionId);
+      const r = await fetch(url, { cache:"no-store", credentials: "include" });
       const data = await r.json().catch(()=>null);
-      if(!r.ok || !data || data.ok !== true) return null;
-      return Array.isArray(data.screens) ? data.screens : [];
+      if(!r.ok || !data || data.ok !== true){
+        msg.textContent = "取得できませんでした。";
+        return;
+      }
+      const screens = Array.isArray(data.screens) ? data.screens : [];
+      if(screens.length === 0){
+        msg.textContent = "スクショはまだありません。";
+        return;
+      }
+      msg.textContent = "";
+      count.textContent = `${screens.length}件`;
+
+      for(const s of screens){
+        const img = document.createElement("img");
+        img.loading = "lazy";
+        img.alt = "screenshot";
+        img.src = usePrivate ? API_PRIVATE_SCREEN_FILE(s.id) : API_PUBLIC_SCREEN_FILE(s.id);
+        img.addEventListener("click", () => {
+          window.open(img.src, "_blank");
+        });
+        grid.appendChild(img);
+      }
+      det.textContent = `件数: ${screens.length}`;
+    }catch(e){
+      msg.textContent = "取得失敗: " + (e?.message || String(e));
     }
-
-    let screens = await fetchScreens(API_PUBLIC_SCREENS(submissionId));
-    let usedPrivateList = false;
-
-    if(canPrivate){
-      const priv = await fetchScreens(API_PRIVATE_SCREENS(submissionId));
-      if(priv) { screens = priv; usedPrivateList = true; }
-    }
-
-    if(!screens){
-      msg.textContent = "取得できませんでした。";
-      return;
-    }
-    if(screens.length === 0){
-      msg.textContent = "スクショはありません（サムネ設定が3Dの場合でも、ここには表示できます）。";
-      return;
-    }
-
-    msg.textContent = "";
-    cnt.textContent = `${screens.length}枚`;
-
-    for(const s of screens){
-      const id = String(s.id || s.screen_id || s.screenId || "").trim();
-      if(!id) continue;
-
-      const img = document.createElement("img");
-      img.loading = "lazy";
-      img.alt = "screenshot";
-
-      const pub = API_PUBLIC_SCREEN_IMG(id);
-      const priv = API_PRIVATE_SCREEN_IMG(id);
-
-      img.src = pub;
-
-      // public NG → private へフォールバック（ログイン中のみ）
-      img.addEventListener("error", () => {
-        if(isLoggedIn){
-          img.src = priv;
-        }
-      }, { once:true });
-
-      img.addEventListener("click", (e)=>{
-        e.preventDefault();
-        e.stopPropagation();
-        openLightbox(img.currentSrc || img.src);
-      });
-
-      grid.appendChild(img);
-    }
-
-    det.textContent = `取得元: ${usedPrivateList ? "private" : "public"} / submission: ${submissionId}`;
   }
 
-  // ====== 3D Renderer (submit と同等) ======
+  // ----------------------------
+  // Palette & 3D render (submit同等)
+  // ----------------------------
   const PALETTE_URL = "/assets/palette.v1.json";
   const PALETTE_VER = "v1";
   const PALETTE_LS_KEY = `mcPalette:${PALETTE_VER}`;
@@ -427,7 +365,6 @@
     if(p) return p;
     const raw = String(blockId||"").toLowerCase();
     const id = raw.includes(":") ? raw.split(":")[1] : raw;
-
     if (id.includes("glass") || id.includes("ice")) return {r: 170, g: 210, b: 230, a: 0.55};
     if (id.includes("leaves") || id.includes("leaf") || id.includes("moss") || id.includes("vine") || id.includes("grass")) return {r: 90, g: 150, b: 90, a: 0.95};
     if (id.includes("log") || id.includes("wood") || id.includes("planks") || id.includes("bamboo")) return {r: 160, g: 125, b: 85, a: 0.95};
@@ -440,9 +377,18 @@
     if (id.includes("emerald")) return {r: 70, g: 200, b: 120, a: 0.98};
     if (id.includes("lapis")) return {r: 70, g: 110, b: 200, a: 0.98};
     if (id.includes("redstone")) return {r: 190, g: 70, b: 70, a: 0.98};
-
     let h=0; for(let i=0;i<raw.length;i++) h=(h*31 + raw.charCodeAt(i))|0;
     return { r:120 + (h & 70), g:120 + ((h>>8)&70), b:120 + ((h>>16)&70), a:0.98 };
+  }
+
+  function analyzeBlocks(blocks){
+    let minX=Infinity,minY=Infinity,minZ=Infinity;
+    let maxX=-Infinity,maxY=-Infinity,maxZ=-Infinity;
+    for(const b of blocks){
+      minX=Math.min(minX,b.dx); minY=Math.min(minY,b.dy); minZ=Math.min(minZ,b.dz);
+      maxX=Math.max(maxX,b.dx); maxY=Math.max(maxY,b.dy); maxZ=Math.max(maxZ,b.dz);
+    }
+    return {minX,minY,minZ, maxX,maxY,maxZ, sizeX:maxX-minX+1, sizeY:maxY-minY+1, sizeZ:maxZ-minZ+1};
   }
 
   function yawToQuarterTurns(frontYaw, extraOffsetQuarter){
@@ -464,16 +410,6 @@
     }
   }
 
-  function analyzeBlocks(blocks){
-    let minX=Infinity,minY=Infinity,minZ=Infinity;
-    let maxX=-Infinity,maxY=-Infinity,maxZ=-Infinity;
-    for(const b of blocks){
-      minX=Math.min(minX,b.dx); minY=Math.min(minY,b.dy); minZ=Math.min(minZ,b.dz);
-      maxX=Math.max(maxX,b.dx); maxY=Math.max(maxY,b.dy); maxZ=Math.max(maxZ,b.dz);
-    }
-    return {minX,minY,minZ, maxX,maxY,maxZ, sizeX:maxX-minX+1, sizeY:maxY-minY+1, sizeZ:maxZ-minZ+1};
-  }
-
   function drawIsoCube(ctx, x, y, z, s, col, stroke){
     const sx = (x - z) * s;
     const sy = (x + z) * s * 0.5 - y * s;
@@ -481,14 +417,11 @@
     const top = `rgba(${Math.min(255,col.r+30)},${Math.min(255,col.g+30)},${Math.min(255,col.b+30)},${a})`;
     const left= `rgba(${Math.max(0,col.r-10)},${Math.max(0,col.g-10)},${Math.max(0,col.b-10)},${a})`;
     const right=`rgba(${Math.max(0,col.r-25)},${Math.max(0,col.g-25)},${Math.max(0,col.b-25)},${a})`;
-
     ctx.fillStyle = top;
     ctx.beginPath(); ctx.moveTo(sx, sy - s*0.5); ctx.lineTo(sx + s, sy); ctx.lineTo(sx, sy + s*0.5); ctx.lineTo(sx - s, sy); ctx.closePath(); ctx.fill();
     if (stroke){ ctx.strokeStyle = "rgba(15,23,42,.10)"; ctx.lineWidth = Math.max(1, s*0.06); ctx.stroke(); }
-
     ctx.fillStyle = left;
     ctx.beginPath(); ctx.moveTo(sx - s, sy); ctx.lineTo(sx, sy + s*0.5); ctx.lineTo(sx, sy + s*0.5 + s); ctx.lineTo(sx - s, sy + s); ctx.closePath(); ctx.fill();
-
     ctx.fillStyle = right;
     ctx.beginPath(); ctx.moveTo(sx + s, sy); ctx.lineTo(sx, sy + s*0.5); ctx.lineTo(sx, sy + s*0.5 + s); ctx.lineTo(sx + s, sy + s); ctx.closePath(); ctx.fill();
   }
@@ -519,7 +452,6 @@
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0,0,w,h);
 
-    // background (keep)
     const g = ctx.createLinearGradient(0,0,0,h);
     g.addColorStop(0,"rgba(37,99,235,.10)");
     g.addColorStop(1,"rgba(22,163,74,.08)");
@@ -574,7 +506,6 @@
 
     function unionBBox(a,b){
       return {
-        inf: a.inf,
         minXu: Math.min(a.minXu,b.minXu),
         maxXu: Math.max(a.maxXu,b.maxXu),
         minYu: Math.min(a.minYu,b.minYu),
@@ -617,102 +548,136 @@
     }
   }
 
-  // ====== meta fetch ======
-  async function fetchJsonMaybe(url){
-    const r = await fetch(url, { cache:"no-store", credentials:"include" });
-    const txt = await r.text().catch(()=> "");
-    let j=null; try{ j = JSON.parse(txt); }catch{ j=null; }
-    if(!r.ok) return null;
-    return j;
-  }
+  // ----------------------------
+  // JSON fetch: public -> private fallback
+  // ----------------------------
+  async function fetchUnitJson(submissionId, canPrivate){
+    // public first
+    try{
+      const r = await fetch(API_PUBLIC_JSON(submissionId), { cache:"no-store", credentials:"include" });
+      if(r.ok){
+        const j = await r.json().catch(()=>null);
+        if(j && typeof j === "object") return j;
+      }
+    }catch{}
 
-  function normalizeItem(obj){
-    // 返却形式の揺れに対応（ok:true,item:{...} でも {...} でも）
-    if(!obj) return null;
-    if(obj.item) return obj.item;
-    return obj;
-  }
-
-  async function load(){
-    hideError();
-
-    const q = getQuery();
-    if(!q.id){
-      showError("query id がありません（例: /unit.html?id=123）");
-      return;
+    if(canPrivate){
+      const r2 = await fetch(API_PRIVATE_JSON(submissionId), { cache:"no-store", credentials:"include" });
+      if(!r2.ok){
+        const t = await r2.text().catch(()=> "");
+        throw new Error(`json HTTP ${r2.status}\n${t.slice(0,240)}`);
+      }
+      const j2 = await r2.json().catch(()=>null);
+      if(j2 && typeof j2 === "object") return j2;
+      throw new Error("private json parse error");
     }
 
+    throw new Error("json not available");
+  }
+
+  // ----------------------------
+  // Main load
+  // ----------------------------
+  async function load(){
+    const q = getQuery();
     const me = await whoami();
     setAuthPill(me);
 
     const id = q.id;
+    const no = q.no;
+
     let item = null;
 
-    // 1) submission_no 想定
-    if(looksLikeNo(id)){
-      const j = await fetchJsonMaybe(API_PUBLIC_U_BY_NO(id));
-      if(j && (j.ok === true || j.item)) item = normalizeItem(j);
+    // 1) ?no= があるなら public by no を最優先
+    if(no){
+      const j = await fetchJsonMaybe(API_PUBLIC_DETAIL_BY_NO(no));
+      item = normalizeItem(j);
     }
 
-    // 2) 従来の public unit?id=
-    if(!item){
-      const j = await fetchJsonMaybe(API_PUBLIC_UNIT_Q(id));
-      if(j && (j.ok === true || j.item)) item = normalizeItem(j);
+    // 2) ?id= が数字なら submission_no とみなして public by no
+    if(!item && id && looksLikeInt(id)){
+      const j = await fetchJsonMaybe(API_PUBLIC_DETAIL_BY_NO(id));
+      item = normalizeItem(j);
     }
 
-    // 3) submissions/:id が公開メタで存在するなら拾う
-    if(!item){
-      const j = await fetchJsonMaybe(API_PUBLIC_SUB_META(id));
-      if(j && (j.ok === true || j.item)) item = normalizeItem(j);
+    // 3) ?id= がUUIDなら、ログイン時は private meta を最優先（admin/ownerが見れる）
+    if(!item && id && looksLikeUuid(id) && isLoggedIn){
+      const j = await fetchJsonMaybe(API_PRIVATE_SUB_META(id));
+      item = normalizeItem(j);
+    }
+
+    // 4) それ以外は unit_id とみなして public detail
+    if(!item && id){
+      const j = await fetchJsonMaybe(API_PUBLIC_DETAIL_BY_UNITID(id));
+      item = normalizeItem(j);
     }
 
     if(!item){
       el("title").textContent = "Not found";
       el("subtitle").textContent = "取得できませんでした。";
       el("json").textContent = "not_found";
+      showError(
+        "取得できませんでした。\n\n" +
+        "想定：\n" +
+        "- ?id=unit_98_-59_85 のような unit_id\n" +
+        "- ?no=123 または ?id=123 のような submission_no\n" +
+        "- ?id=UUID はログイン時のみ private で取得\n\n" +
+        `入力: id=${id || "(empty)"} / no=${no || "(empty)"}`
+      );
+      // スクショ欄は止める
+      el("screenMsg").textContent = "取得できませんでした。";
       return;
     }
 
-    // 表示（存在するキーだけ）
-    el("title").textContent = item.title || item.name || "Unit";
+    // 表示反映（可能な範囲で）
+    el("title").textContent = item.title || "Unit";
     el("subtitle").textContent = item.description || "";
-    el("unitId").textContent = item.unit_id || item.unitId || "";
-    el("subNo").textContent = (item.submission_no != null) ? String(item.submission_no) : "";
+    el("unitId").textContent = item.unit_id || "";
+    el("subNo").textContent = item.submission_no != null ? String(item.submission_no) : "";
     el("status").textContent = item.status || "";
-    el("author").textContent = item.author_name || item.authorName || "";
-    el("created").textContent = item.created_at || item.createdAt || "";
-    el("dl").textContent = (item.download_count != null) ? String(item.download_count) : "0";
+    el("author").textContent = item.author_name || "";
+    el("created").textContent = item.created_at || "";
+    el("dl").textContent = item.download_count != null ? String(item.download_count) : "0";
 
-    // submissionId を確定（ここが最重要）
-    const submissionId = String(item.id || item.submission_id || item.submissionId || "").trim();
-    if(!submissionId){
-      showError("submission id が item から取得できません。unit.json の取得に必要です。");
-      el("json").textContent = "(missing submission id)";
-      return;
+    const yawQ = Number(item.yaw_offset_quarter ?? item.yawOffsetQuarter ?? 0) || 0;
+    el("yawText").textContent = String(yawQ);
+
+    // canEdit: owner/admin
+    const canEdit = Boolean(
+      isAdmin ||
+      (isLoggedIn && item.author_email && String(item.author_email) === String(meEmail))
+    );
+
+    // submissionId を確定（metaの形が環境でブレても拾う）
+    const submissionId = String(item.id || item.submission_id || item.submissionId || "");
+
+    // スクショ：submissionId が取れた時だけ
+    if(submissionId){
+      await loadScreens(submissionId, canEdit);
+    }else{
+      el("screenMsg").textContent = "submission_id が取得できませんでした";
     }
 
-    // canEdit（owner/admin）
-    const authorEmail = String(item.author_email || item.authorEmail || item.author_id || item.authorId || "").trim();
-    const canEdit = Boolean(isAdmin || (isLoggedIn && authorEmail && meEmail && authorEmail === meEmail));
-
-    // Screens（publicは誰でも閲覧OK、privateは owner/admin のみ）
-    await loadScreens(submissionId, canEdit);
-
-    // JSON を取得して 3D描画（submit同等）
+    // JSON + 3D
     try{
-      const unitJson = await fetchJson(submissionId);
-      el("json").textContent = JSON.stringify(unitJson, null, 2);
-
-      // yaw_offset_quarter（submitメタ）を優先して使う
-      const yawQ = Number(item.yaw_offset_quarter ?? item.yawOffsetQuarter ?? 0) || 0;
-      el("yawText").textContent = String(yawQ);
-
-      await loadPalette();
       const canvas = el("canvas3d");
+      await loadPalette();
+
+      // unit_json を item から直接持っている場合はそれを優先（なければAPIへ）
+      let unitJson = null;
+      if(item.unit_json){
+        unitJson = (typeof item.unit_json === "string") ? JSON.parse(item.unit_json) : item.unit_json;
+      }else if(submissionId){
+        unitJson = await fetchUnitJson(submissionId, canEdit);
+      }else{
+        throw new Error("submission_id が無いので json を取得できません");
+      }
+
+      el("json").textContent = JSON.stringify(unitJson, null, 2);
       renderThumbToCanvas(canvas, unitJson, yawQ);
     }catch(e){
-      el("json").textContent = "JSON取得失敗: " + (e?.message || String(e));
-      showError("JSON取得に失敗しました。\n" + (e?.message || String(e)));
+      el("json").textContent = "(json load error)";
+      showError("JSON/3D 読み込み失敗: " + (e?.message || String(e)));
     }
   }
 
