@@ -469,6 +469,7 @@ img.thumbimg{
   }
 
   let items = [];
+  let currentUseMine = false; // mineOnly時だけ private screens を使う
 
   const grid = document.getElementById("grid");
   const q = document.getElementById("q");
@@ -761,7 +762,7 @@ img.thumbimg{
     card.innerHTML = `
       <div class="thumbwrap">
         ${useScreenThumb
-          ? `<img class="thumbimg" src="${escapeHtml(API_PUBLIC_SCREEN(it.thumbScreenId) + "?v=" + encodeURIComponent(it.created || it.createdText || ""))}" alt="" />`
+          ? `<img class="thumbimg" src="${escapeHtml((currentUseMine ? API_PRIVATE_SCREEN(it.thumbScreenId) : API_PUBLIC_SCREEN(it.thumbScreenId)) + "?v=" + encodeURIComponent(it.created || it.createdText || ""))}" alt="" />`
           : `<canvas class="thumb" width="480" height="280"></canvas>`
         }
         <div class="pill">
@@ -862,6 +863,7 @@ img.thumbimg{
     grid.innerHTML = "";
     try{
       const useMine = !!(mineOnly && mineOnly.checked && meEmail);
+      currentUseMine = useMine;
       const arr = await fetchList(useMine);
 
       items = arr.map(r => {
