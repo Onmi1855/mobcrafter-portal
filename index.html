@@ -142,6 +142,9 @@ img.thumbimg{
       align-items:center;
     }
     .badge{
+      .badge.pending { background: rgba(254, 243, 199, .95); border-color: rgba(245, 158, 11, .35); }
+      .badge.rejected, .badge.reject { background: rgba(254, 226, 226, .95); border-color: rgba(220, 38, 38, .35); }
+      .badge.approved { background: rgba(220, 252, 231, .95); border-color: rgba(34, 197, 94, .35); }
       font-size:11px;
       padding:4px 8px;
       border-radius:999px;
@@ -915,11 +918,23 @@ img.thumbimg{
         const createdText = created ? created.slice(0,10) : "";
         const tags = normalizeTags(r.tags);
         const no = resolveNo(r);
+        const rawStatus =
+          (r.status ?? r.review_status ?? r.reviewStatus ?? r.state ?? r.approval_status ?? r.approvalStatus ?? "");
+
+        const status = String(rawStatus || "approved").trim().toLowerCase();
+
+        const screenId =
+          (r.thumb_screen_id ?? r.thumbScreenId ??
+           r.screen_id ?? r.screenId ??
+           r.screenshot_id ?? r.screenshotId ??
+           r.thumb_id ?? r.thumbId ?? null);
+
+        const thumbModeRaw =
+          (r.thumb_mode ?? r.thumbMode ?? r.thumbnail_mode ?? r.thumbnailMode ?? "");
 
         return ({
           id: String(r.id),
           no,
-          status: String(r.status || "").toLowerCase(), // ★追加
           name: r.title || r.name || "Untitled",
           desc: r.description || "",
           tags,
@@ -930,8 +945,13 @@ img.thumbimg{
           mod: r.mod_version || r.modVersion || "Forge",
           created: created || "",
           createdText,
-          thumbMode: (r.thumb_mode || r.thumbMode || "").toLowerCase(),
-          thumbScreenId: r.thumb_screen_id || r.thumbScreenId || null,
+
+          // 追加：スクショ
+          thumbMode: String(thumbModeRaw).toLowerCase(),
+          thumbScreenId: screenId ? String(screenId) : null,
+
+          // 追加：審査状態
+          status
         });
 
       });
