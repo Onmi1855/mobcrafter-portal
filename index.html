@@ -760,7 +760,7 @@ img.thumbimg{
     card.innerHTML = `
       <div class="thumbwrap">
         ${useScreenThumb
-          ? `<img class="thumbimg" src="${escapeHtml(API_PUBLIC_SCREEN(it.thumbScreenId))}" alt="" />`
+          ? `<img class="thumbimg" src="${escapeHtml(API_PUBLIC_SCREEN(it.thumbScreenId) + "?v=" + encodeURIComponent(it.created || it.createdText || ""))}" alt="" />`
           : `<canvas class="thumb" width="480" height="280"></canvas>`
         }
         <div class="pill">
