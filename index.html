@@ -777,10 +777,11 @@ img.thumbimg{
     const hasScreen = Boolean(it.thumbScreenId);
     const useScreenThumb = hasScreen;
 
-    const st = String(it.status || "approved").toLowerCase();
-    const statusBadge = (st && st !== "approved")
-      ? `<span class="badge">${escapeHtml(st)}</span>`
-      : ``;
+const st = String(it.status || "approved").toLowerCase();
+const statusBadge = (st && st !== "approved")
+  ? `<span class="badge ${escapeHtml(st)}">${escapeHtml(st)}</span>`
+  : ``;
+
 
     // まず public を試し、失敗したら（ログイン中なら）privateへ自動フォールバック
     const publicSrc = hasScreen
