@@ -5,336 +5,544 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MobCrafter - Unit</title>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 24px; background:#f6f8fb; color:#0f172a; }
-    .card { max-width: 1040px; background:#fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px; box-shadow: 0 10px 25px rgba(15,23,42,.08); margin: 0 auto; }
-    h1 { margin: 0 0 6px; }
-    .muted { color:#64748b; font-size: 13px; }
-    .mini { font-size: 13px; color:#334155; }
-    .row { display:flex; gap:12px; flex-wrap: wrap; }
-    .row > div { flex: 1 1 240px; }
-    .divider { height:1px; background:#e5e7eb; margin: 16px 0; }
-    .pill { display:inline-flex; gap:8px; align-items:center; padding:6px 10px; border-radius: 999px; background:#eef2ff; color:#3730a3; font-size: 12px; font-weight:700; }
-    .warn { display:inline-flex; gap:8px; align-items:center; padding:6px 10px; border-radius: 999px; background:#fff7ed; color:#9a3412; font-size: 12px; font-weight:700; }
-    a { color:#2563eb; text-decoration:none; }
-    a:hover { text-decoration:underline; }
-    button, .btn {
-      display:inline-flex; align-items:center; justify-content:center;
-      padding: 8px 12px; border-radius: 12px; border: 1px solid #e5e7eb;
-      background:#fff; cursor:pointer; text-decoration:none; color:#0f172a;
-      font-weight:800; font-size:13px;
+    :root{
+      --bg:#f6f8fb;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line:#e5e7eb;
+      --brand:#2563eb;
+      --danger:#dc2626;
+      --shadow: 0 10px 25px rgba(15,23,42,.08);
+      --radius: 16px;
     }
-    .btnPrimary{ background:#111; color:#fff; border-color:#111; }
-    .btnDanger{ background:#b91c1c; color:#fff; border-color:#b91c1c; }
-    .btnGhost{ background:#fff; color:#0f172a; }
-    .btn:disabled, button:disabled{ opacity:.5; cursor:not-allowed; }
-    .grid2{ display:grid; grid-template-columns: 1.2fr 1fr; gap:12px; }
-    @media (max-width: 900px){ .grid2{ grid-template-columns: 1fr; } }
-
-    .panel{ border:1px solid #e5e7eb; border-radius:12px; background:#fff; overflow:hidden; }
-    .panelHead{ padding:10px 12px; border-bottom:1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between; gap:10px; }
-    .panelTitle{ font-weight:900; font-size:13px; color:#0f172a; }
-    .panelBody{ padding:12px; }
-    .canvaswrap{ width:100%; }
-    canvas{ width:100%; height:auto; display:block; border-radius:12px; background:#fff; border:1px solid #e5e7eb; }
-
-    .screenGrid{
-      display:grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:var(--bg);
+    }
+    header{
+      max-width:1060px;
+      margin:0 auto;
+      padding:18px 16px 8px;
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    header h1{
+      margin:0;
+      font-size:22px;
+      letter-spacing:.2px;
+    }
+    header .sub{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .topright{
+      display:flex;
       gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
     }
-    .screenGrid img{
-      width:100%;
-      height:140px;
-      object-fit:cover;
-      border-radius: 12px;
-      border:1px solid #e5e7eb;
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid rgba(148,163,184,.25);
+      background:#fff;
+      padding:6px 10px;
+      border-radius:999px;
+      user-select:none;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .chip code{
+      background:rgba(148,163,184,.15);
+      border:1px solid rgba(148,163,184,.25);
+      padding:2px 6px;
+      border-radius:999px;
+      color:#0f172a;
+    }
+    a.btn{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid rgba(37,99,235,.25);
+      background:#fff;
+      color:var(--brand);
+      text-decoration:none;
+      font-size:12px;
+      white-space:nowrap;
+    }
+    a.btn.primary{
+      background:var(--brand);
+      border-color:var(--brand);
+      color:#fff;
+    }
+    a.btn.danger{
+      background:var(--danger);
+      border-color:var(--danger);
+      color:#fff;
+    }
+
+    main{
+      max-width:1060px;
+      margin:0 auto;
+      padding:10px 16px 40px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:16px;
+    }
+    .row{
+      display:flex;
+      gap:14px;
+      flex-wrap:wrap;
+      align-items:flex-start;
+    }
+    .meta{
+      flex:1 1 380px;
+      min-width:320px;
+    }
+    .metaGrid{
+      display:grid;
+      grid-template-columns: 140px 1fr;
+      gap:8px 12px;
+      margin-top:10px;
+      font-size:13px;
+    }
+    .metaGrid .k{ color:var(--muted); }
+    .metaGrid .v{ overflow-wrap:anywhere; }
+    .bannerErr{
+      margin-top:12px;
+      padding:10px 12px;
+      border-radius:12px;
+      background:#fff1f2;
+      border:1px solid #fecdd3;
+      color:#9f1239;
+      white-space:pre-wrap;
+      display:none;
+    }
+
+    .viewerRow{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap:14px;
+    }
+    @media (max-width: 860px){
+      .viewerRow{ grid-template-columns: 1fr; }
+    }
+
+    .panel{
+      border:1px solid var(--line);
+      border-radius:14px;
+      overflow:hidden;
       background:#fff;
     }
-
-    details{ border:1px solid #e5e7eb; border-radius:12px; padding:10px 12px; background:#fff; }
-    summary{ cursor:pointer; font-weight:900; }
-    pre{ background:#0b1220; color:#e5e7eb; padding: 12px; border-radius: 12px; overflow:auto; }
-
-    .errBox{
-      border:1px solid #fecaca; background:#fef2f2; color:#991b1b;
-      padding:10px 12px; border-radius:12px; font-size:13px;
+    .panelHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 12px;
+      border-bottom:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(37,99,235,.06), rgba(22,163,74,.05));
+      font-size:13px;
+      color:var(--muted);
     }
-    .kv{ display:grid; grid-template-columns: 140px 1fr; gap:6px 10px; font-size:13px; }
-    .kv b{ color:#0f172a; }
-    .kv code{ background:rgba(148,163,184,.15); border:1px solid rgba(148,163,184,.25); padding:2px 6px; border-radius:999px; }
+    .panelBody{
+      padding:12px;
+      min-height:240px;
+    }
+
+    .canvasWrap{
+      height:320px;
+      border-radius:12px;
+      border:1px solid rgba(148,163,184,.25);
+      overflow:hidden;
+      background:linear-gradient(180deg, #e6f0ff, #f5f9ff);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    canvas#unitCanvas{
+      width:100%;
+      height:320px;
+      image-rendering:pixelated;
+      display:block;
+    }
+
+    .controls{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .controls select, .controls button{
+      border:1px solid rgba(148,163,184,.35);
+      border-radius:999px;
+      background:#fff;
+      padding:8px 10px;
+      font-size:12px;
+      color:#0f172a;
+      cursor:pointer;
+    }
+    .controls button{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+
+    .screensGrid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+    }
+    .shot{
+      border:1px solid rgba(148,163,184,.25);
+      border-radius:12px;
+      overflow:hidden;
+      background:#fff;
+    }
+    .shot img{
+      width:100%;
+      height:auto;
+      display:block;
+    }
+    .shot .cap{
+      padding:8px 10px;
+      font-size:12px;
+      color:var(--muted);
+      border-top:1px solid rgba(148,163,184,.18);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    details{
+      margin-top:14px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+      overflow:hidden;
+    }
+    details summary{
+      padding:12px 14px;
+      cursor:pointer;
+      user-select:none;
+      font-weight:700;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .jsonBox{
+      border-top:1px solid var(--line);
+      padding:12px 14px;
+    }
+    pre{
+      margin:0;
+      white-space:pre-wrap;
+      word-break:break-word;
+      font-size:12px;
+      background:rgba(148,163,184,.10);
+      border:1px solid rgba(148,163,184,.20);
+      border-radius:12px;
+      padding:10px;
+      max-height:360px;
+      overflow:auto;
+    }
+
+    .actions{
+      margin-top:12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-start;
+    }
+    .mutedNote{
+      color:var(--muted);
+      font-size:12px;
+    }
+    .back{
+      margin-top:10px;
+      display:inline-block;
+      color:var(--brand);
+      text-decoration:none;
+      font-size:12px;
+    }
   </style>
 </head>
 <body>
-
-<div class="card">
-  <div class="row" style="align-items:flex-end;">
-    <div>
-      <h1 id="title">Captured Unit</h1>
-      <div class="muted" id="subtitle">読み込み中...</div>
-    </div>
-    <div style="text-align:right;">
-      <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; align-items:center;">
-        <span id="authPill" class="pill">checking...</span>
-        <span id="authEmail" class="mini"></span>
-        <a id="loginBtn" class="btn btnPrimary" href="#" style="display:none;">ログイン</a>
-        <a id="logoutBtn" class="btn btnDanger" href="#" style="display:none;">ログアウト</a>
-      </div>
-    </div>
+<header>
+  <div>
+    <h1>Captured Unit</h1>
+    <div class="sub" id="subtitle">読み込み中…</div>
   </div>
 
-  <div class="divider"></div>
-
-  <div class="kv" style="margin-bottom:10px;">
-    <div><b>Query id</b></div><div><code id="qId"></code></div>
-    <div><b>Query no</b></div><div><code id="qNo"></code></div>
-    <div><b>Submission ID</b></div><div><code id="submissionId">(unknown)</code></div>
-    <div><b>Unit ID</b></div><div><code id="unitId">(unknown)</code></div>
-    <div><b>Status</b></div><div><span id="status">(unknown)</span></div>
-    <div><b>Author</b></div><div><span id="author">(unknown)</span></div>
-    <div><b>Created</b></div><div><span id="created">(unknown)</span></div>
+  <div class="topright">
+    <span class="chip" id="adminChip" style="display:none;">admin</span>
+    <span class="chip" id="emailChip" style="display:none;">as <code id="meEmail"></code></span>
+    <a class="btn" id="loginBtn" href="/api/login?next=%2F">ログイン</a>
   </div>
+</header>
 
-  <div id="errBox" class="errBox" style="display:none; margin-bottom:12px;"></div>
+<main>
+  <section class="card">
+    <div class="row">
+      <div class="meta">
+        <div class="metaGrid">
+          <div class="k">Query id</div><div class="v" id="qId">(unknown)</div>
+          <div class="k">Query no</div><div class="v" id="qNo">(empty)</div>
+          <div class="k">Submission ID</div><div class="v" id="subId">(unknown)</div>
+          <div class="k">Unit ID</div><div class="v" id="unitId">(unknown)</div>
 
-  <div class="grid2">
-    <!-- 3D -->
-    <div class="panel">
-      <div class="panelHead">
-        <div class="panelTitle">3D（submit同等の簡易3D）</div>
-        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-          <span class="mini">Yaw補正: <b id="yawLabel">0</b></span>
-          <button id="rotL" class="btn btnGhost" title="左回転">⟲</button>
-          <button id="rotR" class="btn btnGhost" title="右回転">⟳</button>
-          <select id="rotSel" class="btn" title="回転">
-            <option value="0">0</option>
-            <option value="1">+90</option>
-            <option value="2">+180</option>
-            <option value="3">+270</option>
-          </select>
+          <div class="k">Status</div><div class="v" id="status">(unknown)</div>
+          <div class="k">Author</div><div class="v" id="author">(unknown)</div>
+          <div class="k">Created</div><div class="v" id="created">(unknown)</div>
+          <div class="k">DL</div><div class="v" id="dl">(unknown)</div>
+        </div>
+
+        <div class="bannerErr" id="warn"></div>
+
+        <div class="actions" id="actions">
+          <a class="btn primary" id="dlBtn" href="#" style="display:none;">Download</a>
+          <a class="btn" id="editBtn" href="#" style="display:none;">編集（投稿者のみ）</a>
+          <a class="btn" id="submitBtn" href="#" style="display:none;">投稿ページで再送（編集）</a>
+          <span class="mutedNote" id="ownerHint" style="display:none;">※ 編集／再送は submit 画面で行います</span>
         </div>
       </div>
-      <div class="panelBody">
-        <div class="canvaswrap"><canvas id="canvas" width="900" height="520"></canvas></div>
-        <div class="muted" style="margin-top:8px;">※ 形状確認用の簡易表示です（色・質感は実物と異なります）</div>
+    </div>
+
+    <div class="viewerRow">
+      <div class="panel">
+        <div class="panelHead">
+          <span>3D（submit同等の簡易3D）</span>
+          <div class="controls">
+            <span style="color:var(--muted);font-size:12px;">Yaw補正:</span>
+            <select id="yawFix">
+              <option value="0">0°</option>
+              <option value="90">+90°</option>
+              <option value="180">+180°</option>
+              <option value="270" selected>+270°</option>
+            </select>
+            <button id="yawLeft" title="左へ90°">↺</button>
+            <button id="yawRight" title="右へ90°">↻</button>
+            <button id="yawFront" title="frontYawを正面にする">正面</button>
+            <button id="yawReset" title="補正を既定へ">Reset</button>
+          </div>
+        </div>
+        <div class="panelBody">
+          <div class="canvasWrap">
+            <canvas id="unitCanvas" width="900" height="520"></canvas>
+          </div>
+          <div class="mutedNote" style="margin-top:8px;">
+            ※ まず frontYaw（JSON内）を正面扱いし、Yaw補正で見た目を合わせます（0/90/180/270想定）。
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panelHead">
+          <span>スクリーンショット</span>
+          <span class="mutedNote">件数: <span id="shotCount">0</span></span>
+        </div>
+        <div class="panelBody">
+          <div class="screensGrid" id="screens"></div>
+          <div class="mutedNote" id="screensHint">読み込み中…</div>
+        </div>
       </div>
     </div>
 
-    <!-- Screens -->
-    <div class="panel">
-      <div class="panelHead">
-        <div class="panelTitle">スクリーンショット</div>
-        <div class="mini">件数: <b id="screenCount">0</b></div>
+    <details id="jsonDetails" style="display:none;">
+      <summary>
+        <span>Unit JSON（必要なときだけ）</span>
+        <span class="mutedNote" id="jsonMeta"></span>
+      </summary>
+      <div class="jsonBox">
+        <div class="actions" style="margin-top:0; margin-bottom:10px;">
+          <a class="btn" id="jsonOpen" href="#" target="_blank" rel="noopener">JSONを別タブで開く</a>
+          <button class="btn" id="jsonCopy" type="button">JSONをコピー</button>
+        </div>
+        <pre id="jsonPre"></pre>
       </div>
-      <div class="panelBody">
-        <div id="screenMsg" class="mini">読み込み中...</div>
-        <div id="screenGrid" class="screenGrid" style="margin-top:10px;"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="divider"></div>
-
-  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-    <a id="editBtn" class="btn btnPrimary" href="#" style="display:none;">編集（投稿者のみ）</a>
-    <a id="jsonBtn" class="btn" href="#" style="display:none;">JSONを見る</a>
-    <span class="mini" id="jsonHint"></span>
-  </div>
-
-  <div style="margin-top:12px;">
-    <details>
-      <summary>Unit JSON（必要なときだけ）</summary>
-      <div class="muted" style="margin:8px 0;">※ デフォルトでは全文を表示しません（重い＆不要になりがちなため）</div>
-      <pre id="json">読み込み中...</pre>
     </details>
-  </div>
 
-  <div class="divider"></div>
-
-  <div class="mini">
-    <a href="/">← 一覧に戻る</a>
-  </div>
-</div>
+    <a class="back" href="/">← 一覧に戻る</a>
+  </section>
+</main>
 
 <script>
 (() => {
-  // ----------------------------
-  // Endpoints (現状わかっている範囲で「推測せず」安全に)
-  // ----------------------------
+  // =========================
+  // API endpoints (想定)
+  // =========================
   const API_WHOAMI = "/api/whoami";
 
-  // unit取得は環境差があるので「複数手段でフォールバック」する
-  // 1) /api/public/unit?id=... (あなたの unit.html 既存実装)
-  // 2) /api/public/u/:no       (submit側コメントにも登場)
-  // 3) /api/submissions/:id    (ただし not_found になるケースあり)
-  // 4) /api/submissions/:id/json (これは取れているので最終フォールバックとして成立させる)
-  const API_PUBLIC_UNIT_QS = (unitId) => `/api/public/unit?id=${encodeURIComponent(unitId)}`;
-  const API_PUBLIC_BY_NO   = (no)     => `/api/public/u/${encodeURIComponent(no)}`;
-  const API_SUB_META       = (id)     => `/api/submissions/${encodeURIComponent(id)}`;
-  const API_SUB_JSON       = (id)     => `/api/submissions/${encodeURIComponent(id)}/json`;
+  // まず "submission meta" を取りに行く（not_found でもJSONで復旧する）
+  const API_SUB_META_PRIVATE = (id) => `/api/submissions/${encodeURIComponent(id)}`;
+  const API_SUB_META_PUBLIC  = (id) => `/api/public/submissions/${encodeURIComponent(id)}`;
 
-  const API_PUBLIC_SCREENS = (id) => `/api/public/submissions/${encodeURIComponent(id)}/screens`;
-  const API_PRIVATE_SCREENS= (id) => `/api/submissions/${encodeURIComponent(id)}/screens`;
+  const API_JSON_PRIVATE = (id) => `/api/submissions/${encodeURIComponent(id)}/json`;
+  const API_JSON_PUBLIC  = (id) => `/api/public/submissions/${encodeURIComponent(id)}/json`;
 
-  const API_PUBLIC_SCREEN_IMG = (screenId) => `/api/public/screens/${encodeURIComponent(screenId)}`;
-  const API_PRIVATE_SCREEN_IMG= (screenId) => `/api/screens/${encodeURIComponent(screenId)}`;
+  const API_DL_PUBLIC = (id) => `/api/public/submissions/${encodeURIComponent(id)}/download`;
+  const API_DL_PRIVATE = (id) => `/api/submissions/${encodeURIComponent(id)}/download`;
 
-  // Cloudflare Access logout (api/logout は存在しない前提)
-  const CF_ACCESS_LOGOUT = (returnTo) => `/cdn-cgi/access/logout?returnTo=${encodeURIComponent(returnTo)}`;
-  const API_LOGIN = (next) => `/api/login?next=${encodeURIComponent(next)}`;
+  // screens: public / private どちらも試す（環境差がある前提）
+  const API_SCREENS_PUBLIC  = (id) => `/api/public/submissions/${encodeURIComponent(id)}/screens`;
+  const API_SCREENS_PRIVATE = (id) => `/api/submissions/${encodeURIComponent(id)}/screens`;
 
-  // Submit edit mode
-  const EDIT_URL = (submissionId) => `/submit?edit=${encodeURIComponent(submissionId)}`;
+  const API_PUBLIC_SCREEN  = (screenId) => `/api/public/screens/${encodeURIComponent(screenId)}`;
+  const API_PRIVATE_SCREEN = (screenId) => `/api/screens/${encodeURIComponent(screenId)}`;
 
-  // ----------------------------
-  // DOM
-  // ----------------------------
-  const el = (id) => document.getElementById(id);
-
-  const canvas = el("canvas");
-  const ctx = canvas.getContext("2d");
-
-  let me = { ok:true, email:null, is_admin:false };
-  let isLoggedIn = false;
-  let isAdmin = false;
-  let meEmail = "";
-
-  // this page "item" (may be partial)
-  let item = null;              // meta object (if we can fetch)
-  let submissionId = "";        // uuid
-  let unitId = "";              // unit_id or derived
-  let unitJson = null;          // actual json
-  let yawOffsetQuarter = 0;      // from meta (if exists)
-  let userRotateQuarter = 0;     // UI rotate (always available)
-
-  function normEmail(v){
-    const s = String(v||"").trim().toLowerCase();
-    return (s && s.includes("@")) ? s : "";
-  }
-
-  function setErr(msg){
-    const box = el("errBox");
-    if(!msg){
-      box.style.display = "none";
-      box.textContent = "";
-      return;
-    }
-    box.style.display = "block";
-    box.textContent = msg;
-  }
-
-  async function whoami(){
-    try{
-      const r = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
-      const j = await r.json().catch(()=>null);
-      if(r.ok && j && j.ok===true) return j;
-    }catch{}
-    return { ok:true, email:null, is_admin:false };
-  }
-
-  function setAuthUI(me){
-    const pill = el("authPill");
-    const email = el("authEmail");
-    const loginBtn = el("loginBtn");
-    const logoutBtn = el("logoutBtn");
-
-    const emailNorm = normEmail(me?.email);
-    if(emailNorm){
-      isLoggedIn = true;
-      isAdmin = !!me.is_admin;
-      meEmail = emailNorm;
-
-      pill.textContent = isAdmin ? "admin" : "logged in";
-      pill.className = "pill";
-      email.textContent = "as " + meEmail;
-
-      // login/logout
-      loginBtn.style.display = "none";
-      logoutBtn.style.display = "inline-flex";
-      logoutBtn.href = CF_ACCESS_LOGOUT(location.origin + location.pathname + location.search);
-    }else{
-      isLoggedIn = false;
-      isAdmin = false;
-      meEmail = "";
-
-      pill.textContent = "guest";
-      pill.className = "warn";
-      email.textContent = "";
-
-      loginBtn.style.display = "inline-flex";
-      loginBtn.href = API_LOGIN(location.pathname + location.search);
-
-      logoutBtn.style.display = "none";
-      logoutBtn.href = "#";
-    }
-  }
-
-  function getQuery(){
-    const u = new URL(location.href);
-    return {
-      id: u.searchParams.get("id") || "",
-      no: u.searchParams.get("no") || "",
-    };
-  }
-
-  function looksLikeUUID(v){
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||"").trim());
-  }
-
-  // ----------------------------
-  // Screens
-  // ----------------------------
-  async function loadScreens(subId, canPrivate){
-    const grid = el("screenGrid");
-    const msg = el("screenMsg");
-    const count = el("screenCount");
-
-    grid.innerHTML = "";
-    msg.textContent = "読み込み中...";
-    count.textContent = "0";
-
-    if(!subId){
-      msg.textContent = "submission_id が不明です。";
-      return;
-    }
-
-    try{
-      const usePrivate = Boolean(canPrivate);
-      const url = usePrivate ? API_PRIVATE_SCREENS(subId) : API_PUBLIC_SCREENS(subId);
-      const r = await fetch(url, { cache:"no-store", credentials:"include" });
-      const data = await r.json().catch(()=>null);
-      if(!r.ok || !data || data.ok !== true){
-        msg.textContent = "取得できませんでした。";
-        return;
-      }
-      const screens = Array.isArray(data.screens) ? data.screens : [];
-      count.textContent = String(screens.length);
-
-      if(screens.length === 0){
-        msg.textContent = "スクショはまだありません。";
-        return;
-      }
-      msg.textContent = "";
-
-      for(const s of screens){
-        const img = document.createElement("img");
-        img.loading = "lazy";
-        img.alt = "screenshot";
-        img.src = usePrivate ? API_PRIVATE_SCREEN_IMG(s.id) : API_PUBLIC_SCREEN_IMG(s.id);
-        grid.appendChild(img);
-      }
-    }catch(e){
-      msg.textContent = "取得失敗: " + (e?.message || String(e));
-    }
-  }
-
-  // ----------------------------
-  // 3D renderer (submit と同等)
-  // ----------------------------
+  // palette
   const PALETTE_URL = "/assets/palette.v1.json";
   const PALETTE_VER = "v1";
   const PALETTE_LS_KEY = `mcPalette:${PALETTE_VER}`;
   let PALETTE_MAP = null;
 
+  // =========================
+  // DOM
+  // =========================
+  const subtitle = document.getElementById("subtitle");
+  const adminChip = document.getElementById("adminChip");
+  const emailChip = document.getElementById("emailChip");
+  const meEmailEl = document.getElementById("meEmail");
+  const loginBtn = document.getElementById("loginBtn");
+
+  const qIdEl = document.getElementById("qId");
+  const qNoEl = document.getElementById("qNo");
+  const subIdEl = document.getElementById("subId");
+  const unitIdEl = document.getElementById("unitId");
+  const statusEl = document.getElementById("status");
+  const authorEl = document.getElementById("author");
+  const createdEl = document.getElementById("created");
+  const dlEl = document.getElementById("dl");
+
+  const warnEl = document.getElementById("warn");
+
+  const dlBtn = document.getElementById("dlBtn");
+  const editBtn = document.getElementById("editBtn");
+  const submitBtn = document.getElementById("submitBtn");
+  const ownerHint = document.getElementById("ownerHint");
+
+  const yawFix = document.getElementById("yawFix");
+  const yawLeft = document.getElementById("yawLeft");
+  const yawRight = document.getElementById("yawRight");
+  const yawFront = document.getElementById("yawFront");
+  const yawReset = document.getElementById("yawReset");
+
+  const canvas = document.getElementById("unitCanvas");
+  const ctx = canvas.getContext("2d");
+
+  const screensEl = document.getElementById("screens");
+  const screensHint = document.getElementById("screensHint");
+  const shotCountEl = document.getElementById("shotCount");
+
+  const jsonDetails = document.getElementById("jsonDetails");
+  const jsonMeta = document.getElementById("jsonMeta");
+  const jsonPre = document.getElementById("jsonPre");
+  const jsonOpen = document.getElementById("jsonOpen");
+  const jsonCopy = document.getElementById("jsonCopy");
+
+  // =========================
+  // helpers
+  // =========================
+  function qs(name){
+    return new URL(location.href).searchParams.get(name);
+  }
+  function isUuidLike(s){
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(s||"").trim());
+  }
+  function normEmail(v){
+    const s = String(v || "").trim().toLowerCase();
+    return (s && s.includes("@")) ? s : "";
+  }
+  function showWarn(msg){
+    warnEl.style.display = "block";
+    warnEl.textContent = msg;
+  }
+  function hideWarn(){
+    warnEl.style.display = "none";
+    warnEl.textContent = "";
+  }
+
+  async function fetchJson(url, opt){
+    const r = await fetch(url, opt);
+    const txt = await r.text();
+    let data = null;
+    try{ data = JSON.parse(txt); }catch{ data = null; }
+    return { ok:r.ok, status:r.status, text:txt, data };
+  }
+
+  // =========================
+  // auth
+  // =========================
+  let ME_EMAIL = null;
+  let ME_IS_ADMIN = false;
+
+  async function loadWhoami(){
+    try{
+      const r = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
+      const t = await r.text();
+      let d = null;
+      try{ d = JSON.parse(t); }catch{ d = null; }
+
+      const email = normEmail(d && d.email);
+      const isAdmin = Boolean(d && d.is_admin);
+
+      if(!r.ok || !email){
+        ME_EMAIL = null;
+        ME_IS_ADMIN = false;
+        adminChip.style.display = "none";
+        emailChip.style.display = "none";
+        loginBtn.textContent = "ログイン";
+        loginBtn.className = "btn";
+        loginBtn.href = "/api/login?next=" + encodeURIComponent(location.pathname + location.search);
+        return;
+      }
+
+      ME_EMAIL = email;
+      ME_IS_ADMIN = isAdmin;
+
+      emailChip.style.display = "inline-flex";
+      meEmailEl.textContent = email;
+
+      adminChip.style.display = isAdmin ? "inline-flex" : "none";
+
+      // ログアウト（Cloudflare Access）
+      loginBtn.textContent = "ログアウト";
+      loginBtn.className = "btn danger";
+      loginBtn.href = "/cdn-cgi/access/logout?returnTo=" + encodeURIComponent(location.origin + "/");
+    }catch{
+      ME_EMAIL = null;
+      ME_IS_ADMIN = false;
+      adminChip.style.display = "none";
+      emailChip.style.display = "none";
+      loginBtn.textContent = "ログイン";
+      loginBtn.className = "btn";
+      loginBtn.href = "/api/login?next=" + encodeURIComponent(location.pathname + location.search);
+    }
+  }
+
+  // =========================
+  // palette
+  // =========================
   function parseColorString(s){
     if(!s) return null;
     const v = String(s).trim();
@@ -365,18 +573,18 @@
           return PALETTE_MAP;
         }
       }
-    }catch(e){}
+    }catch{}
     try{
       const r = await fetch(`${PALETTE_URL}?v=${encodeURIComponent(PALETTE_VER)}`, { cache:"no-store" });
       if(r.ok){
         const obj = await r.json();
         if(obj && typeof obj === "object"){
           PALETTE_MAP = obj;
-          try{ localStorage.setItem(PALETTE_LS_KEY, JSON.stringify(obj)); }catch(e){}
+          try{ localStorage.setItem(PALETTE_LS_KEY, JSON.stringify(obj)); }catch{}
           return PALETTE_MAP;
         }
       }
-    }catch(e){}
+    }catch{}
     PALETTE_MAP = {};
     return PALETTE_MAP;
   }
@@ -390,8 +598,10 @@
   function pickBaseColor(blockId){
     const p = paletteLookup(blockId);
     if(p) return p;
+
     const raw = String(blockId||"").toLowerCase();
     const id = raw.includes(":") ? raw.split(":")[1] : raw;
+
     if (id.includes("glass") || id.includes("ice")) return {r: 170, g: 210, b: 230, a: 0.55};
     if (id.includes("leaves") || id.includes("leaf") || id.includes("moss") || id.includes("vine") || id.includes("grass")) return {r: 90, g: 150, b: 90, a: 0.95};
     if (id.includes("log") || id.includes("wood") || id.includes("planks") || id.includes("bamboo")) return {r: 160, g: 125, b: 85, a: 0.95};
@@ -404,399 +614,464 @@
     if (id.includes("emerald")) return {r: 70, g: 200, b: 120, a: 0.98};
     if (id.includes("lapis")) return {r: 70, g: 110, b: 200, a: 0.98};
     if (id.includes("redstone")) return {r: 190, g: 70, b: 70, a: 0.98};
+
     let h=0; for(let i=0;i<raw.length;i++) h=(h*31 + raw.charCodeAt(i))|0;
     return { r:120 + (h & 70), g:120 + ((h>>8)&70), b:120 + ((h>>16)&70), a:0.98 };
   }
 
-  function yawToQuarterTurns(frontYaw, extraOffsetQuarter){
-    if(frontYaw == null) return null;
-    const y = Number(frontYaw);
-    if(!Number.isFinite(y)) return null;
-    let deg = y % 360;
-    if(deg < 0) deg += 360;
-    let q = (Math.round(deg / 90) % 4);
-    q = (q + (extraOffsetQuarter ?? 0)) % 4;
-    return q;
+  function isAirBlock(blockId){
+    const s = String(blockId||"").trim().toLowerCase();
+    return s === "minecraft:air" || s.endsWith(":air");
   }
 
-  function rotateXZ(x, z, q){
-    switch(q){
-      case 1: return {x: z,  z: -x};
-      case 2: return {x: -x, z: -z};
-      case 3: return {x: -z, z: x};
-      default:return {x, z};
-    }
-  }
-
-  function analyzeBlocks(blocks){
-    let minX=Infinity,minY=Infinity,minZ=Infinity;
-    let maxX=-Infinity,maxY=-Infinity,maxZ=-Infinity;
-    for(const b of blocks){
-      minX=Math.min(minX,b.dx); minY=Math.min(minY,b.dy); minZ=Math.min(minZ,b.dz);
-      maxX=Math.max(maxX,b.dx); maxY=Math.max(maxY,b.dy); maxZ=Math.max(maxZ,b.dz);
-    }
-    return {minX,minY,minZ, maxX,maxY,maxZ, sizeX:maxX-minX+1, sizeY:maxY-minY+1, sizeZ:maxZ-minZ+1};
-  }
-
+  // =========================
+  // 3D iso renderer (index思想)
+  // =========================
   function drawIsoCube(ctx, x, y, z, s, col, stroke){
     const sx = (x - z) * s;
     const sy = (x + z) * s * 0.5 - y * s;
+
     const a = (col.a == null ? 1 : col.a);
     const top = `rgba(${Math.min(255,col.r+30)},${Math.min(255,col.g+30)},${Math.min(255,col.b+30)},${a})`;
     const left= `rgba(${Math.max(0,col.r-10)},${Math.max(0,col.g-10)},${Math.max(0,col.b-10)},${a})`;
     const right=`rgba(${Math.max(0,col.r-25)},${Math.max(0,col.g-25)},${Math.max(0,col.b-25)},${a})`;
 
+    // top
     ctx.fillStyle = top;
-    ctx.beginPath(); ctx.moveTo(sx, sy - s*0.5); ctx.lineTo(sx + s, sy); ctx.lineTo(sx, sy + s*0.5); ctx.lineTo(sx - s, sy); ctx.closePath(); ctx.fill();
-    if (stroke){ ctx.strokeStyle = "rgba(15,23,42,.10)"; ctx.lineWidth = Math.max(1, s*0.06); ctx.stroke(); }
-
-    ctx.fillStyle = left;
-    ctx.beginPath(); ctx.moveTo(sx - s, sy); ctx.lineTo(sx, sy + s*0.5); ctx.lineTo(sx, sy + s*0.5 + s); ctx.lineTo(sx - s, sy + s); ctx.closePath(); ctx.fill();
-
-    ctx.fillStyle = right;
-    ctx.beginPath(); ctx.moveTo(sx + s, sy); ctx.lineTo(sx, sy + s*0.5); ctx.lineTo(sx, sy + s*0.5 + s); ctx.lineTo(sx + s, sy + s); ctx.closePath(); ctx.fill();
-  }
-
-  function binBlocks(blocks, bin){
-    if(bin <= 1) return blocks;
-    const m = new Map();
-    for(const b of blocks){
-      const bx = Math.floor(b.dx / bin);
-      const by = Math.floor(b.dy / bin);
-      const bz = Math.floor(b.dz / bin);
-      const k = bx + "," + by + "," + bz;
-      const cur = m.get(k);
-      if(!cur || b.dy > cur.dy){ m.set(k, b); }
+    ctx.beginPath();
+    ctx.moveTo(sx, sy - s*0.5);
+    ctx.lineTo(sx + s, sy);
+    ctx.lineTo(sx, sy + s*0.5);
+    ctx.lineTo(sx - s, sy);
+    ctx.closePath();
+    ctx.fill();
+    if (stroke){
+      ctx.strokeStyle = "rgba(15,23,42,.10)";
+      ctx.lineWidth = Math.max(1, s*0.06);
+      ctx.stroke();
     }
-    return Array.from(m.values());
+
+    // left
+    ctx.fillStyle = left;
+    ctx.beginPath();
+    ctx.moveTo(sx - s, sy);
+    ctx.lineTo(sx, sy + s*0.5);
+    ctx.lineTo(sx, sy + s*0.5 + s);
+    ctx.lineTo(sx - s, sy + s);
+    ctx.closePath();
+    ctx.fill();
+
+    // right
+    ctx.fillStyle = right;
+    ctx.beginPath();
+    ctx.moveTo(sx + s, sy);
+    ctx.lineTo(sx, sy + s*0.5);
+    ctx.lineTo(sx, sy + s*0.5 + s);
+    ctx.lineTo(sx + s, sy + s);
+    ctx.closePath();
+    ctx.fill();
   }
 
-  function chooseBinSize(blockCount){
-    const target = 16000;
-    if(blockCount <= target) return 1;
-    const ratio = blockCount / target;
-    let bin = Math.ceil(Math.cbrt(ratio));
-    return Math.min(6, Math.max(2, bin));
-  }
-
-  function renderThumbToCanvas(canvas, unitJson, extraOffsetQuarter){
+  function drawIso(canvas, blocks, yawDeg){
     const ctx = canvas.getContext("2d");
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0,0,w,h);
 
-    // background
+    // 背景
     const g = ctx.createLinearGradient(0,0,0,h);
     g.addColorStop(0,"rgba(37,99,235,.10)");
     g.addColorStop(1,"rgba(22,163,74,.08)");
-    ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,w,h);
 
-    const blocks0 = unitJson.blocks || [];
-    const qTurns = yawToQuarterTurns(unitJson.frontYaw, extraOffsetQuarter);
-
-    const bin = chooseBinSize(blocks0.length);
-    const blocks = binBlocks(blocks0, bin);
-
-    function computeBBoxUnits(transformed){
-      const inf = analyzeBlocks(transformed);
-      let minXu = Infinity, maxXu = -Infinity, minYu = Infinity, maxYu = -Infinity;
-      for (const b of transformed){
-        const x = (b.dx - inf.minX), y = (b.dy - inf.minY), z = (b.dz - inf.minZ);
-        const sxu = (x - z);
-        const syu = (x + z)*0.5 - y;
-        minXu = Math.min(minXu, sxu - 1);
-        maxXu = Math.max(maxXu, sxu + 1);
-        minYu = Math.min(minYu, syu - 0.5);
-        maxYu = Math.max(maxYu, syu + 1.5);
-      }
-      if (!isFinite(minXu)){
-        minXu = -1; maxXu = 1; minYu = -0.5; maxYu = 1.5;
-      }
-      return {inf, minXu, maxXu, minYu, maxYu, bboxWu:(maxXu-minXu), bboxHu:(maxYu-minYu)};
+    if(!Array.isArray(blocks) || blocks.length === 0){
+      ctx.fillStyle = "rgba(15,23,42,.35)";
+      ctx.font = "14px sans-serif";
+      ctx.fillText("No blocks", 16, 28);
+      return;
     }
 
-    function buildTransformed(turns){
-      const transformed = blocks.map(b=>{
-        const r = rotateXZ(b.dx, b.dz, turns);
-        return {dx:r.x, dy:b.dy, dz:r.z, blockId:b.blockId};
-      });
-      transformed.sort((a,b)=> (a.dx+a.dz) - (b.dx+b.dz) || (a.dy - b.dy));
-      return transformed;
+    const yaw = (Number(yawDeg||0) % 360) * Math.PI/180;
+    const cos = Math.cos(yaw), sin = Math.sin(yaw);
+
+    const pts = [];
+    for(const b of blocks){
+      const bid = String(b.blockId||"");
+      if(isAirBlock(bid)) continue;
+
+      const x0 = Number(b.dx||0), y0 = Number(b.dy||0), z0 = Number(b.dz||0);
+      const rx = x0*cos - z0*sin;
+      const rz = x0*sin + z0*cos;
+
+      // 0/90/180/270前提で格子に戻す
+      const x = Math.round(rx);
+      const z = Math.round(rz);
+      const y = y0;
+
+      const sx0 = (x - z);
+      const sy0 = (x + z) * 0.5 - y;
+
+      const minX = sx0 - 1;
+      const maxX = sx0 + 1;
+      const minY = sy0 - 0.5;
+      const maxY = sy0 + 1.5;
+
+      pts.push({x,y,z,bid,minX,maxX,minY,maxY});
     }
 
-    function computeFitParams(bbox){
-      const margin = 14;
-      const sFit = Math.min(
-        (w - margin*2) / Math.max(1e-6, bbox.bboxWu),
-        (h - margin*2) / Math.max(1e-6, bbox.bboxHu)
-      );
-      const s = Math.max(1.0, sFit);
-      const cxu = (bbox.minXu + bbox.maxXu) * 0.5;
-      const cyu = (bbox.minYu + bbox.maxYu) * 0.5;
-      const ox = w*0.5 - cxu * s;
-      const oy = h*0.5 - cyu * s;
-      return {s, ox, oy};
+    if(pts.length === 0){
+      ctx.fillStyle = "rgba(15,23,42,.35)";
+      ctx.font = "14px sans-serif";
+      ctx.fillText("No visible blocks", 16, 28);
+      return;
     }
 
-    function unionBBox(a,b){
-      return {
-        inf: a.inf,
-        minXu: Math.min(a.minXu,b.minXu),
-        maxXu: Math.max(a.maxXu,b.maxXu),
-        minYu: Math.min(a.minYu,b.minYu),
-        maxYu: Math.max(a.maxYu,b.maxYu),
-        bboxWu: Math.max(a.maxXu,b.maxXu) - Math.min(a.minXu,b.minXu),
-        bboxHu: Math.max(a.maxYu,b.maxYu) - Math.min(a.minYu,b.minYu),
-      };
+    let minPX=Infinity, maxPX=-Infinity, minPY=Infinity, maxPY=-Infinity;
+    for(const p of pts){
+      if(p.minX < minPX) minPX = p.minX;
+      if(p.maxX > maxPX) maxPX = p.maxX;
+      if(p.minY < minPY) minPY = p.minY;
+      if(p.maxY > maxPY) maxPY = p.maxY;
     }
 
-    function drawPass(turns, alpha, fit){
-      const transformed = buildTransformed(turns);
-      const bb = computeBBoxUnits(transformed);
-      const s = fit.s, ox = fit.ox, oy = fit.oy;
+    const rangeX = Math.max(1e-6, (maxPX - minPX));
+    const rangeY = Math.max(1e-6, (maxPY - minPY));
+    const cx = (minPX + maxPX) * 0.5;
+    const cy = (minPY + maxPY) * 0.5;
 
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.translate(ox, oy);
+    const margin = 18;
+    const s = Math.max(
+      2.0,
+      Math.min(
+        (w - margin*2) / rangeX,
+        (h - margin*2) / rangeY
+      )
+    );
 
-      const stroke = (s >= 3);
-      for(const b of transformed){
-        const x = (b.dx - bb.inf.minX), y = (b.dy - bb.inf.minY), z = (b.dz - bb.inf.minZ);
-        drawIsoCube(ctx, x, y, z, s, pickBaseColor(b.blockId), stroke);
-      }
-      ctx.restore();
+    const ox = (w * 0.5) - (cx * s);
+    const oy = (h * 0.5) - (cy * s);
+
+    // 奥→手前
+    pts.sort((a,b)=> (a.x + a.z) - (b.x + b.z) || (a.y - b.y));
+
+    const stroke = (s >= 3);
+
+    ctx.save();
+    ctx.translate(ox, oy);
+    for(const p of pts){
+      drawIsoCube(ctx, p.x, p.y, p.z, s, pickBaseColor(p.bid), stroke);
     }
+    ctx.restore();
+  }
 
-    if(qTurns == null){
-      const t0 = buildTransformed(0);
-      const t2 = buildTransformed(2);
-      const bb0 = computeBBoxUnits(t0);
-      const bb2 = computeBBoxUnits(t2);
-      const fit = computeFitParams(unionBBox(bb0, bb2));
-      drawPass(0, 1.0, fit);
-      drawPass(2, 0.33, fit);
-    } else {
-      const t = buildTransformed(qTurns);
-      const bb = computeBBoxUnits(t);
-      const fit = computeFitParams(bb);
-      drawPass(qTurns, 1.0, fit);
-    }
+  // =========================
+  // data loading strategy
+  // =========================
+  const queryId = qs("id");
+  const queryNo = qs("no"); // optional
+  qIdEl.textContent = queryId || "(missing)";
+  qNoEl.textContent = queryNo || "(empty)";
+  subtitle.textContent = queryId ? `id=${queryId}` : "id が指定されていません";
+
+  let UNIT_JSON = null;
+  let FRONT_YAW = null; // JSON frontYaw（例:-90）
+  let YAW_BASE = 270;   // index寄りの既定
+  let YAW_EXTRA = 0;    // ボタン回転分（90刻み）
+
+  function clampYaw(d){
+    let n = Number(d||0);
+    n = ((n % 360) + 360) % 360;
+    return n;
+  }
+
+  function computeYaw(){
+    const fix = Number(yawFix.value || 0);
+    const base = clampYaw(YAW_BASE + fix + YAW_EXTRA);
+    // frontYaw があれば、正面ボタンでそちらを基準にするが、通常描画では base を使う
+    return base;
   }
 
   function render3D(){
-    if(!unitJson || !Array.isArray(unitJson.blocks)){
-      // blank
-      ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(!UNIT_JSON || !Array.isArray(UNIT_JSON.blocks)) return;
+    drawIso(canvas, UNIT_JSON.blocks, computeYaw());
+  }
+
+  function setMetaFallbackFromJson(id, j){
+    const name = (j && (j.displayName || j.name)) ? (j.displayName || j.name) : "(unknown)";
+    const blocks = Array.isArray(j.blocks) ? j.blocks.length : 0;
+    const size = (j.size && Array.isArray(j.size)) ? `${j.size[0]} x ${j.size[1]} x ${j.size[2]}` : "(unknown)";
+
+    subIdEl.textContent = id || "(unknown)";
+    unitIdEl.textContent = j && j.id ? j.id : (id || "(unknown)");
+    authorEl.textContent = "(unknown)";
+    createdEl.textContent = "(unknown)";
+    statusEl.textContent = "(unknown)";
+    dlEl.textContent = "(unknown)";
+
+    subtitle.textContent = name + `  — blocks:${blocks} / size:${size}`;
+  }
+
+  function setMetaFromSubmission(meta){
+    // ここは “取れた分だけ” でOK（環境差があるので）
+    const id = String(meta.id ?? meta.submission_id ?? meta.submissionId ?? queryId ?? "");
+    const no = meta.submission_no ?? meta.submissionNo ?? meta.no ?? null;
+    const title = meta.title || meta.name || meta.displayName || "";
+    const author = meta.author_name || meta.authorName || meta.author || "unknown";
+    const created = meta.created_at || meta.createdAt || meta.created || "";
+    const status = (meta.status ?? meta.review_status ?? meta.state ?? "approved");
+    const dl = meta.download_count ?? meta.downloadCount ?? meta.dl ?? "";
+
+    subIdEl.textContent = id || "(unknown)";
+    unitIdEl.textContent = meta.unit_id || meta.unitId || meta.id || "(unknown)";
+    authorEl.textContent = author || "(unknown)";
+    createdEl.textContent = created ? String(created) : "(unknown)";
+    statusEl.textContent = String(status || "(unknown)");
+    dlEl.textContent = (dl === "" || dl == null) ? "(unknown)" : String(dl);
+
+    if(title) subtitle.textContent = title;
+
+    // DLボタン（public優先・ダメならprivate）
+    dlBtn.style.display = "inline-flex";
+    dlBtn.href = API_DL_PUBLIC(id);
+    dlBtn.onclick = async (e) => {
+      // public が落ちるケース用に、1回だけ private に切替を試す
+      // ※ download はブラウザ遷移なので “事前検証” が重い。ここでは保険のリンクだけ用意。
+    };
+
+    // 詳細ページ上で「編集導線」：submit側に任せる
+    const authorEmail = normEmail(meta.author_email || meta.authorEmail || "");
+    const isMine = Boolean(ME_EMAIL && authorEmail && ME_EMAIL === authorEmail);
+
+    if(isMine){
+      editBtn.style.display = "inline-flex";
+      editBtn.href = `/submit?edit=${encodeURIComponent(id)}`;
+      submitBtn.style.display = "inline-flex";
+      submitBtn.href = `/submit?edit=${encodeURIComponent(id)}`;
+      ownerHint.style.display = "inline";
+    }
+  }
+
+  async function loadUnitJsonSmart(id){
+    // private → public の順で JSON を取りに行く
+    const a = await fetchJson(API_JSON_PRIVATE(id), { cache:"no-store", credentials:"include" });
+    if(a.ok && a.data) return { src:"private", json:a.data };
+
+    const b = await fetchJson(API_JSON_PUBLIC(id), { cache:"no-store" });
+    if(b.ok && b.data) return { src:"public", json:b.data };
+
+    // どっちも失敗
+    throw new Error(`JSONの取得に失敗しました (private:${a.status} / public:${b.status})`);
+  }
+
+  async function loadMetaSmart(id){
+    // meta は private → public の順
+    const a = await fetchJson(API_SUB_META_PRIVATE(id), { cache:"no-store", credentials:"include" });
+    if(a.ok && a.data) return { src:"private", meta:a.data };
+
+    const b = await fetchJson(API_SUB_META_PUBLIC(id), { cache:"no-store" });
+    if(b.ok && b.data) return { src:"public", meta:b.data };
+
+    return { src:"none", meta:null, a, b };
+  }
+
+  async function loadScreensSmart(id, meta){
+    // metaに screens が入ってる場合はそれ優先
+    const fromMeta =
+      (meta && (meta.screens || meta.screen_ids || meta.screenIds || meta.screenshot_ids || meta.screenshotIds)) || null;
+
+    let ids = [];
+    if(Array.isArray(fromMeta)){
+      ids = fromMeta.map(x => String(x)).filter(Boolean);
+      return { ids, src:"meta" };
+    }
+
+    // endpoint を叩く（private→public）
+    const a = await fetchJson(API_SCREENS_PRIVATE(id), { cache:"no-store", credentials:"include" });
+    if(a.ok && a.data){
+      const arr = Array.isArray(a.data.items) ? a.data.items
+               : Array.isArray(a.data.screens) ? a.data.screens
+               : Array.isArray(a.data) ? a.data : [];
+      const ids2 = arr.map(x => String(x.id || x.screen_id || x.screenId || x)).filter(Boolean);
+      return { ids: ids2, src:"private" };
+    }
+
+    const b = await fetchJson(API_SCREENS_PUBLIC(id), { cache:"no-store" });
+    if(b.ok && b.data){
+      const arr = Array.isArray(b.data.items) ? b.data.items
+               : Array.isArray(b.data.screens) ? b.data.screens
+               : Array.isArray(b.data) ? b.data : [];
+      const ids2 = arr.map(x => String(x.id || x.screen_id || x.screenId || x)).filter(Boolean);
+      return { ids: ids2, src:"public" };
+    }
+
+    return { ids: [], src:"none" };
+  }
+
+  function renderScreens(ids){
+    screensEl.innerHTML = "";
+    shotCountEl.textContent = String(ids.length || 0);
+
+    if(!ids || ids.length === 0){
+      screensHint.textContent = "スクリーンショットはありません（または取得できませんでした）";
       return;
     }
-    const base = Number(yawOffsetQuarter || 0) % 4;
-    const rot  = Number(userRotateQuarter || 0) % 4;
+    screensHint.textContent = "";
 
-    // 「正面を合わせた上で回転」＝ submit と同じ基準 + rotate
-    const extra = (base + rot) % 4;
+    for(const sid of ids){
+      const wrap = document.createElement("div");
+      wrap.className = "shot";
 
-    el("yawLabel").textContent = String(extra);
-    renderThumbToCanvas(canvas, unitJson, extra);
-  }
+      const img = document.createElement("img");
+      // public をまず
+      const pub = API_PUBLIC_SCREEN(sid);
+      const pri = API_PRIVATE_SCREEN(sid);
+      img.src = pub;
+      img.alt = "";
 
-  function loadRotateState(key){
-    try{
-      const v = localStorage.getItem(key);
-      const n = Number(v);
-      if(Number.isFinite(n)) return (n % 4 + 4) % 4;
-    }catch{}
-    return 0;
-  }
-
-  function saveRotateState(key, v){
-    try{ localStorage.setItem(key, String((v%4+4)%4)); }catch{}
-  }
-
-  // ----------------------------
-  // Fetch helpers
-  // ----------------------------
-  async function fetchJson(url){
-    const r = await fetch(url, { cache:"no-store", credentials:"include" });
-    const j = await r.json().catch(()=>null);
-    return { r, j };
-  }
-
-  async function fetchText(url){
-    const r = await fetch(url, { cache:"no-store", credentials:"include" });
-    const t = await r.text().catch(()=>null);
-    return { r, t };
-  }
-
-  // ----------------------------
-  // Resolve & Load
-  // ----------------------------
-  async function resolveAndLoad(){
-    const q = getQuery();
-    el("qId").textContent = q.id || "(empty)";
-    el("qNo").textContent = q.no || "(empty)";
-
-    // whoami
-    me = await whoami();
-    setAuthUI(me);
-
-    // rotation state key
-    const rotKey = "unitRotate:" + (q.id || q.no || "unknown");
-    userRotateQuarter = loadRotateState(rotKey);
-    el("rotSel").value = String(userRotateQuarter);
-
-    el("rotL").addEventListener("click", () => {
-      userRotateQuarter = (userRotateQuarter + 3) % 4;
-      el("rotSel").value = String(userRotateQuarter);
-      saveRotateState(rotKey, userRotateQuarter);
-      render3D();
-    });
-    el("rotR").addEventListener("click", () => {
-      userRotateQuarter = (userRotateQuarter + 1) % 4;
-      el("rotSel").value = String(userRotateQuarter);
-      saveRotateState(rotKey, userRotateQuarter);
-      render3D();
-    });
-    el("rotSel").addEventListener("change", () => {
-      userRotateQuarter = Number(el("rotSel").value || "0") % 4;
-      saveRotateState(rotKey, userRotateQuarter);
-      render3D();
-    });
-
-    // 1) Try public by no
-    if(q.no){
-      try{
-        const { r, j } = await fetchJson(API_PUBLIC_BY_NO(q.no));
-        if(r.ok && j && j.ok===true && j.item){
-          item = j.item;
+      img.addEventListener("error", () => {
+        // ログイン中なら private を試す
+        if(ME_EMAIL){
+          img.src = pri;
         }
-      }catch{}
-    }
+      }, { once:true });
 
-    // 2) Try public unit?id= (既存の想定)
-    if(!item && q.id && !looksLikeUUID(q.id)){
-      // q.id が unit_id っぽいケース（例: unit_98_-59_85）
+      const cap = document.createElement("div");
+      cap.className = "cap";
+      cap.innerHTML = `<span>screen: ${sid}</span><a class="btn" style="padding:6px 10px;font-size:12px;" href="${pub}" target="_blank" rel="noopener">開く</a>`;
+
+      wrap.appendChild(img);
+      wrap.appendChild(cap);
+      screensEl.appendChild(wrap);
+    }
+  }
+
+  function renderJsonSection(id, json){
+    // デフォ非表示 → JSONが取れたら出す
+    const s = JSON.stringify(json, null, 2);
+    jsonDetails.style.display = "block";
+    jsonPre.textContent = s;
+
+    const blocks = Array.isArray(json.blocks) ? json.blocks.length : 0;
+    const size = (json.size && Array.isArray(json.size)) ? `${json.size[0]}×${json.size[1]}×${json.size[2]}` : "";
+    jsonMeta.textContent = `blocks:${blocks}${size ? " / size:"+size : ""}`;
+
+    // JSON別タブ
+    // “privateのjsonURL” はログイン前提なので、まず public を出す（落ちたらユーザーがログインすれば見れる）
+    jsonOpen.href = API_JSON_PUBLIC(id);
+
+    jsonCopy.onclick = async () => {
       try{
-        const { r, j } = await fetchJson(API_PUBLIC_UNIT_QS(q.id));
-        if(r.ok && j && j.ok===true && j.item){
-          item = j.item;
-        }
-      }catch{}
-    }
-
-    // 3) Try submission meta (id が UUID のとき)
-    if(!item && q.id && looksLikeUUID(q.id)){
-      submissionId = q.id;
-      try{
-        const { r, j } = await fetchJson(API_SUB_META(submissionId));
-        // ここが not_found になるケースがある（あなたのスクショ通り）
-        if(r.ok && j){
-          item = (j.item ? j.item : j);
-        }
-      }catch{}
-    }
-
-    // item が取れていれば基本情報を埋める
-    if(item){
-      submissionId = String(item.id || submissionId || "");
-      unitId = String(item.unit_id || item.unitId || "");
-      yawOffsetQuarter = Number(item.yaw_offset_quarter ?? 0) % 4;
-
-      el("title").textContent = item.title || "Captured Unit";
-      el("subtitle").textContent = item.description || "";
-      el("submissionId").textContent = submissionId || "(unknown)";
-      el("unitId").textContent = unitId || "(unknown)";
-      el("status").textContent = item.status || "(unknown)";
-      el("author").textContent = item.author_name || "(unknown)";
-      el("created").textContent = item.created_at || "(unknown)";
-    }else{
-      // item が取れない場合でも、JSONとスクショで成立させる
-      el("title").textContent = "Captured Unit";
-      el("subtitle").textContent = "メタ情報の取得に失敗しました（JSON/Screens から表示を継続します）";
-      el("status").textContent = "(unknown)";
-      el("author").textContent = "(unknown)";
-      el("created").textContent = "(unknown)";
-
-      // q.id が UUID なら submissionId とみなす
-      if(q.id && looksLikeUUID(q.id)){
-        submissionId = q.id;
-        el("submissionId").textContent = submissionId;
-      }else{
-        el("submissionId").textContent = "(unknown)";
+        await navigator.clipboard.writeText(s);
+        jsonCopy.textContent = "コピーしました";
+        setTimeout(()=> jsonCopy.textContent="JSONをコピー", 1200);
+      }catch{
+        alert("コピーに失敗しました（ブラウザの権限をご確認ください）");
       }
-      el("unitId").textContent = "(unknown)";
+    };
+  }
 
-      setErr(
-        "取得できませんでした。\n" +
-        "・/api/submissions/:id が not_found の環境でも、/api/submissions/:id/json が取れる場合があるため、このページは json 側から表示を継続します。\n" +
-        `入力: id=${q.id || "(empty)"} / no=${q.no || "(empty)"}`
-      );
-    }
+  // =========================
+  // controls
+  // =========================
+  yawLeft.onclick = () => { YAW_EXTRA = clampYaw(YAW_EXTRA - 90); render3D(); };
+  yawRight.onclick = () => { YAW_EXTRA = clampYaw(YAW_EXTRA + 90); render3D(); };
 
-    // canEdit: admin or owner
-    const authorEmail = normEmail(item?.author_email);
-    const canEdit = Boolean(isAdmin || (isLoggedIn && authorEmail && authorEmail === meEmail));
-    const editBtn = el("editBtn");
-    if(canEdit && submissionId){
-      editBtn.style.display = "inline-flex";
-      editBtn.href = EDIT_URL(submissionId);
-    }else{
-      editBtn.style.display = "none";
-      editBtn.href = "#";
-    }
-
-    // JSON: item.unit_json がない/重い/返ってこない前提で、/json を取りに行く
-    // ここが「あなたの環境で確実に取れてる」ので最優先で使う
-    if(submissionId){
-      try{
-        const { r, t } = await fetchText(API_SUB_JSON(submissionId));
-        if(r.ok && t){
-          try{
-            unitJson = JSON.parse(t);
-          }catch{
-            unitJson = null;
-          }
-          // JSONボタン
-          const jb = el("jsonBtn");
-          jb.style.display = "inline-flex";
-          jb.href = API_SUB_JSON(submissionId);
-          el("jsonHint").textContent = unitJson?.blocks ? `blocks: ${unitJson.blocks.length}` : "";
-
-          // 折りたたみJSON（必要な時だけ）
-          if(unitJson){
-            // ここは「全文いらない」要望なので、デフォは details 内だが
-            // 文字列は置いておく（開いた人だけ見える）
-            el("json").textContent = JSON.stringify(unitJson, null, 2);
-          }else{
-            el("json").textContent = "(json parse error)";
-          }
-        }else{
-          el("json").textContent = "not_found";
-        }
-      }catch(e){
-        el("json").textContent = "json load failed: " + (e?.message || String(e));
-      }
-    }else{
-      el("json").textContent = "not_found";
-    }
-
-    // palette -> render
-    await loadPalette();
+  yawReset.onclick = () => {
+    yawFix.value = "270"; // index寄り既定
+    YAW_EXTRA = 0;
     render3D();
+  };
 
-    // Screens
-    // 公開ページとしては「未ログインは表示しない」でもいいが、いまは個別ページ用途なので
-    // ・ログイン済み: private
-    // ・ゲスト: public
-    const canPrivateScreens = Boolean(isLoggedIn); // 投稿者限定にしたいなら canEdit に変えてOK
-    if(submissionId){
-      await loadScreens(submissionId, canPrivateScreens);
-    }else{
-      el("screenMsg").textContent = "submission_id が不明です。";
+  yawFront.onclick = () => {
+    // frontYaw があるなら “それが正面になるように” base をセットする
+    if(typeof FRONT_YAW === "number" && !Number.isNaN(FRONT_YAW)){
+      // frontYawは -90 等の可能性がある。ここでは「描画yaw = (frontYaw + 360) % 360」が正面になるよう調整。
+      // indexの描画は “yawDeg” をそのまま回転角に使っているので、
+      // ここでは「frontYaw を打ち消して正面に見える」ように base を組む（補正と合わせやすい形にする）
+      // → base を frontYaw の逆方向に合わせる
+      YAW_BASE = clampYaw(-FRONT_YAW);
+      YAW_EXTRA = 0;
+      render3D();
+      return;
     }
+    showWarn("frontYaw が JSON から取得できませんでした。Yaw補正と↺/↻で合わせてください。");
+  };
+
+  yawFix.onchange = () => render3D();
+
+  // =========================
+  // main flow
+  // =========================
+  async function main(){
+    if(!queryId){
+      showWarn("id が指定されていません。例： /unit.html?id=123  または  /unit.html?id=<uuid>");
+      return;
+    }
+
+    hideWarn();
+    await loadWhoami();
+    await loadPalette();
+
+    // まず meta を試す（not_foundの可能性あり）
+    const metaRes = await loadMetaSmart(queryId);
+
+    if(metaRes.meta){
+      setMetaFromSubmission(metaRes.meta);
+    }else{
+      // metaが取れないケース：ここで “想定される原因” を出しつつ、JSON復旧へ進む
+      const hint = [
+        "メタ情報の取得に失敗しました（JSON/Screens から表示を継続します）",
+        "",
+        "想定:",
+        "- /api/submissions/:id が not_found でも /api/submissions/:id/json は取得できるケース",
+        "- UUID はログイン前提の private でのみ取得できる構成",
+        "",
+        `入力: id=${queryId} / no=${queryNo || "(empty)"}`
+      ].join("\n");
+      showWarn(hint);
+    }
+
+    // JSON は最優先で取りに行く（ここが取れれば3Dは成立）
+    try{
+      const { json } = await loadUnitJsonSmart(queryId);
+      UNIT_JSON = json;
+      FRONT_YAW = (typeof json.frontYaw === "number") ? json.frontYaw : null;
+
+      // metaが無い場合は JSON から最低限表示を復旧
+      if(!metaRes.meta){
+        setMetaFallbackFromJson(queryId, json);
+      }else{
+        // subtitleに blocks/size を足す（控えめ）
+        const blocks = Array.isArray(json.blocks) ? json.blocks.length : 0;
+        const size = (json.size && Array.isArray(json.size)) ? `${json.size[0]}x${json.size[1]}x${json.size[2]}` : "";
+        const base = subtitle.textContent || "";
+        subtitle.textContent = base + `  — blocks:${blocks}${size ? " / size:"+size : ""}`;
+      }
+
+      // JSONは必要時だけ表示（でも取れてるので details は出す）
+      renderJsonSection(queryId, json);
+
+      // 3D描画
+      render3D();
+    }catch(e){
+      showWarn((warnEl.textContent ? (warnEl.textContent + "\n\n") : "") + "JSONの取得に失敗しました。\n" + String(e.message || e));
+    }
+
+    // Screens：metaが取れた時は meta を渡して補助する
+    try{
+      const { ids } = await loadScreensSmart(queryId, metaRes.meta);
+      renderScreens(ids);
+    }catch{
+      renderScreens([]);
+    }
+
+    // 投稿者判定：metaに author_email が無い場合は “編集導線だけ” でも表示できるようにする
+    // （あなたの運用では本人は実質あなたなので、ログインしているなら編集ボタンを出してもOK）
+    // ただし “勝手に” 出すと危険なので、ここでは meta 由来の isMine のみで出す方針（上で実装済）
   }
 
-  resolveAndLoad();
+  main();
 })();
 </script>
-
 </body>
 </html>
