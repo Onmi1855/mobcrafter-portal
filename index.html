@@ -367,7 +367,7 @@ img.thumbimg{
 (() => {
   // ====== API ======
   const API_PUBLIC_LIST = "/api/public/submissions";
-  const API_MY_LIST = "/api/my/submissions?scope=approved"; // ログイン必須 / 自分の承認済みのみ
+  const API_MY_LIST = "/api/my/submissions?scope=all"; // ログイン必須 / 自分の承認済みのみ
   const API_JSON = (id) => `/api/public/submissions/${id}/json`;
   const API_DL   = (id) => `/api/public/submissions/${id}/download`;
   const API_PUBLIC_SCREEN = (screenId) => `/api/public/screens/${encodeURIComponent(screenId)}`;
