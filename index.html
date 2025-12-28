@@ -843,19 +843,39 @@ card.innerHTML = `
     // imgのフォールバック（public 404/403 → private）
     const img = card.querySelector("img.thumbimg");
     if (img) {
-      img.addEventListener("error", () => {
-        // ログインしてないとprivateは見れないので諦める
-        if (!meEmail) return;
+img.addEventListener("error", async () => {
+  // 1) まず public→private フォールバック（未実行なら）
+  const tried = img.getAttribute("data-tried-private");
+  const ps = img.getAttribute("data-private-src");
 
-        const tried = img.getAttribute("data-tried-private");
-        if (tried === "1") return;
+  if (meEmail && tried !== "1" && ps) {
+    img.setAttribute("data-tried-private", "1");
+    img.src = ps;
+    return;
+  }
 
-        const ps = img.getAttribute("data-private-src");
-        if (!ps) return;
+  // 2) private もダメなら、スクショを諦めて 3D(canvas) に切替
+  try {
+    const wrap = img.closest(".thumbwrap");
+    if (!wrap) return;
 
-        img.setAttribute("data-tried-private", "1");
-        img.src = ps;
-      }, { once:false });
+    const canvas = document.createElement("canvas");
+    canvas.className = "thumb";
+    canvas.width = 480;
+    canvas.height = 280;
+
+    img.remove();
+    wrap.prepend(canvas);
+
+    const j = await fetchUnitJson(it.id);
+    await loadPalette();
+    const yaw = Number(yawUi.value || 270);
+    drawIso(canvas, j.blocks, yaw);
+  } catch {
+    // 何もしない（白のままでもOK）
+  }
+}, { once:false });
+
     }
 
     // canvasがある時だけ3D描画（スクショ時は何もしない）
