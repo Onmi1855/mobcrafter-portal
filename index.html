@@ -141,18 +141,29 @@ img.thumbimg{
       gap:6px;
       align-items:center;
     }
-    .badge{
-      .badge.pending { background: rgba(254, 243, 199, .95); border-color: rgba(245, 158, 11, .35); }
-      .badge.rejected, .badge.reject { background: rgba(254, 226, 226, .95); border-color: rgba(220, 38, 38, .35); }
-      .badge.approved { background: rgba(220, 252, 231, .95); border-color: rgba(34, 197, 94, .35); }
-      font-size:11px;
-      padding:4px 8px;
-      border-radius:999px;
-      background:rgba(255,255,255,.78);
-      border:1px solid rgba(148,163,184,.35);
-      color:#0f172a;
-      backdrop-filter: blur(6px);
-    }
+.badge{
+  font-size:11px;
+  padding:4px 8px;
+  border-radius:999px;
+  background:rgba(255,255,255,.78);
+  border:1px solid rgba(148,163,184,.35);
+  color:#0f172a;
+  backdrop-filter: blur(6px);
+}
+
+.badge.pending{
+  background: rgba(254, 243, 199, .95);
+  border-color: rgba(245, 158, 11, .35);
+}
+.badge.rejected, .badge.reject{
+  background: rgba(254, 226, 226, .95);
+  border-color: rgba(220, 38, 38, .35);
+}
+.badge.approved{
+  background: rgba(220, 252, 231, .95);
+  border-color: rgba(34, 197, 94, .35);
+}
+
     .btn-dl{
       position:absolute;
       top:10px;
