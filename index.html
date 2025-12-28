@@ -756,25 +756,42 @@ img.thumbimg{
     const card = document.createElement("article");
     card.className = "card";
 
-    const canEdit = Boolean(meEmail && it.authorEmail && String(it.authorEmail) === String(meEmail));
-    const useScreenThumb = (it.thumbMode === "screen" && it.thumbScreenId);
+    const isMine = Boolean(meEmail && it.authorEmail && String(it.authorEmail) === String(meEmail));
+    const canEdit = isMine;
+
+    // スクショIDがあるならスクショ優先（thumbMode が欠けてても出す）
+    const hasScreen = Boolean(it.thumbScreenId);
+    const useScreenThumb = hasScreen;
+
+    const st = String(it.status || "approved").toLowerCase();
+    const statusBadge = (st && st !== "approved")
+      ? `<span class="badge">${escapeHtml(st)}</span>`
+      : ``;
+
+    // まず public を試し、失敗したら（ログイン中なら）privateへ自動フォールバック
+    const publicSrc = hasScreen
+      ? (API_PUBLIC_SCREEN(it.thumbScreenId) + "?v=" + encodeURIComponent(it.created || it.createdText || ""))
+      : "";
+
+    const privateSrc = hasScreen
+      ? (API_PRIVATE_SCREEN(it.thumbScreenId) + "?v=" + encodeURIComponent(it.created || it.createdText || ""))
+      : "";
 
     card.innerHTML = `
       <div class="thumbwrap">
         ${useScreenThumb
-          ? `<img class="thumbimg" src="${escapeHtml(
-              ((it.status === "approved")
-                ? API_PUBLIC_SCREEN(it.thumbScreenId)
-                : API_PRIVATE_SCREEN(it.thumbScreenId)
-              ) + "?v=" + encodeURIComponent(it.created || it.createdText || "")
-            )}" alt="" />`
+          ? `<img class="thumbimg"
+                 src="${escapeHtml(publicSrc)}"
+                 alt=""
+                 data-public-src="${escapeHtml(publicSrc)}"
+                 data-private-src="${escapeHtml(privateSrc)}"
+                 data-tried-private="0"
+               />`
           : `<canvas class="thumb" width="480" height="280"></canvas>`
         }
         <div class="pill">
           <span class="badge">${escapeHtml(it.mod || "Forge")}</span>
-          ${it.status && it.status !== "approved"
-            ? `<span class="badge">${escapeHtml(it.status)}</span>`
-            : ``}
+          ${statusBadge}
         </div>
         <a class="btn-dl" href="${escapeHtml(API_DL(it.id))}" download>Download</a>
         ${canEdit ? `<a class="btn-edit" href="${escapeHtml(`/submit?edit=${encodeURIComponent(it.id)}`)}">編集</a>` : ``}
@@ -807,6 +824,24 @@ img.thumbimg{
       });
     }
 
+    // imgのフォールバック（public 404/403 → private）
+    const img = card.querySelector("img.thumbimg");
+    if (img) {
+      img.addEventListener("error", () => {
+        // ログインしてないとprivateは見れないので諦める
+        if (!meEmail) return;
+
+        const tried = img.getAttribute("data-tried-private");
+        if (tried === "1") return;
+
+        const ps = img.getAttribute("data-private-src");
+        if (!ps) return;
+
+        img.setAttribute("data-tried-private", "1");
+        img.src = ps;
+      }, { once:false });
+    }
+
     // canvasがある時だけ3D描画（スクショ時は何もしない）
     const canvas = card.querySelector("canvas.thumb");
     if (canvas) {
@@ -822,6 +857,7 @@ img.thumbimg{
 
     return card;
   }
+
 
   function applyFilter(){
     const kw = String(q.value||"").trim().toLowerCase();
