@@ -875,6 +875,7 @@ img.thumbimg{
         return ({
           id: String(r.id),
           no,
+          status: String(r.status || "").toLowerCase(), // ★追加
           name: r.title || r.name || "Untitled",
           desc: r.description || "",
           tags,
@@ -885,10 +886,10 @@ img.thumbimg{
           mod: r.mod_version || r.modVersion || "Forge",
           created: created || "",
           createdText,
-            // ★追加
-  thumbMode: (r.thumb_mode || r.thumbMode || "").toLowerCase(),
-  thumbScreenId: r.thumb_screen_id || r.thumbScreenId || null,
+          thumbMode: (r.thumb_mode || r.thumbMode || "").toLowerCase(),
+          thumbScreenId: r.thumb_screen_id || r.thumbScreenId || null,
         });
+
       });
 
       applyFilter();
