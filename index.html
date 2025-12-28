@@ -791,6 +791,8 @@ const statusBadge = (st && st !== "approved")
     const privateSrc = hasScreen
       ? (API_PRIVATE_SCREEN(it.thumbScreenId) + "?v=" + encodeURIComponent(it.created || it.createdText || ""))
       : "";
+// ★ pending / rejected は最初から private を使う（白紙防止）
+   const initialSrc = (meEmail && st !== "approved") ? privateSrc : publicSrc;
 
     card.innerHTML = `
       <div class="thumbwrap">
