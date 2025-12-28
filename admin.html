@@ -5,38 +5,55 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MobCrafter Admin - Submissions</title>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 24px; }
-    .wrap { max-width: 980px; margin: 0 auto; }
-    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin-top: 12px; }
-    h1 { margin: 0 0 8px; }
-    .row { display:flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 24px; background:#f6f8fb; color:#0f172a; }
+    .wrap { max-width: 1100px; margin: 0 auto; }
+    .card { background:#fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 16px; margin-top: 12px; box-shadow: 0 10px 25px rgba(15,23,42,.06); }
+    h1 { margin: 0 0 6px; }
+    .row { display:flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+    .row.left { justify-content:flex-start; }
     .row > * { flex: 0 0 auto; }
-    select, button, input, textarea { padding: 10px; border-radius: 10px; border: 1px solid #ccc; }
+    select, button, input, textarea { padding: 10px; border-radius: 10px; border: 1px solid #cbd5e1; background:#fff; }
     textarea { width: 100%; min-height: 200px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
     button { cursor: pointer; }
-    button.primary { background:#111; color:#fff; border: 0; }
-    button.danger { background:#b00020; color:#fff; border: 0; }
+    button.primary { background:#111827; color:#fff; border: 0; }
+    button.danger { background:#b91c1c; color:#fff; border: 0; }
     button:disabled { opacity:.5; cursor:not-allowed; }
-    pre { background:#f6f6f6; padding: 12px; border-radius: 10px; white-space: pre-wrap; word-break: break-word; }
+    pre { background:#f8fafc; padding: 12px; border-radius: 10px; white-space: pre-wrap; word-break: break-word; border:1px solid #e5e7eb; }
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border-bottom: 1px solid #eee; padding: 10px; vertical-align: top; }
-    th { text-align: left; color:#444; font-size: 13px; }
-    .muted { color:#666; font-size: 13px; }
-    .pill { display:inline-block; padding: 2px 8px; border-radius: 999px; background:#eee; font-size: 12px; }
-    .pill.red { background:#ffe3e3; }
-    .tags { display:flex; flex-wrap: wrap; gap: 6px; }
-    .tag { background:#eef; border:1px solid #dde; padding:2px 8px; border-radius: 999px; font-size: 12px; }
-    a { color: #0b57d0; }
-    .btnlink { display:inline-flex; align-items:center; gap:6px; text-decoration:none; padding:8px 10px; border-radius:10px; border:1px solid #ccc; }
-    dialog { border: 1px solid #ddd; border-radius: 12px; padding: 14px; width: min(820px, 96vw); }
+    th, td { border-bottom: 1px solid #eee; padding: 12px 10px; vertical-align: top; }
+    th { text-align: left; color:#475569; font-size: 13px; }
+    .muted { color:#64748b; font-size: 13px; }
+    .pill { display:inline-block; padding: 2px 8px; border-radius: 999px; background:#eef2ff; font-size: 12px; border:1px solid #e5e7eb; }
+    .pill.red { background:#ffe4e6; border-color:#fecdd3; }
+    .tags { display:flex; flex-wrap: wrap; gap: 6px; margin-top:6px; }
+    .tag { background:#eff6ff; border:1px solid #dbeafe; padding:2px 8px; border-radius: 999px; font-size: 12px; }
+    a { color: #2563eb; }
+    .btnlink { display:inline-flex; align-items:center; gap:6px; text-decoration:none; padding:8px 10px; border-radius:10px; border:1px solid #cbd5e1; background:#fff; }
+    dialog { border: 1px solid #e5e7eb; border-radius: 14px; padding: 14px; width: min(880px, 96vw); }
     dialog::backdrop { background: rgba(0,0,0,.25); }
     .dlghead { display:flex; justify-content: space-between; align-items:center; gap: 10px; }
     .dlgtitle { font-weight: 800; }
     .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    @media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
-    .mini { font-size: 12px; color:#666; }
+    @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+    .mini { font-size: 12px; color:#64748b; }
 
-    /* ===== B: thumb ===== */
+    /* ===== Thumbs (スクショ + 3D) ===== */
+    .thumbs{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:flex-start;
+    }
+    .thumbCol{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      align-items:flex-start;
+    }
+    .thumbLabel{
+      font-size:11px;
+      color:#64748b;
+    }
     .thumbwrap{
       width: 220px;
       height: 140px;
@@ -62,26 +79,85 @@
     }
     .contentRow{
       display:flex;
-      gap:12px;
+      gap:14px;
       align-items:flex-start;
       flex-wrap:wrap;
     }
     .contentText{
-      flex: 1 1 240px;
-      min-width: 240px;
+      flex: 1 1 260px;
+      min-width: 260px;
+    }
+
+    /* ===== Auth bar ===== */
+    .authbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:6px;
+    }
+    .authleft{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      color:#64748b; font-size:12px;
+    }
+    .authleft code{
+      background:rgba(148,163,184,.15);
+      border:1px solid rgba(148,163,184,.25);
+      padding:2px 6px;
+      border-radius:999px;
+      color:#0f172a;
+    }
+    .authright{
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+    }
+    .authright a{
+      text-decoration:none;
+      border:1px solid rgba(37,99,235,.25);
+      padding:8px 10px;
+      border-radius:999px;
+      background:#fff;
+      color:#2563eb;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      white-space:nowrap;
+    }
+    .authright a.danger{
+      background:#b91c1c;
+      border-color:#b91c1c;
+      color:#fff;
     }
   </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>MobCrafter 管理画面</h1>
-  <div class="muted">
-    ※ 管理者のみ。APIは <code>/api/admin/*</code> を叩きます（同一オリジン）。<br>
-    ※ Cloudflare Access（Google OAuth）で <code>mobcrafter.net/api/admin*</code> を保護している前提です。
+  <div class="card">
+    <div class="row left" style="align-items:flex-end;">
+      <div style="flex:1 1 auto;">
+        <h1>MobCrafter 管理画面</h1>
+        <div class="muted">
+          ※ 管理者のみ。APIは <code>/api/admin/*</code> を叩きます（同一オリジン）。<br>
+          ※ Cloudflare Access（Google OAuth）で <code>mobcrafter.net/api/admin*</code> を保護している前提です。
+        </div>
+
+        <div class="authbar" id="authbar">
+          <div class="authleft">
+            <span>Login:</span>
+            <code id="authState">checking...</code>
+            <span id="authEmailWrap" style="display:none;">Email: <code id="authEmail"></code></span>
+            <span id="authAdminWrap" style="display:none;">Admin: <code id="authAdmin"></code></span>
+          </div>
+          <div class="authright">
+            <a id="authActionLink" href="/api/login?next=%2Fadmin">ログイン</a>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="card">
-    <div class="row">
+    <div class="row left">
       <label>
         表示ステータス：
         <select id="status">
@@ -115,7 +191,7 @@
   </div>
 
   <div class="card">
-    <div class="muted">一覧</div>
+    <div class="muted">一覧（スクショ + 3D）</div>
     <div id="list"></div>
   </div>
 </div>
@@ -150,7 +226,7 @@
     <div class="mini">※ unitId/id はサーバー側で固定に上書きされます。</div>
   </div>
 
-  <div class="row" style="margin-top:12px;">
+  <div class="row left" style="margin-top:12px;">
     <button id="btnSaveMeta" class="primary">メタ保存</button>
     <button id="btnSaveJson" class="primary">JSON保存</button>
     <span class="pill" id="dlgStatus">-</span>
@@ -159,6 +235,67 @@
 
 <script>
 (() => {
+  // ===== Auth UI =====
+  const authState = document.getElementById("authState");
+  const authEmailWrap = document.getElementById("authEmailWrap");
+  const authEmail = document.getElementById("authEmail");
+  const authAdminWrap = document.getElementById("authAdminWrap");
+  const authAdmin = document.getElementById("authAdmin");
+  const authActionLink = document.getElementById("authActionLink");
+
+  function normEmail(v){
+    const s = String(v || "").trim().toLowerCase();
+    return (s && s.includes("@")) ? s : "";
+  }
+
+  async function loadWhoami(){
+    try{
+      authState.textContent = "checking...";
+      authEmailWrap.style.display = "none";
+      authAdminWrap.style.display = "none";
+      authActionLink.textContent = "ログイン";
+      authActionLink.className = "";
+      authActionLink.href = "/api/login?next=" + encodeURIComponent("/admin");
+
+      const r = await fetch("/api/whoami", { cache:"no-store", credentials:"include" });
+      const text = await r.text();
+      let data = null;
+      try { data = JSON.parse(text); } catch { data = null; }
+
+      if(!r.ok || !data){
+        authState.textContent = "unknown";
+        return null;
+      }
+
+      const email = normEmail(data.email);
+      const isAdmin = Boolean(data.is_admin);
+
+      if(!email){
+        authState.textContent = "logged out";
+        return null;
+      }
+
+      authState.textContent = "logged in";
+      authEmailWrap.style.display = "inline";
+      authEmail.textContent = email;
+
+      authAdminWrap.style.display = "inline";
+      authAdmin.textContent = isAdmin ? "true" : "false";
+
+      authActionLink.textContent = "ログアウト";
+      authActionLink.className = "danger";
+      authActionLink.href = "/cdn-cgi/access/logout?returnTo=" + encodeURIComponent(location.origin + "/admin");
+
+      return { email, isAdmin };
+    }catch{
+      authState.textContent = "unknown";
+      authActionLink.textContent = "ログイン";
+      authActionLink.className = "";
+      authActionLink.href = "/api/login?next=" + encodeURIComponent("/admin");
+      return null;
+    }
+  }
+
   // ★ Access セッション確立（admin叩く前に whoami を踏む）
   async function warmupAccessSession(){
     try{
@@ -187,7 +324,7 @@
 
   const API_BASE = "/api/admin";
 
-  // B: 画像/JSON取得（adminは常に private を使う）
+  // 画像/JSON取得（adminは private を使う）
   const API_PRIVATE_SCREEN = (screenId) => `/api/screens/${encodeURIComponent(screenId)}`;
   const API_OWNER_JSON = (id) => `/api/submissions/${encodeURIComponent(id)}/json`;
 
@@ -211,7 +348,7 @@
   const $dlgStatus = document.getElementById("dlgStatus");
 
   let items = [];
-  let currentEdit = null; // {id, item}
+  let currentEdit = null;
 
   function log(v) {
     $log.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
@@ -269,7 +406,7 @@
   }
 
   // =========================================================
-  // B: 3D thumb (index.html から移植・最小セット)
+  // 3D thumb (index.html から移植・最小セット)
   // =========================================================
   const PALETTE_URL = "/assets/palette.v1.json";
   const PALETTE_VER = "v1";
@@ -500,63 +637,47 @@
   async function draw3DToCanvas(canvas, submissionId){
     const j = await fetchUnitJsonForAdmin(submissionId);
     await loadPalette();
-    // index.html と同じ既定値（+270°）
-    drawIso(canvas, j.blocks, 270);
+    drawIso(canvas, j.blocks, 270); // index と同じ既定
   }
 
   function cacheBuster(it){
     return encodeURIComponent(String(it.updated_at || it.created_at || ""));
   }
 
-  // render後に各行の thumb を実際に描画/取得
   async function enhanceThumbs(){
+    // 3D: canvas は常に描画
     const canvases = $list.querySelectorAll("canvas.thumb[data-submission-id]");
     for(const c of canvases){
       const id = c.getAttribute("data-submission-id");
       if(!id) continue;
-      // 二重描画防止
       if (c.getAttribute("data-done") === "1") continue;
       c.setAttribute("data-done","1");
       (async ()=>{
-        try{
-          await draw3DToCanvas(c, id);
-        }catch(e){}
+        try{ await draw3DToCanvas(c, id); }catch(e){}
       })();
     }
 
+    // Screen: img を読み込み。失敗しても 3D は既に出ているので無理に置換しない
     const imgs = $list.querySelectorAll("img.thumbimg[data-screen-id][data-submission-id]");
     for(const img of imgs){
       const sid = img.getAttribute("data-screen-id");
-      const subId = img.getAttribute("data-submission-id");
-      if(!sid || !subId) continue;
+      if(!sid) continue;
 
-      // srcセット（adminは常に private）
       if(!img.src){
         const v = img.getAttribute("data-v") || "";
         img.src = API_PRIVATE_SCREEN(sid) + (v ? ("?v=" + v) : "");
       }
 
-      // 失敗したら 3Dへフォールバック
-      img.addEventListener("error", async ()=>{
-        try{
-          const wrap = img.closest(".thumbwrap");
-          if(!wrap) return;
-
-          const canvas = document.createElement("canvas");
-          canvas.className = "thumb";
-          canvas.width = 480;
-          canvas.height = 280;
-          canvas.setAttribute("data-submission-id", subId);
-
-          img.remove();
-          wrap.appendChild(canvas);
-
-          await draw3DToCanvas(canvas, subId);
-        }catch(e){}
-      }, { once:false });
+      img.addEventListener("error", ()=>{
+        // ここは「スクショが落ちた」ことが分かるように軽い表示だけ
+        img.style.display = "none";
+        const wrap = img.closest(".thumbwrap");
+        if(wrap){
+          wrap.innerHTML = `<div class="muted" style="font-size:12px; padding:10px;">スクショ取得失敗</div>`;
+        }
+      }, { once:true });
     }
   }
-
   // =========================================================
 
   function render() {
@@ -574,7 +695,7 @@
       <table>
         <thead>
           <tr>
-            <th style="width: 180px;">作成日時</th>
+            <th style="width: 190px;">作成日時</th>
             <th>内容</th>
             <th style="width: 320px;">操作</th>
           </tr>
@@ -592,29 +713,42 @@
             const deleted = it.deleted_at ? true : false;
 
             const tagHtml = tags.length
-              ? `<div class="tags">${tags.slice(0, 12).map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>`
+              ? `<div class="tags">${tags.slice(0, 14).map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>`
               : `<span class="muted">タグなし</span>`;
 
             const detailLink = no ? `<a class="btnlink" href="/u/${encodeURIComponent(no)}" target="_blank">公開詳細</a>` : "";
             const delPill = deleted ? `<span class="pill red">deleted</span>` : "";
 
-            // ===== B: thumb decision =====
             const thumbMode = String(it.thumb_mode || "").toLowerCase();
             const screenId = (it.thumb_screen_id != null && it.thumb_screen_id !== "") ? String(it.thumb_screen_id) : "";
-            const useScreen = (thumbMode === "screen" && screenId);
+            const hasScreen = (thumbMode === "screen" && screenId);
 
-            const thumbHtml = useScreen
-              ? `<div class="thumbwrap">
-                   <img class="thumbimg"
-                        alt=""
-                        data-submission-id="${id}"
-                        data-screen-id="${esc(screenId)}"
-                        data-v="${cacheBuster(it)}"
-                   />
+            const screenHtml = hasScreen
+              ? `<div class="thumbCol">
+                   <div class="thumbLabel">Screenshot</div>
+                   <div class="thumbwrap">
+                     <img class="thumbimg"
+                          alt=""
+                          data-submission-id="${id}"
+                          data-screen-id="${esc(screenId)}"
+                          data-v="${cacheBuster(it)}"
+                     />
+                   </div>
                  </div>`
-              : `<div class="thumbwrap">
-                   <canvas class="thumb" width="480" height="280" data-submission-id="${id}"></canvas>
+              : `<div class="thumbCol">
+                   <div class="thumbLabel">Screenshot</div>
+                   <div class="thumbwrap">
+                     <div class="muted" style="font-size:12px; padding:10px;">スクショなし</div>
+                   </div>
                  </div>`;
+
+            const isoHtml =
+              `<div class="thumbCol">
+                 <div class="thumbLabel">3D</div>
+                 <div class="thumbwrap">
+                   <canvas class="thumb" width="480" height="280" data-submission-id="${id}"></canvas>
+                 </div>
+               </div>`;
 
             return `
               <tr>
@@ -626,18 +760,21 @@
                 </td>
                 <td>
                   <div class="contentRow">
-                    ${thumbHtml}
+                    <div class="thumbs">
+                      ${screenHtml}
+                      ${isoHtml}
+                    </div>
                     <div class="contentText">
-                      <div style="font-weight:700;">${title || "(no title)"}</div>
+                      <div style="font-weight:800; font-size:15px;">${title || "(no title)"}</div>
                       <div class="muted">author: ${author || "-"}</div>
                       ${mv ? `<div class="muted">mod_version: ${mv}</div>` : ""}
-                      ${desc ? `<div style="margin-top:6px;">${desc}</div>` : `<div class="muted" style="margin-top:6px;">説明なし</div>`}
-                      <div style="margin-top:8px;">${tagHtml}</div>
+                      ${desc ? `<div style="margin-top:8px;">${desc}</div>` : `<div class="muted" style="margin-top:8px;">説明なし</div>`}
+                      <div style="margin-top:10px;">${tagHtml}</div>
                     </div>
                   </div>
                 </td>
                 <td>
-                  <div class="row" style="gap:8px;">
+                  <div class="row left" style="gap:8px;">
                     ${detailLink}
                     <button data-act="edit" data-id="${id}">編集</button>
                     <button class="primary" data-act="approve" data-id="${id}" ${(!canModerate || deleted) ? "disabled" : ""}>承認</button>
@@ -656,7 +793,6 @@
       </table>
     `;
 
-    // B: 描画/取得を後処理で実行
     enhanceThumbs().catch(()=>{});
   }
 
@@ -673,7 +809,7 @@
         hint: "401の場合：Cloudflare Access の保護範囲（mobcrafter.net/api/admin*）と、管理者Allowポリシーを確認してください。",
         error: e
       });
-      $list.innerHTML = `<div class="muted">読み込み失敗（ログ参照）</div>`;
+      document.getElementById("list").innerHTML = `<div class="muted">読み込み失敗（ログ参照）</div>`;
     }
   }
 
@@ -814,7 +950,8 @@
   $includeDeleted.addEventListener("change", load);
 
   (async () => {
-    const ok = await warmupAccessSession();
+    await loadWhoami();            // 表示用（ログイン/ログアウト）
+    const ok = await warmupAccessSession(); // 401/リダイレクト対策
     if (ok) await load();
   })();
 
