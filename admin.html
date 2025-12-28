@@ -24,7 +24,6 @@
     .muted { color:#666; font-size: 13px; }
     .pill { display:inline-block; padding: 2px 8px; border-radius: 999px; background:#eee; font-size: 12px; }
     .pill.red { background:#ffe3e3; }
-    .pill.green { background:#e6ffed; }
     .tags { display:flex; flex-wrap: wrap; gap: 6px; }
     .tag { background:#eef; border:1px solid #dde; padding:2px 8px; border-radius: 999px; font-size: 12px; }
     a { color: #0b57d0; }
@@ -36,6 +35,41 @@
     .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     @media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
     .mini { font-size: 12px; color:#666; }
+
+    /* ===== B: thumb ===== */
+    .thumbwrap{
+      width: 220px;
+      height: 140px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      overflow: hidden;
+      background: linear-gradient(180deg, #e6f0ff, #f5f9ff);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    canvas.thumb{
+      width: 100%;
+      height: 140px;
+      image-rendering: pixelated;
+      display:block;
+    }
+    img.thumbimg{
+      width:100%;
+      height:140px;
+      object-fit:cover;
+      display:block;
+    }
+    .contentRow{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+    .contentText{
+      flex: 1 1 240px;
+      min-width: 240px;
+    }
   </style>
 </head>
 <body>
@@ -44,24 +78,6 @@
   <div class="muted">
     ※ 管理者のみ。APIは <code>/api/admin/*</code> を叩きます（同一オリジン）。<br>
     ※ Cloudflare Access（Google OAuth）で <code>mobcrafter.net/api/admin*</code> を保護している前提です。
-  </div>
-
-  <!-- ✅ A: ログイン状態 + ログイン/ログアウト導線 -->
-  <div class="card">
-    <div class="row" style="justify-content: space-between;">
-      <div class="row" style="gap:10px;">
-        <span class="pill" id="authPill">auth: checking...</span>
-        <span class="muted" id="authInfo">-</span>
-      </div>
-      <div class="row" style="gap:8px;">
-        <button id="btnLogin" class="primary" style="display:none;">ログイン</button>
-        <button id="btnLogout" class="danger" style="display:none;">ログアウト</button>
-      </div>
-    </div>
-    <div class="mini" style="margin-top:8px;">
-      ※ ログインは <code>/api/login?next=/admin</code> に遷移します（Access通過後に戻ります）。<br>
-      ※ ログアウトは Cloudflare Access の <code>/cdn-cgi/access/logout</code> を使用します。
-    </div>
   </div>
 
   <div class="card">
@@ -143,7 +159,37 @@
 
 <script>
 (() => {
+  // ★ Access セッション確立（admin叩く前に whoami を踏む）
+  async function warmupAccessSession(){
+    try{
+      const r = await fetch("/api/whoami", {
+        cache: "no-store",
+        credentials: "include",
+        redirect: "manual",
+      });
+
+      if (r.type === "opaqueredirect" || r.status === 0) {
+        location.href = "/api/login?next=" + encodeURIComponent("/admin");
+        return false;
+      }
+
+      const data = await r.json().catch(()=>null);
+      if (!data || !data.email) {
+        location.href = "/api/login?next=" + encodeURIComponent("/admin");
+        return false;
+      }
+      return true;
+    }catch(e){
+      location.href = "/api/login?next=" + encodeURIComponent("/admin");
+      return false;
+    }
+  }
+
   const API_BASE = "/api/admin";
+
+  // B: 画像/JSON取得（adminは常に private を使う）
+  const API_PRIVATE_SCREEN = (screenId) => `/api/screens/${encodeURIComponent(screenId)}`;
+  const API_OWNER_JSON = (id) => `/api/submissions/${encodeURIComponent(id)}/json`;
 
   const $status = document.getElementById("status");
   const $reload = document.getElementById("reload");
@@ -164,15 +210,8 @@
   const $btnSaveJson = document.getElementById("btnSaveJson");
   const $dlgStatus = document.getElementById("dlgStatus");
 
-  // ✅ A: auth UI
-  const $authPill = document.getElementById("authPill");
-  const $authInfo = document.getElementById("authInfo");
-  const $btnLogin = document.getElementById("btnLogin");
-  const $btnLogout = document.getElementById("btnLogout");
-
   let items = [];
   let currentEdit = null; // {id, item}
-  let authState = { email: null, is_admin: false };
 
   function log(v) {
     $log.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
@@ -195,58 +234,6 @@
       }
     } catch {}
     return [];
-  }
-
-  function renderAuthUI(st) {
-    const loggedIn = !!(st && st.email);
-    const isAdmin = !!(st && st.is_admin);
-
-    if (loggedIn) {
-      $authPill.textContent = isAdmin ? "auth: admin" : "auth: user";
-      $authPill.className = "pill green";
-      $authInfo.textContent = `${st.email}${isAdmin ? " (admin)" : ""}`;
-      $btnLogin.style.display = "none";
-      $btnLogout.style.display = "";
-    } else {
-      $authPill.textContent = "auth: logged out";
-      $authPill.className = "pill red";
-      $authInfo.textContent = "未ログイン（ログインしてから再読み込みしてください）";
-      $btnLogin.style.display = "";
-      $btnLogout.style.display = "none";
-    }
-
-    // 未ログイン時は操作ボタンを抑止（押しても401になるがUX改善）
-    $reload.disabled = !loggedIn;
-    $status.disabled = !loggedIn;
-    $q.disabled = !loggedIn;
-    $includeDeleted.disabled = !loggedIn;
-  }
-
-  // ✅ A: whoami を “状態取得” 用に使う
-  async function fetchWhoamiState() {
-    try{
-      const r = await fetch("/api/whoami", {
-        cache: "no-store",
-        credentials: "include",
-        redirect: "manual"
-      });
-
-      // Access保護でログイン画面に飛ばされる場合、opaque redirect になりがち
-      if (r.type === "opaqueredirect" || r.status === 0) {
-        return { email: null, is_admin: false, ok: true, hint: "opaqueredirect" };
-      }
-
-      const data = await r.json().catch(()=>null);
-      if (!data) return { email: null, is_admin: false, ok: false, error: "invalid_json" };
-
-      return {
-        ok: true,
-        email: data.email || null,
-        is_admin: !!data.is_admin
-      };
-    } catch(e){
-      return { email: null, is_admin: false, ok: false, error: String(e?.message || e) };
-    }
   }
 
   function buildListQuery() {
@@ -280,6 +267,297 @@
     if (!r.ok) throw { http: r.status, data };
     return data;
   }
+
+  // =========================================================
+  // B: 3D thumb (index.html から移植・最小セット)
+  // =========================================================
+  const PALETTE_URL = "/assets/palette.v1.json";
+  const PALETTE_VER = "v1";
+  const PALETTE_LS_KEY = `mcPalette:${PALETTE_VER}`;
+  let PALETTE_MAP = null;
+
+  function parseColorString(s){
+    if(!s) return null;
+    const v = String(s).trim();
+    const hex = /^#([0-9a-f]{6})$/i.exec(v);
+    if(hex){
+      const n = parseInt(hex[1], 16);
+      return { r:(n>>16)&255, g:(n>>8)&255, b:n&255, a:1 };
+    }
+    const rgba = /^rgba?\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})(?:\s*,\s*([0-9]*\.?[0-9]+))?\s*\)$/i.exec(v);
+    if(rgba){
+      const r = Math.max(0, Math.min(255, parseInt(rgba[1],10)));
+      const g = Math.max(0, Math.min(255, parseInt(rgba[2],10)));
+      const b = Math.max(0, Math.min(255, parseInt(rgba[3],10)));
+      const a = rgba[4] == null ? 1 : Math.max(0, Math.min(1, parseFloat(rgba[4])));
+      return {r,g,b,a};
+    }
+    return null;
+  }
+
+  async function loadPalette(){
+    if(PALETTE_MAP) return PALETTE_MAP;
+    try{
+      const cached = localStorage.getItem(PALETTE_LS_KEY);
+      if(cached){
+        const obj = JSON.parse(cached);
+        if(obj && typeof obj === "object"){
+          PALETTE_MAP = obj;
+          return PALETTE_MAP;
+        }
+      }
+    }catch(e){}
+    try{
+      const r = await fetch(`${PALETTE_URL}?v=${encodeURIComponent(PALETTE_VER)}`, { cache:"no-store" });
+      if(r.ok){
+        const obj = await r.json();
+        if(obj && typeof obj === "object"){
+          PALETTE_MAP = obj;
+          try{ localStorage.setItem(PALETTE_LS_KEY, JSON.stringify(obj)); }catch(e){}
+          return PALETTE_MAP;
+        }
+      }
+    }catch(e){}
+    PALETTE_MAP = {};
+    return PALETTE_MAP;
+  }
+
+  function paletteLookup(blockId){
+    if(!PALETTE_MAP) return null;
+    const k = String(blockId||"").trim().toLowerCase();
+    return parseColorString(PALETTE_MAP[k]);
+  }
+
+  function pickBaseColor(blockId){
+    const p = paletteLookup(blockId);
+    if(p) return p;
+
+    const raw = String(blockId||"").toLowerCase();
+    const id = raw.includes(":") ? raw.split(":")[1] : raw;
+
+    if (id.includes("glass") || id.includes("ice")) return {r: 170, g: 210, b: 230, a: 0.55};
+    if (id.includes("leaves") || id.includes("leaf") || id.includes("moss") || id.includes("vine") || id.includes("grass")) return {r: 90, g: 150, b: 90, a: 0.95};
+    if (id.includes("log") || id.includes("wood") || id.includes("planks") || id.includes("bamboo")) return {r: 160, g: 125, b: 85, a: 0.95};
+    if (id.includes("dirt") || id.includes("sand") || id.includes("gravel") || id.includes("clay") || id.includes("mud")) return {r: 160, g: 145, b: 110, a: 0.98};
+    if (id.includes("stone") || id.includes("deepslate") || id.includes("andesite") || id.includes("diorite") || id.includes("granite") || id.includes("cobble") || id.includes("tuff") || id.includes("slate")) return {r: 140, g: 145, b: 155, a: 0.98};
+    if (id.includes("iron") || id.includes("anvil") || id.includes("chain") || id.includes("rail") || id.includes("metal")) return {r: 170, g: 175, b: 185, a: 0.98};
+    if (id.includes("copper") || id.includes("bronze")) return {r: 190, g: 120, b: 80, a: 0.98};
+    if (id.includes("gold")) return {r: 210, g: 185, b: 90, a: 0.98};
+    if (id.includes("diamond")) return {r: 120, g: 210, b: 220, a: 0.98};
+    if (id.includes("emerald")) return {r: 70, g: 200, b: 120, a: 0.98};
+    if (id.includes("lapis")) return {r: 70, g: 110, b: 200, a: 0.98};
+    if (id.includes("redstone")) return {r: 190, g: 70, b: 70, a: 0.98};
+
+    let h=0; for(let i=0;i<raw.length;i++) h=(h*31 + raw.charCodeAt(i))|0;
+    return { r:120 + (h & 70), g:120 + ((h>>8)&70), b:120 + ((h>>16)&70), a:0.98 };
+  }
+
+  function isAirBlock(blockId){
+    const s = String(blockId||"").trim().toLowerCase();
+    return s === "minecraft:air" || s.endsWith(":air");
+  }
+
+  function drawIsoCube(ctx, x, y, z, s, col, stroke){
+    const sx = (x - z) * s;
+    const sy = (x + z) * s * 0.5 - y * s;
+
+    const a = (col.a == null ? 1 : col.a);
+    const top = `rgba(${Math.min(255,col.r+30)},${Math.min(255,col.g+30)},${Math.min(255,col.b+30)},${a})`;
+    const left= `rgba(${Math.max(0,col.r-10)},${Math.max(0,col.g-10)},${Math.max(0,col.b-10)},${a})`;
+    const right=`rgba(${Math.max(0,col.r-25)},${Math.max(0,col.g-25)},${Math.max(0,col.b-25)},${a})`;
+
+    ctx.fillStyle = top;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy - s*0.5);
+    ctx.lineTo(sx + s, sy);
+    ctx.lineTo(sx, sy + s*0.5);
+    ctx.lineTo(sx - s, sy);
+    ctx.closePath();
+    ctx.fill();
+    if (stroke){
+      ctx.strokeStyle = "rgba(15,23,42,.10)";
+      ctx.lineWidth = Math.max(1, s*0.06);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = left;
+    ctx.beginPath();
+    ctx.moveTo(sx - s, sy);
+    ctx.lineTo(sx, sy + s*0.5);
+    ctx.lineTo(sx, sy + s*0.5 + s);
+    ctx.lineTo(sx - s, sy + s);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = right;
+    ctx.beginPath();
+    ctx.moveTo(sx + s, sy);
+    ctx.lineTo(sx, sy + s*0.5);
+    ctx.lineTo(sx, sy + s*0.5 + s);
+    ctx.lineTo(sx + s, sy + s);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawIso(canvas, blocks, yawDeg){
+    const ctx = canvas.getContext("2d");
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0,0,w,h);
+
+    if(!Array.isArray(blocks) || blocks.length === 0){
+      ctx.fillStyle = "rgba(15,23,42,.35)";
+      ctx.font = "12px sans-serif";
+      ctx.fillText("No blocks", 10, 20);
+      return;
+    }
+
+    const g = ctx.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,"rgba(37,99,235,.10)");
+    g.addColorStop(1,"rgba(22,163,74,.08)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,w,h);
+
+    const yaw = (Number(yawDeg||0) % 360) * Math.PI/180;
+    const cos = Math.cos(yaw), sin = Math.sin(yaw);
+
+    const pts = [];
+    for(const b of blocks){
+      const bid = String(b.blockId||"");
+      if(isAirBlock(bid)) continue;
+
+      const x0 = Number(b.dx||0), y0 = Number(b.dy||0), z0 = Number(b.dz||0);
+      const rx = x0*cos - z0*sin;
+      const rz = x0*sin + z0*cos;
+
+      const x = Math.round(rx);
+      const z = Math.round(rz);
+      const y = y0;
+
+      const sx0 = (x - z);
+      const sy0 = (x + z) * 0.5 - y;
+
+      const minX = sx0 - 1;
+      const maxX = sx0 + 1;
+      const minY = sy0 - 0.5;
+      const maxY = sy0 + 1.5;
+
+      pts.push({x,y,z,bid,minX,maxX,minY,maxY});
+    }
+
+    if(pts.length === 0){
+      ctx.fillStyle = "rgba(15,23,42,.35)";
+      ctx.font = "12px sans-serif";
+      ctx.fillText("No visible blocks", 10, 20);
+      return;
+    }
+
+    let minPX=Infinity, maxPX=-Infinity, minPY=Infinity, maxPY=-Infinity;
+    for(const p of pts){
+      if(p.minX < minPX) minPX = p.minX;
+      if(p.maxX > maxPX) maxPX = p.maxX;
+      if(p.minY < minPY) minPY = p.minY;
+      if(p.maxY > maxPY) maxPY = p.maxY;
+    }
+
+    const rangeX = Math.max(1e-6, (maxPX - minPX));
+    const rangeY = Math.max(1e-6, (maxPY - minPY));
+    const cx = (minPX + maxPX) * 0.5;
+    const cy = (minPY + maxPY) * 0.5;
+
+    const margin = 12;
+    const s = Math.max(
+      1.6,
+      Math.min(
+        (w - margin*2) / rangeX,
+        (h - margin*2) / rangeY
+      )
+    );
+
+    const ox = (w * 0.5) - (cx * s);
+    const oy = (h * 0.5) - (cy * s);
+
+    pts.sort((a,b)=> (a.x + a.z) - (b.x + b.z) || (a.y - b.y));
+
+    const stroke = (s >= 3);
+
+    ctx.save();
+    ctx.translate(ox, oy);
+    for(const p of pts){
+      drawIsoCube(ctx, p.x, p.y, p.z, s, pickBaseColor(p.bid), stroke);
+    }
+    ctx.restore();
+  }
+
+  async function fetchUnitJsonForAdmin(id){
+    const r = await fetch(API_OWNER_JSON(id), { cache:"no-store", credentials:"include" });
+    if(!r.ok){
+      const text = await r.text().catch(()=> "");
+      throw new Error("json HTTP " + r.status + (text ? (" " + text.slice(0,120)) : ""));
+    }
+    return await r.json();
+  }
+
+  async function draw3DToCanvas(canvas, submissionId){
+    const j = await fetchUnitJsonForAdmin(submissionId);
+    await loadPalette();
+    // index.html と同じ既定値（+270°）
+    drawIso(canvas, j.blocks, 270);
+  }
+
+  function cacheBuster(it){
+    return encodeURIComponent(String(it.updated_at || it.created_at || ""));
+  }
+
+  // render後に各行の thumb を実際に描画/取得
+  async function enhanceThumbs(){
+    const canvases = $list.querySelectorAll("canvas.thumb[data-submission-id]");
+    for(const c of canvases){
+      const id = c.getAttribute("data-submission-id");
+      if(!id) continue;
+      // 二重描画防止
+      if (c.getAttribute("data-done") === "1") continue;
+      c.setAttribute("data-done","1");
+      (async ()=>{
+        try{
+          await draw3DToCanvas(c, id);
+        }catch(e){}
+      })();
+    }
+
+    const imgs = $list.querySelectorAll("img.thumbimg[data-screen-id][data-submission-id]");
+    for(const img of imgs){
+      const sid = img.getAttribute("data-screen-id");
+      const subId = img.getAttribute("data-submission-id");
+      if(!sid || !subId) continue;
+
+      // srcセット（adminは常に private）
+      if(!img.src){
+        const v = img.getAttribute("data-v") || "";
+        img.src = API_PRIVATE_SCREEN(sid) + (v ? ("?v=" + v) : "");
+      }
+
+      // 失敗したら 3Dへフォールバック
+      img.addEventListener("error", async ()=>{
+        try{
+          const wrap = img.closest(".thumbwrap");
+          if(!wrap) return;
+
+          const canvas = document.createElement("canvas");
+          canvas.className = "thumb";
+          canvas.width = 480;
+          canvas.height = 280;
+          canvas.setAttribute("data-submission-id", subId);
+
+          img.remove();
+          wrap.appendChild(canvas);
+
+          await draw3DToCanvas(canvas, subId);
+        }catch(e){}
+      }, { once:false });
+    }
+  }
+
+  // =========================================================
 
   function render() {
     $count.textContent = `${items.length}件`;
@@ -320,6 +598,24 @@
             const detailLink = no ? `<a class="btnlink" href="/u/${encodeURIComponent(no)}" target="_blank">公開詳細</a>` : "";
             const delPill = deleted ? `<span class="pill red">deleted</span>` : "";
 
+            // ===== B: thumb decision =====
+            const thumbMode = String(it.thumb_mode || "").toLowerCase();
+            const screenId = (it.thumb_screen_id != null && it.thumb_screen_id !== "") ? String(it.thumb_screen_id) : "";
+            const useScreen = (thumbMode === "screen" && screenId);
+
+            const thumbHtml = useScreen
+              ? `<div class="thumbwrap">
+                   <img class="thumbimg"
+                        alt=""
+                        data-submission-id="${id}"
+                        data-screen-id="${esc(screenId)}"
+                        data-v="${cacheBuster(it)}"
+                   />
+                 </div>`
+              : `<div class="thumbwrap">
+                   <canvas class="thumb" width="480" height="280" data-submission-id="${id}"></canvas>
+                 </div>`;
+
             return `
               <tr>
                 <td>
@@ -329,11 +625,16 @@
                   ${delPill ? `<div style="margin-top:6px;">${delPill}</div>` : ""}
                 </td>
                 <td>
-                  <div style="font-weight:700;">${title || "(no title)"}</div>
-                  <div class="muted">author: ${author || "-"}</div>
-                  ${mv ? `<div class="muted">mod_version: ${mv}</div>` : ""}
-                  ${desc ? `<div style="margin-top:6px;">${desc}</div>` : `<div class="muted" style="margin-top:6px;">説明なし</div>`}
-                  <div style="margin-top:8px;">${tagHtml}</div>
+                  <div class="contentRow">
+                    ${thumbHtml}
+                    <div class="contentText">
+                      <div style="font-weight:700;">${title || "(no title)"}</div>
+                      <div class="muted">author: ${author || "-"}</div>
+                      ${mv ? `<div class="muted">mod_version: ${mv}</div>` : ""}
+                      ${desc ? `<div style="margin-top:6px;">${desc}</div>` : `<div class="muted" style="margin-top:6px;">説明なし</div>`}
+                      <div style="margin-top:8px;">${tagHtml}</div>
+                    </div>
+                  </div>
                 </td>
                 <td>
                   <div class="row" style="gap:8px;">
@@ -354,15 +655,12 @@
         </tbody>
       </table>
     `;
+
+    // B: 描画/取得を後処理で実行
+    enhanceThumbs().catch(()=>{});
   }
 
   async function load() {
-    if (!authState.email) {
-      $list.innerHTML = `<div class="muted">未ログインのため一覧を取得できません（上の「ログイン」からログインしてください）</div>`;
-      $count.textContent = `0件`;
-      return;
-    }
-
     log(`loading...`);
     try {
       const data = await api(buildListQuery(), "GET");
@@ -508,7 +806,6 @@
   $reload.addEventListener("click", load);
   $status.addEventListener("change", load);
 
-  // 入力のたびに即サーバー検索だと重くなるので 300ms デバウンス
   let t = null;
   $q.addEventListener("input", () => {
     clearTimeout(t);
@@ -516,34 +813,9 @@
   });
   $includeDeleted.addEventListener("change", load);
 
-  // ✅ A: login/logout wiring
-  $btnLogin.addEventListener("click", () => {
-    location.href = "/api/login?next=" + encodeURIComponent("/admin");
-  });
-
-  $btnLogout.addEventListener("click", () => {
-    const returnTo = encodeURIComponent(location.origin + "/admin");
-    location.href = "/cdn-cgi/access/logout?returnTo=" + returnTo;
-  });
-
   (async () => {
-    // 初回：ログイン状態表示
-    const st = await fetchWhoamiState();
-    authState = { email: st.email || null, is_admin: !!st.is_admin };
-    renderAuthUI(authState);
-
-    if (!st.ok) {
-      log({ ok: false, error: "whoami_failed", detail: st });
-      $list.innerHTML = `<div class="muted">whoami 取得に失敗（ログ参照）</div>`;
-      return;
-    }
-
-    // ログイン済みなら一覧ロード
-    if (authState.email) await load();
-    else {
-      log("not logged in (admin list skipped)");
-      $list.innerHTML = `<div class="muted">未ログインです。上の「ログイン」からログインしてください。</div>`;
-    }
+    const ok = await warmupAccessSession();
+    if (ok) await load();
   })();
 
 })();
