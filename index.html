@@ -125,14 +125,15 @@
       height:140px;
       image-rendering:pixelated;
     }
-      
-img.thumbimg{
-  width:100%;
-  height:140px;
-  object-fit:cover;
-  image-rendering:auto;
-  display:block;
-}
+
+    img.thumbimg{
+      width:100%;
+      height:140px;
+      object-fit:cover;
+      image-rendering:auto;
+      display:block;
+    }
+
     .pill{
       position:absolute;
       top:10px;
@@ -141,28 +142,28 @@ img.thumbimg{
       gap:6px;
       align-items:center;
     }
-.badge{
-  font-size:11px;
-  padding:4px 8px;
-  border-radius:999px;
-  background:rgba(255,255,255,.78);
-  border:1px solid rgba(148,163,184,.35);
-  color:#0f172a;
-  backdrop-filter: blur(6px);
-}
+    .badge{
+      font-size:11px;
+      padding:4px 8px;
+      border-radius:999px;
+      background:rgba(255,255,255,.78);
+      border:1px solid rgba(148,163,184,.35);
+      color:#0f172a;
+      backdrop-filter: blur(6px);
+    }
 
-.badge.pending{
-  background: rgba(254, 243, 199, .95);
-  border-color: rgba(245, 158, 11, .35);
-}
-.badge.rejected, .badge.reject{
-  background: rgba(254, 226, 226, .95);
-  border-color: rgba(220, 38, 38, .35);
-}
-.badge.approved{
-  background: rgba(220, 252, 231, .95);
-  border-color: rgba(34, 197, 94, .35);
-}
+    .badge.pending{
+      background: rgba(254, 243, 199, .95);
+      border-color: rgba(245, 158, 11, .35);
+    }
+    .badge.rejected, .badge.reject{
+      background: rgba(254, 226, 226, .95);
+      border-color: rgba(220, 38, 38, .35);
+    }
+    .badge.approved{
+      background: rgba(220, 252, 231, .95);
+      border-color: rgba(34, 197, 94, .35);
+    }
 
     .btn-dl{
       position:absolute;
@@ -240,6 +241,48 @@ img.thumbimg{
       white-space:nowrap;
       text-overflow:ellipsis;
     }
+
+    /* ===== pager ===== */
+    .pager{
+      margin-top:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .pager .info{
+      color:var(--muted);
+      font-size:12px;
+      margin-right:8px;
+    }
+    .pager a, .pager button{
+      border:1px solid rgba(37,99,235,.25);
+      background:#fff;
+      color:var(--brand);
+      padding:7px 10px;
+      border-radius:999px;
+      font-size:12px;
+      cursor:pointer;
+      text-decoration:none;
+      line-height:1;
+      user-select:none;
+    }
+    .pager button[disabled]{
+      opacity:.45;
+      cursor:not-allowed;
+    }
+    .pager .active{
+      background:var(--brand);
+      border-color:var(--brand);
+      color:#fff;
+    }
+    .pager .dots{
+      color:var(--muted);
+      font-size:12px;
+      padding:0 4px;
+    }
+
     footer{
       margin-top:26px;
       text-align:center;
@@ -373,6 +416,7 @@ img.thumbimg{
   </div>
 
   <section id="grid" class="grid"></section>
+  <div id="pager" class="pager" style="display:none;"></div>
 
   <footer>© 2025 MobCrafter Portal — MVP</footer>
 </main>
@@ -406,10 +450,6 @@ img.thumbimg{
   let meIsAdmin = false;
   let meUserId = null;
 
-  function whoamiNext(path){
-    return `${API_WHOAMI}?next=${encodeURIComponent(path)}`;
-  }
-
   function normEmail(v){
     const s = String(v || "").trim().toLowerCase();
     return (s && s.includes("@")) ? s : "";
@@ -431,12 +471,12 @@ img.thumbimg{
       try { data = JSON.parse(text); } catch { data = null; }
 
       authActionLink.href = `/api/login?next=${encodeURIComponent("/")}`;
-      postLink.href = meEmail ? "/submit.html" : `/api/login?next=${encodeURIComponent("/submit.html")}`;
 
       if(!r.ok || !data){
         authState.textContent = "unknown";
         authActionLink.textContent = "ログイン";
         authActionLink.className = "";
+        postLink.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
         return;
       }
 
@@ -448,6 +488,7 @@ img.thumbimg{
         authState.textContent = "logged out";
         authActionLink.textContent = "ログイン";
         authActionLink.className = "";
+        postLink.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
         return;
       }
 
@@ -467,14 +508,13 @@ img.thumbimg{
       authActionLink.href = "/cdn-cgi/access/logout?returnTo=" + encodeURIComponent(location.origin + "/");
 
       postLink.href = "/submit.html";
-
       mineWrap.style.display = "inline-flex";
     }catch{
       authState.textContent = "unknown";
       authActionLink.textContent = "ログイン";
       authActionLink.className = "";
-      authActionLink.href = whoamiNext("/");
-      postLink.href = whoamiNext("/submit.html");
+      authActionLink.href = `/api/login?next=${encodeURIComponent("/")}`;
+      postLink.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
       mineWrap.style.display = "none";
       meEmail = null;
       meIsAdmin = false;
@@ -483,13 +523,17 @@ img.thumbimg{
   }
 
   let items = [];
-  let currentUseMine = false; // mineOnly時だけ private screens を使う
+  let currentUseMine = false;
 
+  // ===== UI =====
   const grid = document.getElementById("grid");
+  const pager = document.getElementById("pager");
   const q = document.getElementById("q");
   const sort = document.getElementById("sort");
   const yawUi = document.getElementById("yaw");
   const err = document.getElementById("err");
+
+  const PAGE_SIZE = 20;
 
   function showError(msg){
     err.style.display = "block";
@@ -528,6 +572,41 @@ img.thumbimg{
   function resolveNo(row){
     const n = Number(row.submission_no ?? row.submissionNo ?? row.no ?? 0);
     return n || 0;
+  }
+
+  // ===== URL state =====
+  function getParams(){
+    const sp = new URLSearchParams(location.search);
+    const page = Math.max(1, Number(sp.get("page") || "1") || 1);
+    const qv = String(sp.get("q") || "");
+    const sortv = String(sp.get("sort") || "new");
+    const yawv = String(sp.get("yaw") || "270");
+    const mine = sp.get("mine") === "1";
+    return { page, q: qv, sort: sortv, yaw: yawv, mine };
+  }
+
+  function setParams(patch, { push=false } = {}){
+    const sp = new URLSearchParams(location.search);
+    for(const [k,v] of Object.entries(patch)){
+      if(v === null || v === undefined || v === ""){
+        sp.delete(k);
+      }else{
+        sp.set(k, String(v));
+      }
+    }
+    const qs = sp.toString();
+    const nextUrl = location.pathname + (qs ? "?" + qs : "");
+    if(push) history.pushState(null, "", nextUrl);
+    else history.replaceState(null, "", nextUrl);
+  }
+
+  function buildPublicListUrl({ page, q, sort }){
+    const sp = new URLSearchParams();
+    sp.set("page", String(page));
+    sp.set("page_size", String(PAGE_SIZE));
+    if(q && String(q).trim()) sp.set("q", String(q).trim());
+    if(sort) sp.set("sort", String(sort));
+    return API_PUBLIC_LIST + "?" + sp.toString();
   }
 
   async function fetchUnitJson(id){
@@ -677,7 +756,6 @@ img.thumbimg{
       return;
     }
 
-    // 背景グラデ（UI/見た目は現状維持）
     const g = ctx.createLinearGradient(0,0,0,h);
     g.addColorStop(0,"rgba(37,99,235,.10)");
     g.addColorStop(1,"rgba(22,163,74,.08)");
@@ -687,7 +765,6 @@ img.thumbimg{
     const yaw = (Number(yawDeg||0) % 360) * Math.PI/180;
     const cos = Math.cos(yaw), sin = Math.sin(yaw);
 
-    // 回転後座標（四捨五入で格子に戻す：yawは0/90/180/270前提）
     const pts = [];
     for(const b of blocks){
       const bid = String(b.blockId||"");
@@ -701,11 +778,9 @@ img.thumbimg{
       const z = Math.round(rz);
       const y = y0;
 
-      // 投影(s=1)の基準点
       const sx0 = (x - z);
       const sy0 = (x + z) * 0.5 - y;
 
-      // 立方体が占有する外接矩形（s=1想定）
       const minX = sx0 - 1;
       const maxX = sx0 + 1;
       const minY = sy0 - 0.5;
@@ -734,7 +809,6 @@ img.thumbimg{
     const cx = (minPX + maxPX) * 0.5;
     const cy = (minPY + maxPY) * 0.5;
 
-    // 余白（thumb枠の中で見切れゼロ優先）
     const margin = 16;
 
     const s = Math.max(
@@ -748,7 +822,6 @@ img.thumbimg{
     const ox = (w * 0.5) - (cx * s);
     const oy = (h * 0.5) - (cy * s);
 
-    // 描画順：奥→手前（既存の簡易3Dの思想を維持）
     pts.sort((a,b)=> (a.x + a.z) - (b.x + b.z) || (a.y - b.y));
 
     const stroke = (s >= 3);
@@ -773,17 +846,14 @@ img.thumbimg{
     const isMine = Boolean(meEmail && it.authorEmail && String(it.authorEmail) === String(meEmail));
     const canEdit = isMine;
 
-    // スクショIDがあるならスクショ優先（thumbMode が欠けてても出す）
     const hasScreen = Boolean(it.thumbScreenId);
     const useScreenThumb = hasScreen;
 
-const st = String(it.status || "approved").toLowerCase();
-const statusBadge = (st && st !== "approved")
-  ? `<span class="badge ${escapeHtml(st)}">${escapeHtml(st)}</span>`
-  : ``;
+    const st = String(it.status || "approved").toLowerCase();
+    const statusBadge = (st && st !== "approved")
+      ? `<span class="badge ${escapeHtml(st)}">${escapeHtml(st)}</span>`
+      : ``;
 
-
-    // まず public を試し、失敗したら（ログイン中なら）privateへ自動フォールバック
     const publicSrc = hasScreen
       ? (API_PUBLIC_SCREEN(it.thumbScreenId) + "?v=" + encodeURIComponent(it.created || it.createdText || ""))
       : "";
@@ -791,8 +861,8 @@ const statusBadge = (st && st !== "approved")
     const privateSrc = hasScreen
       ? (API_PRIVATE_SCREEN(it.thumbScreenId) + "?v=" + encodeURIComponent(it.created || it.createdText || ""))
       : "";
-// ★ pending / rejected は最初から private を使う（白紙防止）
-   const initialSrc = (meEmail && st !== "approved") ? privateSrc : publicSrc;
+
+    const initialSrc = (meEmail && st !== "approved") ? privateSrc : publicSrc;
     const initialIsPrivate = (initialSrc === privateSrc);
 
     card.innerHTML = `
@@ -828,7 +898,6 @@ const statusBadge = (st && st !== "approved")
       </div>
     `;
 
-
     card.addEventListener("click", (e) => {
       const a = e.target && e.target.closest ? e.target.closest("a") : null;
       if (a) return;
@@ -844,11 +913,9 @@ const statusBadge = (st && st !== "approved")
       });
     }
 
-    // imgのフォールバック（public 404/403 → private → それもダメなら 3D）
     const img = card.querySelector("img.thumbimg");
     if (img) {
       img.addEventListener("error", async () => {
-        // 1) public→private フォールバック（未実行なら）
         const tried = img.getAttribute("data-tried-private");
         const ps = img.getAttribute("data-private-src");
 
@@ -858,7 +925,6 @@ const statusBadge = (st && st !== "approved")
           return;
         }
 
-        // 2) private もダメなら、スクショを諦めて 3D(canvas) に切替
         try {
           const wrap = img.closest(".thumbwrap");
           if (!wrap) return;
@@ -875,13 +941,10 @@ const statusBadge = (st && st !== "approved")
           await loadPalette();
           const yaw = Number(yawUi.value || 270);
           drawIso(canvas, j.blocks, yaw);
-        } catch {
-          // 何もしない
-        }
+        } catch {}
       }, { once:false });
     }
 
-    // canvasがある時だけ3D描画（スクショ時は何もしない）
     const canvas = card.querySelector("canvas.thumb");
     if (canvas) {
       (async () => {
@@ -897,36 +960,85 @@ const statusBadge = (st && st !== "approved")
     return card;
   }
 
-
-  function applyFilter(){
-    const kw = String(q.value||"").trim().toLowerCase();
-
-    let arr = items.slice();
-
-    if(kw){
-      arr = arr.filter(it => {
-        const hay = (it.name + " " + it.desc + " " + it.tags.join(" ")).toLowerCase();
-        return hay.includes(kw);
-      });
-    }
-
-    const mode = String(sort.value||"new");
-    if(mode === "dl"){
-      arr.sort((a,b)=> (b.dl||0)-(a.dl||0));
-    }else if(mode === "name"){
-      arr.sort((a,b)=> String(a.name).localeCompare(String(b.name)));
-    }else{
-      arr.sort((a,b)=> (b.created||"").localeCompare(a.created||""));
-    }
-
+  function renderGrid(arr){
     grid.innerHTML = "";
     for(const it of arr){
       grid.appendChild(renderCard(it));
     }
   }
 
-  async function fetchList(useMine){
-    const url = useMine ? API_MY_LIST : API_PUBLIC_LIST;
+  // ===== pager render =====
+  function renderPager(meta){
+    // meta: {page, page_size, total_count, total_pages}
+    if(!meta || !meta.total_pages || meta.total_pages <= 1){
+      pager.style.display = "none";
+      pager.innerHTML = "";
+      return;
+    }
+
+    const { page, total_pages, total_count } = meta;
+    pager.style.display = "flex";
+    pager.innerHTML = "";
+
+    const info = document.createElement("span");
+    info.className = "info";
+    info.textContent = `Page ${page} / ${total_pages} (Total ${total_count})`;
+    pager.appendChild(info);
+
+    const mkBtn = (label, toPage, disabled=false, active=false) => {
+      const b = document.createElement("button");
+      b.textContent = label;
+      if(active) b.className = "active";
+      if(disabled){
+        b.disabled = true;
+        return b;
+      }
+      b.addEventListener("click", () => {
+        setParams({ page: toPage }, { push:true });
+        load();
+      });
+      return b;
+    };
+
+    pager.appendChild(mkBtn("前へ", page - 1, page <= 1));
+
+    const addDots = () => {
+      const s = document.createElement("span");
+      s.className = "dots";
+      s.textContent = "…";
+      pager.appendChild(s);
+    };
+
+    const pages = [];
+    const win = 2;
+    const start = Math.max(1, page - win);
+    const end = Math.min(total_pages, page + win);
+
+    // 1, ... window, ... last
+    pages.push(1);
+    for(let p = start; p <= end; p++) pages.push(p);
+    pages.push(total_pages);
+
+    // uniq
+    const uniq = [];
+    for(const p of pages){
+      if(!uniq.includes(p)) uniq.push(p);
+    }
+    uniq.sort((a,b)=>a-b);
+
+    let prev = 0;
+    for(const p of uniq){
+      if(prev && p - prev > 1) addDots();
+      pager.appendChild(mkBtn(String(p), p, false, p === page));
+      prev = p;
+    }
+
+    pager.appendChild(mkBtn("次へ", page + 1, page >= total_pages));
+  }
+
+  // ===== fetch list =====
+  async function fetchListPublic({ page, q, sort }){
+    const url = buildPublicListUrl({ page, q, sort });
     const r = await fetch(url, { cache:"no-store", credentials:"include" });
     const text = await r.text().catch(()=> "");
     let data = null;
@@ -935,76 +1047,152 @@ const statusBadge = (st && st !== "approved")
     if(!r.ok){
       throw new Error(`list HTTP ${r.status}\n${text ? ("body: " + text.slice(0,240)) : ""}`);
     }
-
-    // my/submissions は {ok:true, items:[...]}、public は {items:[...]}
     const arr = (data && Array.isArray(data.items)) ? data.items : [];
-    return arr;
+    const meta = {
+      page: Number(data?.page || page),
+      page_size: Number(data?.page_size || PAGE_SIZE),
+      total_count: Number(data?.total_count || 0),
+      total_pages: Number(data?.total_pages || 1),
+    };
+    return { arr, meta };
+  }
+
+  async function fetchListMine(){
+    const r = await fetch(API_MY_LIST, { cache:"no-store", credentials:"include" });
+    const text = await r.text().catch(()=> "");
+    let data = null;
+    try { data = JSON.parse(text); } catch { data = null; }
+
+    if(!r.ok){
+      throw new Error(`list HTTP ${r.status}\n${text ? ("body: " + text.slice(0,240)) : ""}`);
+    }
+    const arr = (data && Array.isArray(data.items)) ? data.items : [];
+    return { arr, meta: null };
+  }
+
+  function mapItems(arr){
+    return arr.map(r => {
+      const created = asDateIso(r.created_at || r.createdAt || r.created);
+      const createdText = created ? created.slice(0,10) : "";
+      const tags = normalizeTags(r.tags);
+      const no = resolveNo(r);
+      const rawStatus =
+        (r.status ?? r.review_status ?? r.reviewStatus ?? r.state ?? r.approval_status ?? r.approvalStatus ?? "");
+
+      const status = String(rawStatus || "approved").trim().toLowerCase();
+
+      const screenId =
+        (r.thumb_screen_id ?? r.thumbScreenId ??
+         r.screen_id ?? r.screenId ??
+         r.screenshot_id ?? r.screenshotId ??
+         r.thumb_id ?? r.thumbId ?? null);
+
+      const thumbModeRaw =
+        (r.thumb_mode ?? r.thumbMode ?? r.thumbnail_mode ?? r.thumbnailMode ?? "");
+
+      return ({
+        id: String(r.id),
+        no,
+        name: r.title || r.name || "Untitled",
+        desc: r.description || "",
+        tags,
+        author: r.author_name || r.authorName || "unknown",
+        authorEmail: r.author_email || r.authorEmail || r.author_id || r.authorId || "",
+        authorId: r.author_email || r.authorEmail || r.author_id || r.authorId || "",
+        dl: Number(r.download_count ?? r.downloadCount ?? 0),
+        mod: r.mod_version || r.modVersion || "Forge",
+        created: created || "",
+        createdText,
+        thumbMode: String(thumbModeRaw).toLowerCase(),
+        thumbScreenId: screenId ? String(screenId) : null,
+        status
+      });
+    });
   }
 
   async function load(){
     hideError();
     grid.innerHTML = "";
+    pager.style.display = "none";
+    pager.innerHTML = "";
+
     try{
+      const p = getParams();
+
+      // UI反映（URL -> UI）
+      q.value = p.q || "";
+      sort.value = p.sort || "new";
+      yawUi.value = p.yaw || "270";
+
       const useMine = !!(mineOnly && mineOnly.checked && meEmail);
       currentUseMine = useMine;
-      const arr = await fetchList(useMine);
 
-      items = arr.map(r => {
-        const created = asDateIso(r.created_at || r.createdAt || r.created);
-        const createdText = created ? created.slice(0,10) : "";
-        const tags = normalizeTags(r.tags);
-        const no = resolveNo(r);
-        const rawStatus =
-          (r.status ?? r.review_status ?? r.reviewStatus ?? r.state ?? r.approval_status ?? r.approvalStatus ?? "");
+      let arr = [];
+      let meta = null;
 
-        const status = String(rawStatus || "approved").trim().toLowerCase();
+      if(useMine){
+        const res = await fetchListMine();
+        arr = res.arr;
+        meta = null; // mine は現状ページングしない（必要なら次で拡張）
+      }else{
+        const res = await fetchListPublic({ page: p.page, q: p.q, sort: p.sort });
+        arr = res.arr;
+        meta = res.meta;
+      }
 
-        const screenId =
-          (r.thumb_screen_id ?? r.thumbScreenId ??
-           r.screen_id ?? r.screenId ??
-           r.screenshot_id ?? r.screenshotId ??
-           r.thumb_id ?? r.thumbId ?? null);
+      items = mapItems(arr);
 
-        const thumbModeRaw =
-          (r.thumb_mode ?? r.thumbMode ?? r.thumbnail_mode ?? r.thumbnailMode ?? "");
-
-        return ({
-          id: String(r.id),
-          no,
-          name: r.title || r.name || "Untitled",
-          desc: r.description || "",
-          tags,
-          author: r.author_name || r.authorName || "unknown",
-          authorEmail: r.author_email || r.authorEmail || r.author_id || r.authorId || "",
-          authorId: r.author_email || r.authorEmail || r.author_id || r.authorId || "",
-          dl: Number(r.download_count ?? r.downloadCount ?? 0),
-          mod: r.mod_version || r.modVersion || "Forge",
-          created: created || "",
-          createdText,
-
-          // 追加：スクショ
-          thumbMode: String(thumbModeRaw).toLowerCase(),
-          thumbScreenId: screenId ? String(screenId) : null,
-
-          // 追加：審査状態
-          status
-        });
-
-      });
-
-      applyFilter();
+      renderGrid(items);
+      renderPager(meta);
     }catch(e){
       showError("一覧の取得に失敗しました。\n" + String(e.message || e));
     }
   }
 
-  q.addEventListener("input", applyFilter);
-  sort.addEventListener("change", applyFilter);
-  yawUi.addEventListener("change", applyFilter);
-  if (mineOnly) mineOnly.addEventListener("change", () => load());
+  // ===== events（URL更新してからload）=====
+  let qTimer = null;
+  q.addEventListener("input", () => {
+    clearTimeout(qTimer);
+    qTimer = setTimeout(() => {
+      setParams({ q: q.value.trim(), page: 1 }, { push:false });
+      load();
+    }, 250);
+  });
+
+  sort.addEventListener("change", () => {
+    setParams({ sort: sort.value, page: 1 }, { push:true });
+    load();
+  });
+
+  yawUi.addEventListener("change", () => {
+    setParams({ yaw: yawUi.value }, { push:false });
+    // yawは描画だけ更新でもいいが、簡単に再描画する
+    load();
+  });
+
+  if (mineOnly) mineOnly.addEventListener("change", () => {
+    // mineOnly は url に mine=1 を保持（将来の拡張用）
+    const on = !!mineOnly.checked;
+    setParams({ mine: on ? 1 : "" , page: 1 }, { push:true });
+    load();
+  });
+
+  window.addEventListener("popstate", () => load());
 
   (async () => {
+    // URL -> UI 初期反映（mineチェックも）
+    const p = getParams();
+    yawUi.value = p.yaw || "270";
+    sort.value = p.sort || "new";
+    q.value = p.q || "";
+
     await loadWhoami();
+
+    // whoami後に mineOnly をURLに合わせる（ログインしてないなら強制OFF）
+    if(mineOnly){
+      mineOnly.checked = !!(p.mine && meEmail);
+    }
+
     await load();
   })();
 })();
