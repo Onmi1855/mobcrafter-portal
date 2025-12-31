@@ -152,14 +152,18 @@
   const editId = params.get("edit"); // submission UUID
   const isEditMode = Boolean(editId);
 
-  function setEditUi(){
-    if(!isEditMode) return;
-    document.title = "MobCrafter - Unit Edit";
-    const h = document.querySelector("h1");
-    if(h) h.textContent = "ユニット編集";
-    const btn = document.getElementById("btnSubmit");
-    if(btn) btn.textContent = "更新";
-  }
+function setEditUi(){
+  if(!isEditMode) return;
+  document.title = "MobCrafter - Unit Edit";
+  const h = document.querySelector("h1");
+  if(h) h.textContent = "ユニット編集";
+
+  // ❌ const btn = document.getElementById("btnSubmit");
+  // ✅ こっち
+  const btn = document.getElementById("btn");
+  if(btn) btn.textContent = "更新";
+}
+
 
   async function loadForEdit(){
     if(!isEditMode) return;
@@ -556,6 +560,8 @@
       const err = validateMobCrafterJson(obj);
       if (err) { setPreview(err); return; }
       parsedJson = obj;
+      // ✅ 追加：編集モードでファイルを選び直したら「JSON更新が必要」にする
+      jsonDirty = isEditMode;
       if (!$title.value.trim()) $title.value = f.name.replace(/\.json$/i,"");
       const info = analyzeBlocks(obj.blocks);
       setPreview({ file:{name:f.name,size:f.size}, blocks: obj.blocks.length, size:`${info.sizeX} x ${info.sizeY} x ${info.sizeZ}`, frontYaw:(obj.frontYaw ?? null), yaw_offset_quarter:Number($yawOffset.value||"0") });
@@ -687,7 +693,9 @@ if ($after && resp.ok) {
 
   lastSubmissionId = submissionId; // ★スクショ用は submissionId
 
-  const unitUrl = unitId ? ("/unit?id=" + encodeURIComponent(unitId)) : "";
+  const unitUrl = isEditMode
+  ? ("/unit?id=" + encodeURIComponent(editId))  // ✅ 編集は editId で戻す
+  : (unitId ? ("/unit?id=" + encodeURIComponent(unitId)) : "");
   const backUrl = "/";
 
   $after.style.display = "block";
