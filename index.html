@@ -445,8 +445,32 @@
       </div>
     </div>
   </div>
+  <section style="width:100%; margin-top:12px; background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:14px; box-shadow: 0 10px 25px rgba(15,23,42,.08);">
+    <h2 style="margin:0 0 8px; font-size:14px;">How to use</h2>
+    <ol style="margin:0; padding-left:18px; color:#334155; font-size:12px; line-height:1.7;">
+      <li>Download a unit JSON from this portal.</li>
+      <li>Place the JSON into MobCrafter's unit folder (your modpack must include required dependency mods if used).</li>
+      <li>Use MobCrafter items in-game to summon the unit.</li>
+    </ol>
+
+    <h2 style="margin:12px 0 8px; font-size:14px;">Posting rules</h2>
+    <ul style="margin:0; padding-left:18px; color:#334155; font-size:12px; line-height:1.7;">
+      <li>Only upload content you have rights to share.</li>
+      <li>Do not upload copyrighted character models/textures unless you have permission.</li>
+      <li>If your unit uses blocks from other mods, mention them as dependencies.</li>
+    </ul>
+  </section>
 
   <section id="grid" class="grid"></section>
+    <!-- Ad (only activated when JS loads adsense) -->
+  <div id="ad-wrap" style="width:100%; display:none; margin-top:14px;">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-1227105355658053"
+         data-ad-slot="YOUR_SLOT_ID"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+  </div>
   <div id="pager" class="pager" style="display:none;"></div>
 
   <footer>© 2025 MobCrafter Portal — MVP</footer>
@@ -1194,6 +1218,13 @@
       // ✅ only load ads when there is actual content
       if (!useMine && items.length > 0) {
         loadAdsenseOnce();
+
+        // show + request ad only when there is content
+        const adWrap = document.getElementById("ad-wrap");
+        if (adWrap) {
+          adWrap.style.display = "block";
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+        }
       }
     }catch(e){
       showError("一覧の取得に失敗しました。\n" + String(e.message || e));
