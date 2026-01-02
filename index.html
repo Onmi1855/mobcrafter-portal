@@ -5,10 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MobCrafter Portal</title>
   <meta name="description" content="Minecraft Unit Share Portal for MobCrafter MOD!" />
-
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1227105355658053"
-     crossorigin="anonymous"></script>
-
   <style>
     :root{
       --bg:#f6f8fb;
@@ -458,6 +454,21 @@
 
 <script>
 (() => {
+  // ===== Adsense load (only when content exists) =====
+  const ADSENSE_CLIENT = "ca-pub-1227105355658053";
+  let adsLoaded = false;
+
+  function loadAdsenseOnce(){
+    if (adsLoaded) return;
+    adsLoaded = true;
+
+    const s = document.createElement("script");
+    s.async = true;
+    s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(ADSENSE_CLIENT)}`;
+    s.crossOrigin = "anonymous";
+    document.head.appendChild(s);
+  }
+
   // ====== API ======
   const API_PUBLIC_LIST = "/api/public/submissions";
   const API_MY_LIST = "/api/my/submissions?scope=all"; // ログイン必須 / 自分の承認済みのみ
@@ -1179,6 +1190,11 @@
 
       renderGrid(items);
       renderPager(meta);
+
+      // ✅ only load ads when there is actual content
+      if (!useMine && items.length > 0) {
+        loadAdsenseOnce();
+      }
     }catch(e){
       showError("一覧の取得に失敗しました。\n" + String(e.message || e));
     }
