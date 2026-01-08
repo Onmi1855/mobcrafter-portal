@@ -233,12 +233,25 @@
 
 <script>
 (() => {
-  const API_LIST   = "/api/public/submissions"; // approved一覧
-  const API_JSON   = (id) => `/api/public/submissions/${id}/json`;      // DLカウントしない
-  const API_DL     = (id) => `/api/public/submissions/${id}/download`;  // DLカウントする
-  const API_WHOAMI = "/api/whoami";
-  const API_OWNER_META = (id) => `/api/submissions/${id}`;          // PUT, DELETE
-  const API_OWNER_JSON = (id) => `/api/submissions/${id}/json`;     // PUT
+  // Optional: ?api=http://127.0.0.1:8788 to point API calls to a different origin (local dev)
+  const API_ORIGIN = (() => {
+    const v = String(new URLSearchParams(location.search).get("api") || "").trim();
+    if (!v) return "";
+    try {
+      const u = new URL(v, location.href);
+      return u.origin;
+    } catch {
+      return "";
+    }
+  })();
+  const api = (path) => (API_ORIGIN ? (API_ORIGIN + path) : path);
+
+  const API_LIST   = api("/api/public/submissions"); // approved list
+  const API_JSON   = (id) => api(`/api/public/submissions/${id}/json`);      // no DL count
+  const API_DL     = (id) => api(`/api/public/submissions/${id}/download`);  // increments DL count
+  const API_WHOAMI = api("/api/whoami");
+  const API_OWNER_META = (id) => api(`/api/submissions/${id}`);          // PUT, DELETE
+  const API_OWNER_JSON = (id) => api(`/api/submissions/${id}/json`);     // PUT
 
   const el = (id) => document.getElementById(id);
 

@@ -498,16 +498,31 @@
 
 <script>
 (() => {
+  // ====== Dev helper ======
+  // Optional: ?api=http://127.0.0.1:8788 to point API calls to a different origin for local testing.
+  // Default: same-origin (production).
+  const API_ORIGIN = (() => {
+    const v = String(new URLSearchParams(location.search).get("api") || "").trim();
+    if (!v) return "";
+    try {
+      const u = new URL(v, location.href);
+      return u.origin;
+    } catch {
+      return "";
+    }
+  })();
+  const api = (path) => (API_ORIGIN ? (API_ORIGIN + path) : path);
+
   // ====== API ======
-  const API_PUBLIC_LIST = "/api/public/submissions";
-  const API_MY_LIST = "/api/my/submissions?scope=all"; // ログイン必須 / 自分の承認済みのみ
-  const API_JSON = (id) => `/api/public/submissions/${id}/json`;
-  const API_DL   = (id) => `/api/public/submissions/${id}/download`;
-  const API_PUBLIC_SCREEN = (screenId) => `/api/public/screens/${encodeURIComponent(screenId)}`;
-  const API_PRIVATE_SCREEN = (screenId) => `/api/screens/${encodeURIComponent(screenId)}`;
+  const API_PUBLIC_LIST = api("/api/public/submissions");
+  const API_MY_LIST = api("/api/my/submissions") + "?scope=all"; // login required
+  const API_JSON = (id) => api(`/api/public/submissions/${id}/json`);
+  const API_DL   = (id) => api(`/api/public/submissions/${id}/download`);
+  const API_PUBLIC_SCREEN = (screenId) => api(`/api/public/screens/${encodeURIComponent(screenId)}`);
+  const API_PRIVATE_SCREEN = (screenId) => api(`/api/screens/${encodeURIComponent(screenId)}`);
 
   // ====== AUTH ======
-  const API_WHOAMI = "/api/whoami";
+  const API_WHOAMI = api("/api/whoami");
 
   const authState = document.getElementById("authState");
   const authEmailWrap = document.getElementById("authEmailWrap");

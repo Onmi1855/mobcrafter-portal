@@ -394,27 +394,40 @@
 
 <script>
 (() => {
+  // Optional: ?api=http://127.0.0.1:8788 to point API calls to a different origin (local dev)
+  const API_ORIGIN = (() => {
+    const v = String(new URLSearchParams(location.search).get("api") || "").trim();
+    if (!v) return "";
+    try {
+      const u = new URL(v, location.href);
+      return u.origin;
+    } catch {
+      return "";
+    }
+  })();
+  const api = (path) => (API_ORIGIN ? (API_ORIGIN + path) : path);
+
   // =========================
   // API endpoints (想定)
   // =========================
-  const API_WHOAMI = "/api/whoami";
+  const API_WHOAMI = api("/api/whoami");
 
   // まず "submission meta" を取りに行く（not_found でもJSONで復旧する）
-  const API_SUB_META_PRIVATE = (id) => `/api/submissions/${encodeURIComponent(id)}`;
-  const API_SUB_META_PUBLIC  = (id) => `/api/public/submissions/${encodeURIComponent(id)}`;
+  const API_SUB_META_PRIVATE = (id) => api(`/api/submissions/${encodeURIComponent(id)}`);
+  const API_SUB_META_PUBLIC  = (id) => api(`/api/public/submissions/${encodeURIComponent(id)}`);
 
-  const API_JSON_PRIVATE = (id) => `/api/submissions/${encodeURIComponent(id)}/json`;
-  const API_JSON_PUBLIC  = (id) => `/api/public/submissions/${encodeURIComponent(id)}/json`;
+  const API_JSON_PRIVATE = (id) => api(`/api/submissions/${encodeURIComponent(id)}/json`);
+  const API_JSON_PUBLIC  = (id) => api(`/api/public/submissions/${encodeURIComponent(id)}/json`);
 
-  const API_DL_PUBLIC = (id) => `/api/public/submissions/${encodeURIComponent(id)}/download`;
-  const API_DL_PRIVATE = (id) => `/api/submissions/${encodeURIComponent(id)}/download`;
+  const API_DL_PUBLIC = (id) => api(`/api/public/submissions/${encodeURIComponent(id)}/download`);
+  const API_DL_PRIVATE = (id) => api(`/api/submissions/${encodeURIComponent(id)}/download`);
 
   // screens: public / private どちらも試す（環境差がある前提）
-  const API_SCREENS_PUBLIC  = (id) => `/api/public/submissions/${encodeURIComponent(id)}/screens`;
-  const API_SCREENS_PRIVATE = (id) => `/api/submissions/${encodeURIComponent(id)}/screens`;
+  const API_SCREENS_PUBLIC  = (id) => api(`/api/public/submissions/${encodeURIComponent(id)}/screens`);
+  const API_SCREENS_PRIVATE = (id) => api(`/api/submissions/${encodeURIComponent(id)}/screens`);
 
-  const API_PUBLIC_SCREEN  = (screenId) => `/api/public/screens/${encodeURIComponent(screenId)}`;
-  const API_PRIVATE_SCREEN = (screenId) => `/api/screens/${encodeURIComponent(screenId)}`;
+  const API_PUBLIC_SCREEN  = (screenId) => api(`/api/public/screens/${encodeURIComponent(screenId)}`);
+  const API_PRIVATE_SCREEN = (screenId) => api(`/api/screens/${encodeURIComponent(screenId)}`);
 
   // palette
   const PALETTE_URL = "/assets/palette.v1.json";

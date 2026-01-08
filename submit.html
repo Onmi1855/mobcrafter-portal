@@ -125,7 +125,20 @@
 
 <script>
 (() => {
-  const API_WHOAMI = "/api/whoami";
+  // Optional: ?api=http://127.0.0.1:8788 to point API calls to a different origin (local dev)
+  const API_ORIGIN = (() => {
+    const v = String(new URLSearchParams(location.search).get("api") || "").trim();
+    if (!v) return "";
+    try {
+      const u = new URL(v, location.href);
+      return u.origin;
+    } catch {
+      return "";
+    }
+  })();
+  const api = (path) => (API_ORIGIN ? (API_ORIGIN + path) : path);
+
+  const API_WHOAMI = api("/api/whoami");
 
   const authState = document.getElementById("authState");
   const authEmailWrap = document.getElementById("authEmailWrap");
@@ -171,7 +184,7 @@ function setEditUi(){
     setResult("Loading edit data...");
     try{
       // meta
-      const metaResp = await fetch(`/api/submissions/${encodeURIComponent(editId)}`, { cache:"no-store", credentials:"include" });
+      const metaResp = await fetch(api(`/api/submissions/${encodeURIComponent(editId)}`), { cache:"no-store", credentials:"include" });
       if(!metaResp.ok) throw new Error("meta HTTP " + metaResp.status);
       const meta = await metaResp.json();
       const item = meta && meta.item ? meta.item : meta;
@@ -186,7 +199,7 @@ function setEditUi(){
       }
 
       // json (no DL count)
-      const jsonResp = await fetch(`/api/submissions/${encodeURIComponent(editId)}/json`, { cache:"no-store", credentials:"include" });
+      const jsonResp = await fetch(api(`/api/submissions/${encodeURIComponent(editId)}/json`), { cache:"no-store", credentials:"include" });
       if(!jsonResp.ok) throw new Error("json HTTP " + jsonResp.status);
       const raw = await jsonResp.text();
       let parsed = null;
@@ -643,8 +656,8 @@ if ($screenFile && $screenPreview) {
     try {
 const resp = await fetch(
   isEditMode
-    ? `/api/submissions/${encodeURIComponent(editId)}`
-    : "/api/submit",
+    ? api(`/api/submissions/${encodeURIComponent(editId)}`)
+    : api("/api/submit"),
   {
     method: isEditMode ? "PUT" : "POST",
     headers: { "Content-Type": "application/json" },
@@ -664,12 +677,13 @@ const resp = await fetch(
             // In edit mode, if user chose a new JSON file, update JSON separately
       if (isEditMode && resp.ok && jsonDirty) {
         try {
-          const jr = await fetch(`/api/submissions/${encodeURIComponent(editId)}/json`, {
+          const jr = await fetch(api(`/api/submissions/${encodeURIComponent(editId)}/json`), {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ json: parsedJson }),
             credentials: "include"
           });
+
           const jt = await jr.text();
           let jd; try { jd = JSON.parse(jt); } catch { jd = { raw: jt }; }
           // Merge json-update result (do not overwrite main ok/http)
@@ -745,7 +759,7 @@ if ($btnUpload) {
 
     try {
       const r = await fetch(
-        `/api/submissions/${encodeURIComponent(lastSubmissionId)}/screens`,
+        api(`/api/submissions/${encodeURIComponent(lastSubmissionId)}/screens`),
         {
           method: "POST",
           body: fd,
