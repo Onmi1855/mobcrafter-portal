@@ -1,17 +1,39 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
   <title>MobCrafter Portal</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:24px;color:#0f172a;}
+    .card{max-width:760px;margin:0 auto;border:1px solid #e5e7eb;border-radius:14px;padding:16px;background:#fff;}
+    .muted{color:#64748b;font-size:13px;}
+    a{color:#2563eb;}
+  </style>
 </head>
 <body>
+  <div class="card">
+    <h1 style="margin:0 0 8px; font-size:18px;">Redirecting…</h1>
+    <p class="muted" style="margin:0 0 10px;">
+      This page exists only as a fallback for old /u routes.
+    </p>
+    <p class="muted" style="margin:0;">
+      If you are not redirected automatically, go back to the
+      <a href="/">home page</a>.
+    </p>
+    <noscript>
+      <p class="muted" style="margin-top:10px;">
+        JavaScript is required for automatic routing.
+      </p>
+    </noscript>
+  </div>
 <script>
 (() => {
-  // /u が開かれてしまった時の救済ページ。
-  // 期待: /u/13 または /u/<uuid>
-  // /u だけならトップへ戻す。
-  // もし ?p=/u/13 のようなパラメータがあれば /u/index.html に転送する。
+  // Fallback route handler for accidental /u access.
+  // Expected: /u/13 or /u/<uuid>
+  // If only /u is opened, go back to the home page.
+  // If ?p=/u/13 exists, forward to /u/index.html.
 
   const qs = new URLSearchParams(location.search);
   const p = qs.get("p");
@@ -21,7 +43,7 @@
     return;
   }
 
-  // 何も情報が無いならトップ
+  // No info => home
   location.replace("/");
 })();
 </script>

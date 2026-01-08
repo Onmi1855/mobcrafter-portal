@@ -1,8 +1,9 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="noindex" />
   <title>MobCrafter - Unit Submit</title>
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 24px; background:#f6f8fb; color:#0f172a; }
@@ -36,72 +37,72 @@
 
 <div class="card">
   <div class="toplinks">
-    <a href="/">← ホームに戻る</a>
+    <a href="/">← Back to Home</a>
     <span class="pill">Login: <code id="authState">checking...</code> <span id="authEmailWrap" style="display:none;">Email: <code id="authEmail"></code></span></span>
   </div>
 
-  <h1>ユニット投稿</h1>
+  <h1>Submit a Unit</h1>
   <div class="hint">
-    Cloudflare Access ログイン後に投稿できます。JSONファイルを選択すると、構造検証と簡易3Dプレビューが表示されます。
+    You can submit after logging in via Cloudflare Access. Once you select a JSON file, we validate the structure and show a simple 3D preview.
   </div>
 
-  <label>JSONファイル</label>
+  <label>JSON file</label>
   <input id="file" type="file" accept=".json,application/json" />
 
   <div class="row">
     <div>
-      <label>タイトル</label>
-      <input id="title" type="text" placeholder="例: Sephiroth Unit v1" />
+      <label>Title</label>
+      <input id="title" type="text" placeholder="e.g. Sephiroth Unit v1" />
     </div>
     <div>
-      <label>mod_version（任意）</label>
+      <label>mod_version (optional)</label>
       <input id="modVersion" type="text" placeholder="1.0.0" />
     </div>
   </div>
 
-  <label>説明</label>
-  <textarea id="description" placeholder="説明（任意）"></textarea>
+  <label>Description</label>
+  <textarea id="description" placeholder="Description (optional)"></textarea>
 
-  <label>タグ（カンマ区切り）</label>
+  <label>Tags (comma-separated)</label>
   <input id="tags" type="text" placeholder="boss, ff7, sword" />
 
-  <label>正面補正（0/90/180/270）※任意</label>
+  <label>Front offset (0/90/180/270) (optional)</label>
   <select id="yawOffset">
-    <option value="0" selected>0°（補正なし）</option>
+    <option value="0" selected>0° (no offset)</option>
     <option value="1">+90°</option>
     <option value="2">+180°</option>
     <option value="3">+270°</option>
   </select>
   <div class="mini">
-    frontYaw が無い/作品ごとに正面の流派が違う場合、ここで合わせてください（プレビューと投稿メタに保存）。
+    If your unit has no frontYaw, or each unit uses a different "front" direction, adjust it here (saved to preview and submission metadata).
   </div>
 
   <div class="actions">
-    <button id="btn" class="primary" disabled>送信</button>
-    <a id="loginLink" href="/api/login?next=/submit" style="display:none; padding:10px 14px; border-radius:12px; background:#2563eb; color:#fff; text-decoration:none;">ログインして投稿</a>
-    <span id="needLogin" class="mini">※ 送信はログイン必須</span>
+    <button id="btn" class="primary" disabled>Submit</button>
+    <a id="loginLink" href="/api/login?next=/submit" style="display:none; padding:10px 14px; border-radius:12px; background:#2563eb; color:#fff; text-decoration:none;">Log in to submit</a>
+    <span id="needLogin" class="mini">* Submission requires login</span>
   </div>
 
   <div class="divider"></div>
 
-  <label>プレビュー（情報）</label>
+  <label>Preview (info)</label>
   <pre id="preview">{}</pre>
 
-  <label>3Dイメージ（簡易）</label>
+  <label>3D preview (simple)</label>
   <div class="canvaswrap"><canvas id="canvas" width="900" height="520"></canvas></div>
   <div class="hint">
-    ※ 形状確認用の簡易表示です（色・質感は実物と異なります）
+    This is a simple shape preview. Colors/materials may differ from in-game.
   </div>
 
-  <label>結果</label>
-  <pre id="result">未送信</pre>
+  <label>Result</label>
+  <pre id="result">Not sent</pre>
   <div id="afterSuccess" class="mini" style="display:none; margin-top:8px;"></div>
   <!-- === Screenshot Upload (after success only) === -->
 <div id="screenBox" style="display:none; margin-top:12px; padding:12px; border:1px dashed #cbd5e1; border-radius:12px; background:#f8fafc;">
-  <div><strong>スクリーンショット（任意）</strong></div>
-  <div class="mini">※ JSON 投稿成功後のみアップロードできます</div>
+  <div><strong>Screenshot (optional)</strong></div>
+  <div class="mini">Only available after the JSON submission succeeds</div>
 
-  <label style="margin-top:8px;">画像ファイル</label>
+  <label style="margin-top:8px;">Image file</label>
   <input id="screenFile" type="file" accept="image/*" />
   <img
   id="screenPreview"
@@ -110,12 +111,12 @@
 
 
   <div style="display:flex; gap:14px; align-items:center; margin-top:8px;">
-    <label><input type="radio" name="thumbMode" value="3d" checked> サムネ：3D</label>
-    <label><input type="radio" name="thumbMode" value="screen"> サムネ：このスクショ</label>
+    <label><input type="radio" name="thumbMode" value="3d" checked> Thumbnail: 3D</label>
+    <label><input type="radio" name="thumbMode" value="screen"> Thumbnail: this screenshot</label>
   </div>
 
   <div class="actions">
-    <button id="btnUploadScreen" class="secondary">スクショをアップロード</button>
+    <button id="btnUploadScreen" class="secondary">Upload screenshot</button>
     <span id="screenResult" class="mini"></span>
   </div>
 </div>
@@ -156,18 +157,18 @@ function setEditUi(){
   if(!isEditMode) return;
   document.title = "MobCrafter - Unit Edit";
   const h = document.querySelector("h1");
-  if(h) h.textContent = "ユニット編集";
+  if(h) h.textContent = "Edit Unit";
 
   // ❌ const btn = document.getElementById("btnSubmit");
   // ✅ こっち
   const btn = document.getElementById("btn");
-  if(btn) btn.textContent = "更新";
+  if(btn) btn.textContent = "Update";
 }
 
 
   async function loadForEdit(){
     if(!isEditMode) return;
-    setResult("編集データ読込中...");
+    setResult("Loading edit data...");
     try{
       // meta
       const metaResp = await fetch(`/api/submissions/${encodeURIComponent(editId)}`, { cache:"no-store", credentials:"include" });
@@ -191,7 +192,7 @@ function setEditUi(){
       let parsed = null;
       try{ parsed = JSON.parse(raw); }catch{ parsed=null; }
       if(!parsed || !Array.isArray(parsed.blocks)){
-        setResult("編集JSONが不正です");
+        setResult("Invalid JSON for editing");
         return;
       }
 
@@ -202,7 +203,7 @@ function setEditUi(){
       updateButtonState();
       setResult({ ok:true, mode:"edit", id: editId });
     }catch(e){
-      setResult("編集データ読込失敗: " + (e?.message || String(e)));
+      setResult("Failed to load edit data: " + (e?.message || String(e)));
     }
   }
   let isLoggedIn = false;
@@ -229,7 +230,7 @@ function setEditUi(){
         isLoggedIn = false;
         loggedInEmail = ""; // ★追加
         $loginLink.style.display = "inline-block";
-        $needLogin.textContent = "※ ログインすると送信できます";
+        $needLogin.textContent = "* Log in to submit";
         return;
       }
 
@@ -239,13 +240,13 @@ function setEditUi(){
       loggedInEmail = email; // ★追加
       isLoggedIn = true;
       $loginLink.style.display = "none";
-      $needLogin.textContent = "※ ログイン済み";
+      $needLogin.textContent = "Logged in";
     }catch{
       authState.textContent = "unknown";
       isLoggedIn = false;
       loggedInEmail = ""; // ★追加
       $loginLink.style.display = "inline-block";
-      $needLogin.textContent = "※ ログイン状態を確認できません（whoami）";
+      $needLogin.textContent = "Could not check login status (whoami)";
     }
   }
 
@@ -261,17 +262,17 @@ function setEditUi(){
   }
 
   function validateMobCrafterJson(obj) {
-    if (!obj || typeof obj !== "object") return "JSONがオブジェクトではありません";
-    if (!Array.isArray(obj.blocks)) return "blocks 配列がありません";
-    if (obj.blocks.length === 0) return "blocks が空です";
-    if (obj.blocks.length > 200000) return "blocks が多すぎます（200k超）";
+    if (!obj || typeof obj !== "object") return "JSON is not an object";
+    if (!Array.isArray(obj.blocks)) return "`blocks` array is missing";
+    if (obj.blocks.length === 0) return "`blocks` is empty";
+    if (obj.blocks.length > 200000) return "`blocks` is too large (over 200k)";
     for (let i = 0; i < Math.min(obj.blocks.length, 1000); i++) {
       const b = obj.blocks[i];
       if (typeof b.dx !== "number" || typeof b.dy !== "number" || typeof b.dz !== "number") {
-        return `blocks[${i}] に dx/dy/dz がありません`;
+        return `blocks[${i}] is missing dx/dy/dz`;
       }
       if (typeof b.blockId !== "string") {
-        return `blocks[${i}] に blockId がありません`;
+        return `blocks[${i}] is missing blockId`;
       }
     }
     return null;
@@ -551,10 +552,10 @@ function setEditUi(){
   });
 
   $file.addEventListener("change", async () => {
-    parsedJson = null; setResult("未送信"); setPreview("{}");
+    parsedJson = null; setResult("Not sent"); setPreview("{}");
     const f = $file.files && $file.files[0];
     if (!f) return;
-    if (f.size > 2_200_000) { setPreview("ファイルが大きすぎます（約2MB超）"); return; }
+    if (f.size > 2_200_000) { setPreview("File is too large (over ~2MB)"); return; }
     try {
       const obj = JSON.parse(await f.text());
       const err = validateMobCrafterJson(obj);
@@ -567,7 +568,7 @@ function setEditUi(){
       setPreview({ file:{name:f.name,size:f.size}, blocks: obj.blocks.length, size:`${info.sizeX} x ${info.sizeY} x ${info.sizeZ}`, frontYaw:(obj.frontYaw ?? null), yaw_offset_quarter:Number($yawOffset.value||"0") });
       loadPalette().finally(()=>rerender());
     } catch (e) {
-      setPreview("JSONとして読み込めません: " + (e?.message || String(e)));
+      setPreview("Failed to parse JSON: " + (e?.message || String(e)));
     }
     updateButtonState();
   });
@@ -638,7 +639,7 @@ if ($screenFile && $screenPreview) {
       }
     }catch{}
 
-    setResult("送信中...");
+    setResult("Submitting...");
     try {
 const resp = await fetch(
   isEditMode
@@ -700,9 +701,9 @@ if ($after && resp.ok) {
 
   $after.style.display = "block";
   $after.innerHTML =
-    `✅ 送信完了。` +
-    (unitUrl ? ` <a href="${unitUrl}">個別ページを見る</a>` : ``) +
-    ` / <a href="${backUrl}">一覧に戻る</a>`;
+    `✅ Submitted.` +
+    (unitUrl ? ` <a href="${unitUrl}">View details page</a>` : ``) +
+    ` / <a href="${backUrl}">Back to list</a>`;
 
   // ★ ここでスクショ UI を解放（submissionId がある時だけ）
   const box = document.getElementById("screenBox");
@@ -712,7 +713,7 @@ if ($after && resp.ok) {
 
       } catch (_) {}
 } catch (e) {
-      setResult("送信失敗: " + (e?.message || String(e)));
+  setResult("Submit failed: " + (e?.message || String(e)));
     }
   });
 // === Screenshot upload (standalone) ===
@@ -723,13 +724,13 @@ const $screenResult = document.getElementById("screenResult");
 if ($btnUpload) {
   $btnUpload.addEventListener("click", async () => {
     if (!lastSubmissionId) {
-      $screenResult.textContent = "submission_id が取得できていません";
+      $screenResult.textContent = "submission_id is not available";
       return;
     }
 
     const f = $screenFile.files && $screenFile.files[0];
     if (!f) {
-      $screenResult.textContent = "画像を選択してください";
+      $screenResult.textContent = "Please choose an image";
       return;
     }
 
@@ -740,7 +741,7 @@ if ($btnUpload) {
       document.querySelector('input[name="thumbMode"]:checked')?.value || "3d";
     fd.append("thumb_mode", thumbMode);
 
-    $screenResult.textContent = "アップロード中...";
+    $screenResult.textContent = "Uploading...";
 
     try {
       const r = await fetch(
@@ -756,12 +757,12 @@ if ($btnUpload) {
       let d; try { d = JSON.parse(t); } catch { d = { raw:t }; }
 
       if (!r.ok) {
-        $screenResult.textContent = "失敗: " + r.status;
+        $screenResult.textContent = "Failed: " + r.status;
         return;
       }
-      $screenResult.textContent = "アップロード成功";
+      $screenResult.textContent = "Upload succeeded";
     } catch (e) {
-      $screenResult.textContent = "アップロード失敗";
+      $screenResult.textContent = "Upload failed";
     }
   });
 }

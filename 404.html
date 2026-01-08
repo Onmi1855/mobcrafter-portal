@@ -1,31 +1,52 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
   <title>MobCrafter Portal</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:24px;color:#0f172a;}
+    .card{max-width:760px;margin:0 auto;border:1px solid #e5e7eb;border-radius:14px;padding:16px;background:#fff;}
+    .muted{color:#64748b;font-size:13px;}
+    a{color:#2563eb;}
+  </style>
 </head>
 <body>
+  <div class="card">
+    <h1 style="margin:0 0 8px; font-size:18px;">Redirecting…</h1>
+    <p class="muted" style="margin:0 0 10px;">
+      This is a routing helper page.
+    </p>
+    <p class="muted" style="margin:0;">
+      If you are not redirected automatically, go to the <a href="/">home page</a>.
+    </p>
+    <noscript>
+      <p class="muted" style="margin-top:10px;">
+        JavaScript is required for automatic routing.
+      </p>
+    </noscript>
+  </div>
 <script>
 (() => {
-  // GitHub Pages 404 を SPA ルーターとして使う
-  // /u/<no> や /u/<uuid> → /u/index.html?p=/u/<...> に転送
-  // ループ防止を最優先
+  // Use GitHub Pages 404 as an SPA-like router.
+  // /u/<no> or /u/<uuid> -> /u/index.html?p=/u/<...>
+  // Prevent redirect loops above all else.
 
   const path = location.pathname || "/";
   const search = location.search || "";
   const hash = location.hash || "";
 
-  // ここに居るなら絶対何もしない（ループ防止）
+  // If we're already here, do nothing (loop prevention)
   if (path === "/u/index.html") return;
 
-  // /u だけは不正扱い（トップへ）
+  // /u alone is treated as invalid (go home)
   if (path === "/u" || path === "/u/") {
     location.replace("/");
     return;
   }
 
-  // /u/<something> は全部拾う（数字でもUUIDでもOK）
+  // Catch /u/<something> (number or UUID)
   const m = path.match(/^\/u\/([^\/?#]+)$/);
   if (m) {
     const p = encodeURIComponent(path + search + hash);
@@ -33,7 +54,7 @@
     return;
   }
 
-  // その他はトップへ
+  // Otherwise, go home
   location.replace("/");
 })();
 </script>

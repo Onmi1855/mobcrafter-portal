@@ -1,10 +1,13 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MobCrafter Portal | Unit</title>
-  <meta name="description" content="MobCrafter用ユニットJSONの詳細ページ。ダウンロード、JSONプレビュー、使い方を表示します。" />
+  <meta name="description" content="MobCrafter unit JSON details page. Download, JSON preview, and usage instructions." />
+  <!-- Ads (default OFF): enable via /assets/ads-config.v1.js after approval -->
+  <script src="/assets/ads-config.v1.js" defer></script>
+  <script src="/assets/ads.v1.js" defer></script>
   <style>
     :root{
       --bg:#f6f8fb;
@@ -135,13 +138,16 @@
 <body>
 <header>
   <a href="/"><h1>MobCrafter Portal</h1></a>
-  <p>ユニットJSON共有（詳細）</p>
+  <p>Unit JSON details</p>
 </header>
 
 <main>
   <div class="wrap">
     <section class="card">
-      <h2 class="title" id="title">読み込み中...</h2>
+      <!-- Ad slot (unit_top) - renders only when ads are enabled -->
+      <div data-ad-slot-key="unit_top"></div>
+
+      <h2 class="title" id="title">Loading...</h2>
       <div class="muted" id="sub"></div>
 
       <div class="tags" id="tags"></div>
@@ -149,16 +155,16 @@
 
       <div class="actions">
         <a id="downloadBtn" class="btn primary" href="#" download>Download JSON</a>
-        <button id="copyBtn" class="btn" type="button">使い方をコピー</button>
+        <button id="copyBtn" class="btn" type="button">Copy instructions</button>
       </div>
 
       <details id="jsonDetails">
-        <summary>JSONプレビュー（折りたたみ）</summary>
+        <summary>JSON preview (collapsed)</summary>
         <pre id="jsonPreview">...</pre>
       </details>
 
       <details>
-        <summary>ゲームでの使い方（コピペ）</summary>
+        <summary>How to use in-game (copy/paste)</summary>
         <pre id="howto"></pre>
       </details>
 
@@ -166,45 +172,45 @@
 
       <!-- owner/admin editor -->
       <div class="editor" id="editor">
-        <div style="font-weight:800;">編集（所有者/管理者）</div>
+        <div style="font-weight:800;">Edit (owner/admin)</div>
         <div class="muted" id="whoamiLine" style="margin-top:6px;"></div>
 
         <div class="row">
-          <div class="muted">タイトル</div>
+          <div class="muted">Title</div>
           <input id="editTitle" type="text" maxlength="80" placeholder="title" />
         </div>
 
         <div class="row">
-          <div class="muted">説明</div>
+          <div class="muted">Description</div>
           <input id="editDesc" type="text" maxlength="2000" placeholder="description" />
         </div>
 
         <div class="row">
-          <div class="muted">タグ</div>
+          <div class="muted">Tags</div>
           <input id="editTags" type="text" maxlength="300" placeholder="tag1 tag2 tag3" />
         </div>
 
         <div class="editorActions">
-          <button id="saveMetaBtn" class="btn primary" type="button">メタ保存</button>
+          <button id="saveMetaBtn" class="btn primary" type="button">Save meta</button>
         </div>
 
         <div class="divider"></div>
 
-        <div style="font-weight:800;">JSON差し替え</div>
-        <div class="note">※ ここに貼ったJSONはサーバー側で <b>unitId/id を unit_採番 に強制上書き</b>します（確定仕様）。</div>
+        <div style="font-weight:800;">Replace JSON</div>
+        <div class="note">Note: JSON pasted here will have <b>unitId/id forcibly overwritten</b> on the server (fixed behavior).</div>
         <textarea id="editJson" spellcheck="false" placeholder="{ ... }"></textarea>
 
         <div class="editorActions">
-          <button id="loadJsonBtn" class="btn" type="button">現在のJSONを読み込む</button>
-          <button id="saveJsonBtn" class="btn primary" type="button">JSON保存</button>
+          <button id="loadJsonBtn" class="btn" type="button">Load current JSON</button>
+          <button id="saveJsonBtn" class="btn primary" type="button">Save JSON</button>
         </div>
 
         <div class="divider"></div>
 
-        <div style="font-weight:800; color:var(--danger);">削除（論理削除）</div>
-        <div class="note">※ 一覧/詳細/DL から消えます（R2物理削除はしません）。</div>
+        <div style="font-weight:800; color:var(--danger);">Delete (soft delete)</div>
+        <div class="note">This hides the unit from list/details/download. It does not physically delete the R2 file.</div>
         <div class="editorActions">
-          <button id="deleteBtn" class="btn danger" type="button">削除する</button>
+          <button id="deleteBtn" class="btn danger" type="button">Delete</button>
         </div>
 
         <div id="editorMsg"></div>
@@ -214,9 +220,12 @@
     </section>
 
     <aside class="card">
-      <h3 style="margin:0 0 8px;">サムネ（MVP）</h3>
-      <div class="muted" style="font-size:13px;">
-        MVP方針：一覧は軽量。詳細は情報集約（次フェーズでスクショ/3D切替）。
+      <h3 style="margin:0 0 8px;">Quick help</h3>
+      <div class="muted" style="font-size:13px; line-height:1.6;">
+        Downloaded unit JSON files are loaded from <code>config/mob_crafter/units/</code>.
+        If a unit uses blocks from other mods, those mods must be installed as required dependencies.
+        <br /><br />
+        Note: Units shown in mod screenshots are personal examples and are not bundled with the mod.
       </div>
     </aside>
   </div>
@@ -255,13 +264,14 @@
   function buildHowTo(unitId){
     const id = String(unitId || "").trim();
     return [
-      "【MobCrafterでの使い方】",
-      "1) Download JSON を押して取得",
-      "2) ファイル名とJSON内 id/unitId は必ず一致しています",
-      "   例: " + id + ".json",
-      "3) MobCrafter の指定フォルダへ配置 → ゲーム内で読み込み/召喚",
+      "[How to use MobCrafter units]",
+      "1) Click Download JSON to get the file",
+      "2) The filename and JSON id/unitId match",
+      "   Example: " + id + ".json",
+      "3) Put the JSON into: config/mob_crafter/units/",
+      "4) Load/summon the unit in-game",
       "",
-      "※ポータル側で unitId を強制一致させています（MobCrafter本体仕様対策）。"
+      "Note: This portal enforces unitId/id consistency on the server for compatibility."
     ].join("\n");
   }
 
@@ -321,7 +331,7 @@
   async function load(){
     const key = getKeyFromUrl();
     if(!key){
-      setMsg(`<div class="err">URLが不正です。一覧からクリックして開いてください。</div>`);
+      setMsg(`<div class="err">Invalid URL. Please open the unit from the list.</div>`);
       return;
     }
 
@@ -337,7 +347,7 @@
     }
 
     if(!item){
-      setMsg(`<div class="err">対象が見つかりませんでした。\n（承認済み一覧に無い、または削除済みの可能性）</div>`);
+      setMsg(`<div class="err">Unit not found.\n(It may be missing from the approved list or already deleted.)</div>`);
       return;
     }
 
@@ -349,12 +359,12 @@
     el("tags").innerHTML = tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join("");
 
     el("kv").innerHTML = [
-      kvRow("投稿日", item.created_at || ""),
-      kvRow("DL数", item.download_count ?? 0),
+      kvRow("Created", item.created_at || ""),
+      kvRow("Downloads", item.download_count ?? 0),
       kvRow("mod_version", item.mod_version || "Forge"),
       kvRow("submission_no", item.submission_no ?? ""),
       kvRow("unit_id", item.unit_id ?? ""),
-      kvRow("作者", item.author_name || "unknown")
+      kvRow("Author", item.author_name || "unknown")
     ].join("");
 
     // DLリンク（ここだけがDLカウント増える）
@@ -376,7 +386,7 @@
         const text = await r.text();
         el("jsonPreview").textContent = text;
       }catch(e){
-        el("jsonPreview").textContent = "取得失敗: " + String(e.message || e);
+        el("jsonPreview").textContent = "Failed to fetch: " + String(e.message || e);
       }
     });
 
@@ -384,10 +394,10 @@
     el("copyBtn").onclick = async () => {
       try{
         await navigator.clipboard.writeText(buildHowTo(item.unit_id));
-        setMsg(`<div class="muted" style="margin-top:12px;">コピーしました。</div>`);
+        setMsg(`<div class="muted" style="margin-top:12px;">Copied.</div>`);
         setTimeout(()=> setMsg(""), 1500);
       }catch{
-        setMsg(`<div class="err">コピーできませんでした。</div>`);
+        setMsg(`<div class="err">Copy failed.</div>`);
       }
     };
 
@@ -401,22 +411,22 @@
 
     if(who && who.email){
       el("editor").style.display = "block";
-      el("whoamiLine").textContent = `login: ${who.email}` + (who.is_admin ? "（admin）" : "");
+      el("whoamiLine").textContent = `login: ${who.email}` + (who.is_admin ? " (admin)" : "");
 
       fillEditorFromItem(item);
 
       // 現在JSON読み込み
       el("loadJsonBtn").onclick = async () => {
-        setEditorMsg(`<div class="muted" style="margin-top:10px;">読み込み中...</div>`);
+        setEditorMsg(`<div class="muted" style="margin-top:10px;">Loading...</div>`);
         try{
           const r = await fetch(API_JSON(item.id), { cache:"no-store", credentials:"include" });
           if(!r.ok) throw new Error("json HTTP " + r.status);
           const text = await r.text();
           el("editJson").value = text;
-          setEditorMsg(`<div class="okmsg">読み込みました。</div>`);
+          setEditorMsg(`<div class="okmsg">Loaded.</div>`);
           setTimeout(()=> setEditorMsg(""), 1200);
         }catch(e){
-          setEditorMsg(`<div class="err">取得失敗: ${escapeHtml(String(e.message || e))}</div>`);
+          setEditorMsg(`<div class="err">Fetch failed: ${escapeHtml(String(e.message || e))}</div>`);
         }
       };
 
@@ -424,7 +434,7 @@
       el("saveMetaBtn").onclick = async () => {
         const btn = el("saveMetaBtn");
         btn.disabled = true;
-        setEditorMsg(`<div class="muted" style="margin-top:10px;">保存中...</div>`);
+        setEditorMsg(`<div class="muted" style="margin-top:10px;">Saving...</div>`);
         try{
           const body = {
             title: el("editTitle").value || "",
@@ -432,7 +442,7 @@
             tags: el("editTags").value || ""
           };
           await apiJson(API_OWNER_META(item.id), "PUT", body);
-          setEditorMsg(`<div class="okmsg">保存しました。</div>`);
+          setEditorMsg(`<div class="okmsg">Saved.</div>`);
           // 画面へ反映（軽量）
           item.title = body.title;
           item.description = body.description;
@@ -442,7 +452,7 @@
           // kvの説明は元UIに無いので更新しない（必要なら後で）
           setTimeout(()=> setEditorMsg(""), 1500);
         }catch(e){
-          const hint = e.status === 403 ? "権限がありません（owner/adminのみ）。" : "保存に失敗しました。";
+          const hint = e.status === 403 ? "No permission (owner/admin only)." : "Save failed.";
           setEditorMsg(`<div class="err">${escapeHtml(hint)}\n${escapeHtml(JSON.stringify(e.data || {}, null, 2))}</div>`);
         }finally{
           btn.disabled = false;
@@ -453,18 +463,18 @@
       el("saveJsonBtn").onclick = async () => {
         const btn = el("saveJsonBtn");
         btn.disabled = true;
-        setEditorMsg(`<div class="muted" style="margin-top:10px;">保存中...</div>`);
+        setEditorMsg(`<div class="muted" style="margin-top:10px;">Saving...</div>`);
         try{
           const raw = el("editJson").value || "";
           let obj = null;
-          try{ obj = JSON.parse(raw); }catch{ throw new Error("JSONの形式が不正です"); }
+          try{ obj = JSON.parse(raw); }catch{ throw new Error("Invalid JSON format"); }
           await apiJson(API_OWNER_JSON(item.id), "PUT", { json: obj });
-          setEditorMsg(`<div class="okmsg">JSONを保存しました（unitIdはサーバー側で強制一致）。</div>`);
+          setEditorMsg(`<div class="okmsg">Saved JSON (unitId is enforced server-side).</div>`);
           // プレビューも更新したい場合に備えてリセット
           el("jsonPreview").textContent = "...";
           setTimeout(()=> setEditorMsg(""), 1700);
         }catch(e){
-          const hint = e.status === 403 ? "権限がありません（owner/adminのみ）。" : (e.message || "保存に失敗しました");
+          const hint = e.status === 403 ? "No permission (owner/admin only)." : (e.message || "Save failed");
           setEditorMsg(`<div class="err">${escapeHtml(String(hint))}</div>`);
         }finally{
           btn.disabled = false;
@@ -473,17 +483,17 @@
 
       // 削除
       el("deleteBtn").onclick = async () => {
-        const ok = confirm("削除（論理削除）します。\n一覧/詳細/DLから消えます。\nよろしいですか？");
+        const ok = confirm("Delete (soft delete)?\nIt will be removed from list/details/download.\nContinue?");
         if(!ok) return;
         const btn = el("deleteBtn");
         btn.disabled = true;
-        setEditorMsg(`<div class="muted" style="margin-top:10px;">削除中...</div>`);
+        setEditorMsg(`<div class="muted" style="margin-top:10px;">Deleting...</div>`);
         try{
           await apiJson(API_OWNER_META(item.id), "DELETE");
-          setEditorMsg(`<div class="okmsg">削除しました。トップへ戻ります。</div>`);
+          setEditorMsg(`<div class="okmsg">Deleted. Returning to home.</div>`);
           setTimeout(()=> location.href = "/", 900);
         }catch(e){
-          const hint = e.status === 403 ? "権限がありません（owner/adminのみ）。" : "削除に失敗しました。";
+          const hint = e.status === 403 ? "No permission (owner/admin only)." : "Delete failed.";
           setEditorMsg(`<div class="err">${escapeHtml(hint)}\n${escapeHtml(JSON.stringify(e.data || {}, null, 2))}</div>`);
           btn.disabled = false;
         }
@@ -492,7 +502,7 @@
   }
 
   load().catch(e => {
-    el("msg").innerHTML = `<div class="err">読み込みに失敗しました:\n${escapeHtml(String(e.message || e))}</div>`;
+    el("msg").innerHTML = `<div class="err">Failed to load:\n${escapeHtml(String(e.message || e))}</div>`;
   });
 })();
 </script>

@@ -1,10 +1,13 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MobCrafter Portal</title>
   <meta name="description" content="Minecraft Unit Share Portal for MobCrafter MOD!" />
+  <!-- Ads (default OFF): enable via /assets/ads-config.v1.js after approval -->
+  <script src="/assets/ads-config.v1.js" defer></script>
+  <script src="/assets/ads.v1.js" defer></script>
   <style>
     :root{
       --bg:#f6f8fb;
@@ -390,32 +393,35 @@
 </header>
 
 <main>
+  <!-- Ad slot (index_top) - renders only when ads are enabled -->
+  <div data-ad-slot-key="index_top"></div>
+
   <div class="topbar">
     <div class="leftbox">
       <div class="field">
         <label>Search</label>
         <input id="q" type="text" placeholder="Enter KeyWord" />
-        <div class="muted">タイトル / 説明 / タグで検索できます。サムネは簡易3D描画。</div>
+        <div class="muted">Search by title / description / tags. Thumbnails are lightweight 3D previews.</div>
       </div>
 
       <div class="field">
-        <label>Yaw補正</label>
+        <label>Yaw correction</label>
         <select id="yaw">
-          <option value="270">Yaw補正 +270°</option>
-          <option value="180">Yaw補正 +180°</option>
-          <option value="90">Yaw補正 +90°</option>
-          <option value="0">Yaw補正 なし</option>
+          <option value="270">+270°</option>
+          <option value="180">+180°</option>
+          <option value="90">+90°</option>
+          <option value="0">None</option>
         </select>
-        <div class="muted">カードクリックで詳細へ（/unit.html?id=数字 or UUID）</div>
+        <div class="muted">Click a card for details (/unit.html?id=number or UUID)</div>
       </div>
     </div>
 
     <div class="field">
-      <label>並び替え</label>
+      <label>Sort</label>
       <select id="sort">
-        <option value="new">新着順</option>
-        <option value="dl">DL多い順</option>
-        <option value="name">名前順</option>
+        <option value="new">Newest</option>
+        <option value="dl">Most downloads</option>
+        <option value="name">Name</option>
       </select>
     </div>
 
@@ -435,17 +441,40 @@
 
         <label id="mineWrap" class="chip" style="display:none;">
           <input id="mineOnly" type="checkbox" />
-          <span>自分の投稿のみ</span>
+          <span>My submissions only</span>
         </label>
       </div>
 
       <div class="right">
-        <a id="authActionLink" href="/api/whoami">ログイン</a>
-        <a id="postLink" class="primary" href="/submit.html">投稿</a>
+        <a id="authActionLink" href="/api/whoami">Log in</a>
+        <a id="postLink" class="primary" href="/submit.html">Submit</a>
       </div>
     </div>
   </div>
   <section style="width:100%; margin-top:12px; background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:14px; box-shadow: 0 10px 25px rgba(15,23,42,.08);">
+    <h2 style="margin:0 0 8px; font-size:14px;">About MobCrafter (Quick Overview)</h2>
+    <div style="color:#334155; font-size:12px; line-height:1.7;">
+      <p style="margin:0 0 8px;">
+        MobCrafter is a Minecraft Forge mod that lets you turn block-built creations into a single controllable unit.
+        Build with normal blocks, capture the structure as unit data, then summon it in your world for testing and experimentation.
+      </p>
+      <p style="margin:0 0 8px;">
+        Basic flow:
+      </p>
+      <ol style="margin:0 0 8px; padding-left:18px;">
+        <li>Build a structure with blocks.</li>
+        <li>Attach a Bone Block as the core/pivot.</li>
+        <li>Use the Capture Tool on the Bone Block to save the structure as a unit.</li>
+        <li>Summon the unit in-game.</li>
+      </ol>
+      <p style="margin:0 0 8px;">
+        Unit JSON files are loaded from <code>config/mob_crafter/units/</code>. In multiplayer, server-side JSON is used and synced to clients.
+      </p>
+      <p style="margin:0;">
+        Note: Units shown in mod screenshots are personal examples and are not bundled with the mod. This portal shares community unit JSON files.
+      </p>
+    </div>
+
     <h2 style="margin:0 0 8px; font-size:14px;">How to use</h2>
     <ol style="margin:0; padding-left:18px; color:#334155; font-size:12px; line-height:1.7;">
       <li>Download a unit JSON from this portal.</li>
@@ -462,15 +491,6 @@
   </section>
 
   <section id="grid" class="grid"></section>
-    <!-- Ad (only activated when JS loads adsense) -->
-  <div id="ad-wrap" style="width:100%; display:none; margin-top:14px;">
-    <ins class="adsbygoogle"
-         style="display:block"
-         data-ad-client="ca-pub-1227105355658053"
-         data-ad-slot="YOUR_SLOT_ID"
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
-  </div>
   <div id="pager" class="pager" style="display:none;"></div>
 
   <footer>© 2025 MobCrafter Portal — MVP</footer>
@@ -478,21 +498,6 @@
 
 <script>
 (() => {
-  // ===== Adsense load (only when content exists) =====
-  const ADSENSE_CLIENT = "ca-pub-1227105355658053";
-  let adsLoaded = false;
-
-  function loadAdsenseOnce(){
-    if (adsLoaded) return;
-    adsLoaded = true;
-
-    const s = document.createElement("script");
-    s.async = true;
-    s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(ADSENSE_CLIENT)}`;
-    s.crossOrigin = "anonymous";
-    document.head.appendChild(s);
-  }
-
   // ====== API ======
   const API_PUBLIC_LIST = "/api/public/submissions";
   const API_MY_LIST = "/api/my/submissions?scope=all"; // ログイン必須 / 自分の承認済みのみ
@@ -544,7 +549,7 @@
 
       if(!r.ok || !data){
         authState.textContent = "unknown";
-        authActionLink.textContent = "ログイン";
+        authActionLink.textContent = "Log in";
         authActionLink.className = "";
         postLink.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
         return;
@@ -556,7 +561,7 @@
 
       if(!email){
         authState.textContent = "logged out";
-        authActionLink.textContent = "ログイン";
+        authActionLink.textContent = "Log in";
         authActionLink.className = "";
         postLink.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
         return;
@@ -573,7 +578,7 @@
       authAdminWrap.style.display = "inline";
       authAdmin.textContent = isAdmin ? "true" : "false";
 
-      authActionLink.textContent = "ログアウト";
+      authActionLink.textContent = "Log out";
       authActionLink.className = "danger";
       authActionLink.href = "/cdn-cgi/access/logout?returnTo=" + encodeURIComponent(location.origin + "/");
 
@@ -581,7 +586,7 @@
       mineWrap.style.display = "inline-flex";
     }catch{
       authState.textContent = "unknown";
-      authActionLink.textContent = "ログイン";
+      authActionLink.textContent = "Log in";
       authActionLink.className = "";
       authActionLink.href = `/api/login?next=${encodeURIComponent("/")}`;
       postLink.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
@@ -952,7 +957,7 @@
           ${statusBadge}
         </div>
         <a class="btn-dl" href="${escapeHtml(API_DL(it.id))}" download>Download</a>
-        ${canEdit ? `<a class="btn-edit" href="${escapeHtml(`/submit?edit=${encodeURIComponent(it.id)}`)}">編集</a>` : ``}
+        ${canEdit ? `<a class="btn-edit" href="${escapeHtml(`/submit?edit=${encodeURIComponent(it.id)}`)}">Edit</a>` : ``}
       </div>
 
       <div class="card-body">
@@ -1070,7 +1075,7 @@
       return b;
     };
 
-    pager.appendChild(mkBtn("前へ", page - 1, page <= 1));
+    pager.appendChild(mkBtn("Prev", page - 1, page <= 1));
 
     const addDots = () => {
       const s = document.createElement("span");
@@ -1103,7 +1108,7 @@
       prev = p;
     }
 
-    pager.appendChild(mkBtn("次へ", page + 1, page >= total_pages));
+    pager.appendChild(mkBtn("Next", page + 1, page >= total_pages));
   }
 
   // ===== fetch list =====
@@ -1214,20 +1219,8 @@
 
       renderGrid(items);
       renderPager(meta);
-
-      // ✅ only load ads when there is actual content
-      if (!useMine && items.length > 0) {
-        loadAdsenseOnce();
-
-        // show + request ad only when there is content
-        const adWrap = document.getElementById("ad-wrap");
-        if (adWrap) {
-          adWrap.style.display = "block";
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
-        }
-      }
     }catch(e){
-      showError("一覧の取得に失敗しました。\n" + String(e.message || e));
+      showError("Failed to load the list.\n" + String(e.message || e));
     }
   }
 

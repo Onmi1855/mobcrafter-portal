@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -290,14 +290,17 @@
 <body>
 <header>
   <div>
+  <!-- Ads (default OFF): enable via /assets/ads-config.v1.js after approval -->
+  <script src="/assets/ads-config.v1.js" defer></script>
+  <script src="/assets/ads.v1.js" defer></script>
     <h1>Captured Unit</h1>
-    <div class="sub" id="subtitle">読み込み中…</div>
+    <div class="sub" id="subtitle">Loading…</div>
   </div>
 
   <div class="topright">
     <span class="chip" id="adminChip" style="display:none;">admin</span>
     <span class="chip" id="emailChip" style="display:none;">as <code id="meEmail"></code></span>
-    <a class="btn" id="loginBtn" href="/api/login?next=%2F">ログイン</a>
+    <a class="btn" id="loginBtn" href="/api/login?next=%2F">Log in</a>
   </div>
 </header>
 
@@ -321,9 +324,9 @@
 
         <div class="actions" id="actions">
           <a class="btn primary" id="dlBtn" href="#" style="display:none;">Download</a>
-          <a class="btn" id="editBtn" href="#" style="display:none;">編集（投稿者のみ）</a>
-          <a class="btn" id="submitBtn" href="#" style="display:none;">投稿ページで再送（編集）</a>
-          <span class="mutedNote" id="ownerHint" style="display:none;">※ 編集／再送は submit 画面で行います</span>
+          <a class="btn" id="editBtn" href="#" style="display:none;">Edit (owner only)</a>
+          <a class="btn" id="submitBtn" href="#" style="display:none;">Open submit page (edit)</a>
+          <span class="mutedNote" id="ownerHint" style="display:none;">Note: editing/resubmitting is done on the submit page</span>
         </div>
       </div>
     </div>
@@ -331,19 +334,19 @@
     <div class="viewerRow">
       <div class="panel">
         <div class="panelHead">
-          <span>3D（submit同等の簡易3D）</span>
+          <span>3D (lightweight preview)</span>
           <div class="controls">
-            <span style="color:var(--muted);font-size:12px;">Yaw補正:</span>
+            <span style="color:var(--muted);font-size:12px;">Yaw correction:</span>
             <select id="yawFix">
               <option value="0">0°</option>
               <option value="90">+90°</option>
               <option value="180">+180°</option>
               <option value="270" selected>+270°</option>
             </select>
-            <button id="yawLeft" title="左へ90°">↺</button>
-            <button id="yawRight" title="右へ90°">↻</button>
-            <button id="yawFront" title="frontYawを正面にする">正面</button>
-            <button id="yawReset" title="補正を既定へ">Reset</button>
+            <button id="yawLeft" title="Rotate left 90°">↺</button>
+            <button id="yawRight" title="Rotate right 90°">↻</button>
+            <button id="yawFront" title="Align to frontYaw">Front</button>
+            <button id="yawReset" title="Reset correction">Reset</button>
           </div>
         </div>
         <div class="panelBody">
@@ -351,40 +354,43 @@
             <canvas id="unitCanvas" width="900" height="520"></canvas>
           </div>
           <div class="mutedNote" style="margin-top:8px;">
-            ※ まず frontYaw（JSON内）を正面扱いし、Yaw補正で見た目を合わせます（0/90/180/270想定）。
+            Tip: frontYaw (from JSON) is treated as the front. Use yaw correction to match the appearance (0/90/180/270).
           </div>
         </div>
       </div>
 
       <div class="panel">
         <div class="panelHead">
-          <span>スクリーンショット</span>
-          <span class="mutedNote">件数: <span id="shotCount">0</span></span>
+          <span>Screenshots</span>
+          <span class="mutedNote">Count: <span id="shotCount">0</span></span>
         </div>
         <div class="panelBody">
           <div class="screensGrid" id="screens"></div>
-          <div class="mutedNote" id="screensHint">読み込み中…</div>
+          <div class="mutedNote" id="screensHint">Loading…</div>
         </div>
       </div>
     </div>
 
     <details id="jsonDetails" style="display:none;">
       <summary>
-        <span>Unit JSON（必要なときだけ）</span>
+        <span>Unit JSON (only when needed)</span>
         <span class="mutedNote" id="jsonMeta"></span>
       </summary>
       <div class="jsonBox">
         <div class="actions" style="margin-top:0; margin-bottom:10px;">
-          <a class="btn" id="jsonOpen" href="#" target="_blank" rel="noopener">JSONを別タブで開く</a>
-          <button class="btn" id="jsonCopy" type="button">JSONをコピー</button>
+          <a class="btn" id="jsonOpen" href="#" target="_blank" rel="noopener">Open JSON in new tab</a>
+          <button class="btn" id="jsonCopy" type="button">Copy JSON</button>
         </div>
         <pre id="jsonPre"></pre>
       </div>
     </details>
 
-    <a class="back" href="/">← 一覧に戻る</a>
+    <a class="back" href="/">← Back to list</a>
   </section>
 </main>
+
+    <!-- Ad slot (unit_legacy_top) - renders only when ads are enabled -->
+    <div data-ad-slot-key="unit_legacy_top"></div>
 
 <script>
 (() => {
@@ -511,7 +517,7 @@
         ME_IS_ADMIN = false;
         adminChip.style.display = "none";
         emailChip.style.display = "none";
-        loginBtn.textContent = "ログイン";
+        loginBtn.textContent = "Log in";
         loginBtn.className = "btn";
         loginBtn.href = "/api/login?next=" + encodeURIComponent(location.pathname + location.search);
         return;
@@ -525,8 +531,8 @@
 
       adminChip.style.display = isAdmin ? "inline-flex" : "none";
 
-      // ログアウト（Cloudflare Access）
-      loginBtn.textContent = "ログアウト";
+      // Log out (Cloudflare Access)
+      loginBtn.textContent = "Log out";
       loginBtn.className = "btn danger";
       loginBtn.href = "/cdn-cgi/access/logout?returnTo=" + encodeURIComponent(location.origin + "/");
     }catch{
@@ -534,7 +540,7 @@
       ME_IS_ADMIN = false;
       adminChip.style.display = "none";
       emailChip.style.display = "none";
-      loginBtn.textContent = "ログイン";
+      loginBtn.textContent = "Log in";
       loginBtn.className = "btn";
       loginBtn.href = "/api/login?next=" + encodeURIComponent(location.pathname + location.search);
     }
@@ -771,7 +777,7 @@
   const queryNo = qs("no"); // optional
   qIdEl.textContent = queryId || "(missing)";
   qNoEl.textContent = queryNo || "(empty)";
-  subtitle.textContent = queryId ? `id=${queryId}` : "id が指定されていません";
+  subtitle.textContent = queryId ? `id=${queryId}` : "Missing id";
 
   let UNIT_JSON = null;
   let FRONT_YAW = null; // JSON frontYaw（例:-90）
@@ -859,8 +865,8 @@
     const b = await fetchJson(API_JSON_PUBLIC(id), { cache:"no-store" });
     if(b.ok && b.data) return { src:"public", json:b.data };
 
-    // どっちも失敗
-    throw new Error(`JSONの取得に失敗しました (private:${a.status} / public:${b.status})`);
+    // both failed
+    throw new Error(`Failed to fetch JSON (private:${a.status} / public:${b.status})`);
   }
 
   async function loadMetaSmart(id){
@@ -912,7 +918,7 @@
     shotCountEl.textContent = String(ids.length || 0);
 
     if(!ids || ids.length === 0){
-      screensHint.textContent = "スクリーンショットはありません（または取得できませんでした）";
+      screensHint.textContent = "No screenshots (or failed to load).";
       return;
     }
     screensHint.textContent = "";
@@ -937,7 +943,7 @@
 
       const cap = document.createElement("div");
       cap.className = "cap";
-      cap.innerHTML = `<span>screen: ${sid}</span><a class="btn" style="padding:6px 10px;font-size:12px;" href="${pub}" target="_blank" rel="noopener">開く</a>`;
+      cap.innerHTML = `<span>screen: ${sid}</span><a class="btn" style="padding:6px 10px;font-size:12px;" href="${pub}" target="_blank" rel="noopener">Open</a>`;
 
       wrap.appendChild(img);
       wrap.appendChild(cap);
@@ -962,10 +968,10 @@
     jsonCopy.onclick = async () => {
       try{
         await navigator.clipboard.writeText(s);
-        jsonCopy.textContent = "コピーしました";
-        setTimeout(()=> jsonCopy.textContent="JSONをコピー", 1200);
+        jsonCopy.textContent = "Copied";
+        setTimeout(()=> jsonCopy.textContent="Copy JSON", 1200);
       }catch{
-        alert("コピーに失敗しました（ブラウザの権限をご確認ください）");
+        alert("Copy failed (check browser permissions)");
       }
     };
   }
@@ -994,7 +1000,7 @@
       render3D();
       return;
     }
-    showWarn("frontYaw が JSON から取得できませんでした。Yaw補正と↺/↻で合わせてください。");
+    showWarn("frontYaw could not be read from JSON. Please adjust using yaw correction and ↺/↻.");
   };
 
   yawFix.onchange = () => render3D();
@@ -1004,7 +1010,7 @@
   // =========================
   async function main(){
     if(!queryId){
-      showWarn("id が指定されていません。例： /unit.html?id=123  または  /unit.html?id=<uuid>");
+      showWarn("Missing id. Example: /unit.html?id=123 or /unit.html?id=<uuid>");
       return;
     }
 
@@ -1020,11 +1026,11 @@
     }else{
       // metaが取れないケース：ここで “想定される原因” を出しつつ、JSON復旧へ進む
       const hint = [
-        "メタ情報の取得に失敗しました（JSON/Screens から表示を継続します）",
+        "Failed to fetch metadata (continuing with JSON/Screens where possible)",
         "",
-        "想定:",
-        "- /api/submissions/:id が not_found でも /api/submissions/:id/json は取得できるケース",
-        "- UUID はログイン前提の private でのみ取得できる構成",
+        "Possible reasons:",
+        "- /api/submissions/:id may be not_found while /api/submissions/:id/json still works",
+        "- UUID may be available only via private endpoints (requires login)",
         "",
         `入力: id=${queryId} / no=${queryNo || "(empty)"}`
       ].join("\n");
@@ -1054,7 +1060,7 @@
       // 3D描画
       render3D();
     }catch(e){
-      showWarn((warnEl.textContent ? (warnEl.textContent + "\n\n") : "") + "JSONの取得に失敗しました。\n" + String(e.message || e));
+      showWarn((warnEl.textContent ? (warnEl.textContent + "\n\n") : "") + "Failed to fetch JSON.\n" + String(e.message || e));
     }
 
     // Screens：metaが取れた時は meta を渡して補助する

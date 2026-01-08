@@ -1,8 +1,9 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="noindex" />
   <title>MobCrafter Admin - Submissions</title>
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 24px; background:#f6f8fb; color:#0f172a; }
@@ -135,10 +136,10 @@
   <div class="card">
     <div class="row left" style="align-items:flex-end;">
       <div style="flex:1 1 auto;">
-        <h1>MobCrafter 管理画面</h1>
+        <h1>MobCrafter Admin</h1>
         <div class="muted">
-          ※ 管理者のみ。APIは <code>/api/admin/*</code> を叩きます（同一オリジン）。<br>
-          ※ Cloudflare Access（Google OAuth）で <code>mobcrafter.net/api/admin*</code> を保護している前提です。
+          Admin only. This page calls <code>/api/admin/*</code> (same origin).<br>
+          Assumes Cloudflare Access (Google OAuth) protects <code>mobcrafter.net/api/admin*</code>.
         </div>
 
         <div class="authbar" id="authbar">
@@ -149,7 +150,7 @@
             <span id="authAdminWrap" style="display:none;">Admin: <code id="authAdmin"></code></span>
           </div>
           <div class="authright">
-            <a id="authActionLink" href="/api/login?next=%2Fadmin">ログイン</a>
+            <a id="authActionLink" href="/api/login?next=%2Fadmin">Log in</a>
           </div>
         </div>
       </div>
@@ -159,76 +160,76 @@
   <div class="card">
     <div class="row left">
       <label>
-        表示ステータス：
+        Status:
         <select id="status">
-          <option value="pending" selected>pending（未承認）</option>
-          <option value="approved">approved（承認済）</option>
-          <option value="rejected">rejected（却下）</option>
+          <option value="pending" selected>pending</option>
+          <option value="approved">approved</option>
+          <option value="rejected">rejected</option>
         </select>
       </label>
 
       <label>
         <input id="includeDeleted" type="checkbox" />
-        削除済みも含める
+        Include deleted
       </label>
 
-      <button id="reload" class="primary">再読み込み</button>
+      <button id="reload" class="primary">Reload</button>
 
       <label>
-        検索（サーバー）：<input id="q" type="text" placeholder="例: ff7 / Sephiroth" />
+        Search (server): <input id="q" type="text" placeholder="e.g. ff7 / Sephiroth" />
       </label>
 
-      <span class="pill" id="count">0件</span>
+      <span class="pill" id="count">0</span>
     </div>
     <div class="mini" style="margin-top:8px;">
-      ※ 検索は Worker の <code>?query=</code> を使用（大量でも軽い）。削除済み表示は <code>?include_deleted=1</code>。
+      Search uses Worker <code>?query=</code>. To include deleted, use <code>?include_deleted=1</code>.
     </div>
   </div>
 
   <div class="card">
-    <div class="muted">ログ</div>
+    <div class="muted">Log</div>
     <pre id="log">ready</pre>
   </div>
 
   <div class="card">
-    <div class="muted">一覧（スクショ + 3D）</div>
+    <div class="muted">List (Screenshot + 3D)</div>
     <div id="list"></div>
   </div>
 </div>
 
-<!-- 編集ダイアログ -->
+<!-- Edit dialog -->
 <dialog id="dlgEdit">
   <div class="dlghead">
-    <div class="dlgtitle">編集</div>
-    <button id="dlgClose">閉じる</button>
+    <div class="dlgtitle">Edit</div>
+    <button id="dlgClose">Close</button>
   </div>
   <div class="mini" id="dlgInfo" style="margin:6px 0 10px;"></div>
 
   <div class="grid2">
     <div>
-      <div class="mini">タイトル（最大80）</div>
+      <div class="mini">Title (max 80)</div>
       <input id="editTitle" type="text" />
     </div>
     <div>
-      <div class="mini">タグ（空白/カンマ区切り）</div>
+      <div class="mini">Tags (space/comma separated)</div>
       <input id="editTags" type="text" />
     </div>
   </div>
 
   <div style="margin-top:10px;">
-    <div class="mini">説明（最大2000）</div>
+    <div class="mini">Description (max 2000)</div>
     <input id="editDesc" type="text" />
   </div>
 
   <div style="margin-top:12px;">
-    <div class="mini">JSON差し替え（貼り付け）</div>
-    <textarea id="editJson" placeholder='{"blocks":[...]} だけでもOK'></textarea>
-    <div class="mini">※ unitId/id はサーバー側で固定に上書きされます。</div>
+    <div class="mini">Replace JSON (paste)</div>
+    <textarea id="editJson" placeholder='{"blocks":[...]} is enough'></textarea>
+    <div class="mini">* unitId/id are overwritten server-side.</div>
   </div>
 
   <div class="row left" style="margin-top:12px;">
-    <button id="btnSaveMeta" class="primary">メタ保存</button>
-    <button id="btnSaveJson" class="primary">JSON保存</button>
+    <button id="btnSaveMeta" class="primary">Save meta</button>
+    <button id="btnSaveJson" class="primary">Save JSON</button>
     <span class="pill" id="dlgStatus">-</span>
   </div>
 </dialog>
@@ -253,7 +254,7 @@
       authState.textContent = "checking...";
       authEmailWrap.style.display = "none";
       authAdminWrap.style.display = "none";
-      authActionLink.textContent = "ログイン";
+      authActionLink.textContent = "Log in";
       authActionLink.className = "";
       authActionLink.href = "/api/login?next=" + encodeURIComponent("/admin");
 
@@ -282,14 +283,14 @@
       authAdminWrap.style.display = "inline";
       authAdmin.textContent = isAdmin ? "true" : "false";
 
-      authActionLink.textContent = "ログアウト";
+      authActionLink.textContent = "Log out";
       authActionLink.className = "danger";
       authActionLink.href = "/cdn-cgi/access/logout?returnTo=" + encodeURIComponent(location.origin + "/admin");
 
       return { email, isAdmin };
     }catch{
       authState.textContent = "unknown";
-      authActionLink.textContent = "ログイン";
+      authActionLink.textContent = "Log in";
       authActionLink.className = "";
       authActionLink.href = "/api/login?next=" + encodeURIComponent("/admin");
       return null;
@@ -673,7 +674,7 @@
         img.style.display = "none";
         const wrap = img.closest(".thumbwrap");
         if(wrap){
-          wrap.innerHTML = `<div class="muted" style="font-size:12px; padding:10px;">スクショ取得失敗</div>`;
+            wrap.innerHTML = `<div class="muted" style="font-size:12px; padding:10px;">Failed to load screenshot</div>`;
         }
       }, { once:true });
     }
@@ -681,10 +682,10 @@
   // =========================================================
 
   function render() {
-    $count.textContent = `${items.length}件`;
+    $count.textContent = `${items.length} items`;
 
     if (items.length === 0) {
-      $list.innerHTML = `<div class="muted">該当なし</div>`;
+      $list.innerHTML = `<div class="muted">No results</div>`;
       return;
     }
 
@@ -695,9 +696,9 @@
       <table>
         <thead>
           <tr>
-            <th style="width: 190px;">作成日時</th>
-            <th>内容</th>
-            <th style="width: 320px;">操作</th>
+            <th style="width: 190px;">Created</th>
+            <th>Content</th>
+            <th style="width: 320px;">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -714,9 +715,9 @@
 
             const tagHtml = tags.length
               ? `<div class="tags">${tags.slice(0, 14).map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>`
-              : `<span class="muted">タグなし</span>`;
+              : `<span class="muted">No tags</span>`;
 
-            const detailLink = no ? `<a class="btnlink" href="/u/${encodeURIComponent(no)}" target="_blank">公開詳細</a>` : "";
+            const detailLink = no ? `<a class="btnlink" href="/u/${encodeURIComponent(no)}" target="_blank">Public detail</a>` : "";
             const delPill = deleted ? `<span class="pill red">deleted</span>` : "";
 
             const thumbMode = String(it.thumb_mode || "").toLowerCase();
@@ -738,7 +739,7 @@
               : `<div class="thumbCol">
                    <div class="thumbLabel">Screenshot</div>
                    <div class="thumbwrap">
-                     <div class="muted" style="font-size:12px; padding:10px;">スクショなし</div>
+                     <div class="muted" style="font-size:12px; padding:10px;">No screenshot</div>
                    </div>
                  </div>`;
 
@@ -768,7 +769,7 @@
                       <div style="font-weight:800; font-size:15px;">${title || "(no title)"}</div>
                       <div class="muted">author: ${author || "-"}</div>
                       ${mv ? `<div class="muted">mod_version: ${mv}</div>` : ""}
-                      ${desc ? `<div style="margin-top:8px;">${desc}</div>` : `<div class="muted" style="margin-top:8px;">説明なし</div>`}
+                      ${desc ? `<div style="margin-top:8px;">${desc}</div>` : `<div class="muted" style="margin-top:8px;">No description</div>`}
                       <div style="margin-top:10px;">${tagHtml}</div>
                     </div>
                   </div>
@@ -776,14 +777,14 @@
                 <td>
                   <div class="row left" style="gap:8px;">
                     ${detailLink}
-                    <button data-act="edit" data-id="${id}">編集</button>
-                    <button class="primary" data-act="approve" data-id="${id}" ${(!canModerate || deleted) ? "disabled" : ""}>承認</button>
-                    <button class="danger"  data-act="reject"  data-id="${id}" ${(!canModerate || deleted) ? "disabled" : ""}>却下</button>
-                    <button class="danger"  data-act="delete"  data-id="${id}" ${deleted ? "disabled" : ""}>削除</button>
-                    <button class="primary" data-act="restore" data-id="${id}" ${deleted ? "" : "disabled"}>復元</button>
+                    <button data-act="edit" data-id="${id}">Edit</button>
+                    <button class="primary" data-act="approve" data-id="${id}" ${(!canModerate || deleted) ? "disabled" : ""}>Approve</button>
+                    <button class="danger"  data-act="reject"  data-id="${id}" ${(!canModerate || deleted) ? "disabled" : ""}>Reject</button>
+                    <button class="danger"  data-act="delete"  data-id="${id}" ${deleted ? "disabled" : ""}>Delete</button>
+                    <button class="primary" data-act="restore" data-id="${id}" ${deleted ? "" : "disabled"}>Restore</button>
                   </div>
                   <div class="muted" style="margin-top:8px;">
-                    ※ 削除は論理削除。復元ボタンで戻せます。
+                    Delete is a soft delete. Use Restore to bring it back.
                   </div>
                 </td>
               </tr>
@@ -806,10 +807,10 @@
     } catch (e) {
       log({
         ok: false,
-        hint: "401の場合：Cloudflare Access の保護範囲（mobcrafter.net/api/admin*）と、管理者Allowポリシーを確認してください。",
+        hint: "If 401: check Cloudflare Access protection scope (mobcrafter.net/api/admin*) and admin allow policy.",
         error: e
       });
-      document.getElementById("list").innerHTML = `<div class="muted">読み込み失敗（ログ参照）</div>`;
+      document.getElementById("list").innerHTML = `<div class="muted">Load failed (see log)</div>`;
     }
   }
 
@@ -825,28 +826,28 @@
   }
 
   async function doApprove(id) {
-    const ok = confirm(`承認します。\nID: ${id}\nよろしいですか？`);
+    const ok = confirm(`Approve this submission?\nID: ${id}`);
     if (!ok) return;
     log(`approve... ${id}`);
     await api(`submissions/${encodeURIComponent(id)}/approve`, "POST", {});
   }
 
   async function doReject(id) {
-    const ok = confirm(`却下します。\nID: ${id}\nよろしいですか？`);
+    const ok = confirm(`Reject this submission?\nID: ${id}`);
     if (!ok) return;
     log(`reject... ${id}`);
     await api(`submissions/${encodeURIComponent(id)}/reject`, "POST", {});
   }
 
   async function doDelete(id) {
-    const ok = confirm(`削除（論理削除）します。\nID: ${id}\nよろしいですか？`);
+    const ok = confirm(`Soft delete this submission?\nID: ${id}`);
     if (!ok) return;
     log(`delete... ${id}`);
     await api(`submissions/${encodeURIComponent(id)}`, "DELETE");
   }
 
   async function doRestore(id) {
-    const ok = confirm(`復元します。\nID: ${id}\nよろしいですか？`);
+    const ok = confirm(`Restore this submission?\nID: ${id}`);
     if (!ok) return;
     log(`restore... ${id}`);
     await api(`submissions/${encodeURIComponent(id)}/restore`, "POST", {});
@@ -887,7 +888,7 @@
   $btnSaveMeta.addEventListener("click", async () => {
     if (!currentEdit) return;
     const id = currentEdit.id;
-    const ok = confirm(`メタ情報を保存します。\nID: ${id}\nよろしいですか？`);
+    const ok = confirm(`Save metadata?\nID: ${id}\nContinue?`);
     if (!ok) return;
 
     $btnSaveMeta.disabled = true;
@@ -918,10 +919,10 @@
     try {
       obj = JSON.parse($editJson.value || "");
     } catch {
-      alert("JSONが壊れています（貼り付け内容を確認）");
+      alert("Invalid JSON (check the pasted content)");
       return;
     }
-    const ok = confirm(`JSONを差し替えます。\nID: ${id}\nよろしいですか？`);
+    const ok = confirm(`Replace JSON?\nID: ${id}\nContinue?`);
     if (!ok) return;
 
     $btnSaveJson.disabled = true;
