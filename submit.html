@@ -161,6 +161,10 @@
   let jsonDirty = false;
   let lastSubmissionId = "";
 
+  // Always return to the exact current page after Access login.
+  // This keeps compatibility with both /submit and /submit.html and preserves query params.
+  $loginLink.href = "/api/login?next=" + encodeURIComponent(location.pathname + location.search);
+
   // --- Edit mode (B案) ---
   const params = new URLSearchParams(location.search);
   const editId = params.get("edit"); // submission UUID
