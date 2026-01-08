@@ -247,7 +247,7 @@
       return "";
     }
   })();
-  const api = (path) => (API_ORIGIN ? (API_ORIGIN + path) : path);
+  const apiUrl = (path) => (API_ORIGIN ? (API_ORIGIN + path) : path);
 
   const RETURN_PATH = location.pathname + location.search;
 
@@ -273,7 +273,7 @@
       authActionLink.className = "";
       authActionLink.href = "/api/login?next=" + encodeURIComponent(RETURN_PATH);
 
-      const r = await fetch(api("/api/whoami"), { cache:"no-store", credentials:"include" });
+      const r = await fetch(apiUrl("/api/whoami"), { cache:"no-store", credentials:"include" });
       const text = await r.text();
       let data = null;
       try { data = JSON.parse(text); } catch { data = null; }
@@ -315,7 +315,7 @@
   // ★ Access セッション確立（admin叩く前に whoami を踏む）
   async function warmupAccessSession(){
     try{
-      const r = await fetch(api("/api/whoami"), {
+      const r = await fetch(apiUrl("/api/whoami"), {
         cache: "no-store",
         credentials: "include",
         redirect: "manual",
@@ -338,11 +338,13 @@
     }
   }
 
-  const API_BASE = api("/api/admin");
+  // NOTE: `api(...)` is a request helper defined later; avoid name collision.
+  // `apiUrl(...)` is only for applying the optional ?api= origin override.
+  const API_BASE = apiUrl("/api/admin");
 
   // 画像/JSON取得（adminは private を使う）
-  const API_PRIVATE_SCREEN = (screenId) => api(`/api/screens/${encodeURIComponent(screenId)}`);
-  const API_OWNER_JSON = (id) => api(`/api/submissions/${encodeURIComponent(id)}/json`);
+  const API_PRIVATE_SCREEN = (screenId) => apiUrl(`/api/screens/${encodeURIComponent(screenId)}`);
+  const API_OWNER_JSON = (id) => apiUrl(`/api/submissions/${encodeURIComponent(id)}/json`);
 
   const $status = document.getElementById("status");
   const $reload = document.getElementById("reload");
