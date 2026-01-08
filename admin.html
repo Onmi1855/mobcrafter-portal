@@ -150,7 +150,7 @@
             <span id="authAdminWrap" style="display:none;">Admin: <code id="authAdmin"></code></span>
           </div>
           <div class="authright">
-            <a id="authActionLink" href="/api/login?next=%2Fadmin">Log in</a>
+            <a id="authActionLink" href="/api/login?next=%2Fadmin.html">Log in</a>
           </div>
         </div>
       </div>
@@ -269,7 +269,7 @@
       authAdminWrap.style.display = "none";
       authActionLink.textContent = "Log in";
       authActionLink.className = "";
-      authActionLink.href = "/api/login?next=" + encodeURIComponent("/admin");
+      authActionLink.href = "/api/login?next=" + encodeURIComponent("/admin.html");
 
       const r = await fetch(api("/api/whoami"), { cache:"no-store", credentials:"include" });
       const text = await r.text();
@@ -298,14 +298,14 @@
 
       authActionLink.textContent = "Log out";
       authActionLink.className = "danger";
-      authActionLink.href = "/cdn-cgi/access/logout?returnTo=" + encodeURIComponent(location.origin + "/admin");
+      authActionLink.href = "/cdn-cgi/access/logout?returnTo=" + encodeURIComponent(location.origin + "/admin.html");
 
       return { email, isAdmin };
     }catch{
       authState.textContent = "unknown";
       authActionLink.textContent = "Log in";
       authActionLink.className = "";
-      authActionLink.href = "/api/login?next=" + encodeURIComponent("/admin");
+      authActionLink.href = "/api/login?next=" + encodeURIComponent("/admin.html");
       return null;
     }
   }
@@ -320,18 +320,18 @@
       });
 
       if (r.type === "opaqueredirect" || r.status === 0) {
-        location.href = "/api/login?next=" + encodeURIComponent("/admin");
+        location.href = "/api/login?next=" + encodeURIComponent("/admin.html");
         return false;
       }
 
       const data = await r.json().catch(()=>null);
       if (!data || !data.email) {
-        location.href = "/api/login?next=" + encodeURIComponent("/admin");
+        location.href = "/api/login?next=" + encodeURIComponent("/admin.html");
         return false;
       }
       return true;
     }catch(e){
-      location.href = "/api/login?next=" + encodeURIComponent("/admin");
+      location.href = "/api/login?next=" + encodeURIComponent("/admin.html");
       return false;
     }
   }
