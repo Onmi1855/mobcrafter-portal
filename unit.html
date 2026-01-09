@@ -919,15 +919,21 @@
   }
 
   async function fetchJson(url, opt){
-    const r = await fetch(url, opt);
-    const txt = await r.text();
-    let data = null;
-    let parsed = false;
-    try{ data = JSON.parse(txt); parsed = true; }catch{ data = null; parsed = false; }
-    if(!parsed && r.ok){
-      data = { ok:false, error:"non_json_response" };
+    try{
+      const r = await fetch(url, opt);
+      const txt = await r.text();
+      let data = null;
+      let parsed = false;
+      try{ data = JSON.parse(txt); parsed = true; }catch{ data = null; parsed = false; }
+      if(!parsed && r.ok){
+        data = { ok:false, error:"non_json_response" };
+      }
+      return { ok:(r.ok && parsed), status:r.status, text:txt, data, url };
+    }catch(e){
+      // Often happens when an Access-protected endpoint redirects cross-origin (CORS) in logged-out/incognito.
+      const msg = String((e && (e.message || e)) || "");
+      return { ok:false, status:0, text:"", data:{ ok:false, error:"network_error", message:msg }, url };
     }
-    return { ok:(r.ok && parsed), status:r.status, text:txt, data };
   }
 
   // =========================
@@ -1295,26 +1301,42 @@
   }
 
   async function loadUnitJsonSmart(id){
-    // private → public の順で JSON を取りに行く
-    const a = await fetchJson(API_JSON_PRIVATE(id), { cache:"no-store", credentials:"include" });
-    if(a.ok && a.data) return { src:"private", json:a.data };
+    // If logged out, do NOT try private endpoints first (they may be Access-protected and fail with CORS redirects).
+    const tryPrivateFirst = Boolean(ME_EMAIL);
+    const primary = tryPrivateFirst
+      ? await fetchJson(API_JSON_PRIVATE(id), { cache:"no-store", credentials:"include" })
+      : await fetchJson(API_JSON_PUBLIC(id), { cache:"no-store" });
 
-    const b = await fetchJson(API_JSON_PUBLIC(id), { cache:"no-store" });
-    if(b.ok && b.data) return { src:"public", json:b.data };
+    if(primary.ok && primary.data){
+      return { src: tryPrivateFirst ? "private" : "public", json: primary.data };
+    }
+
+    const secondary = tryPrivateFirst
+      ? await fetchJson(API_JSON_PUBLIC(id), { cache:"no-store" })
+      : await fetchJson(API_JSON_PRIVATE(id), { cache:"no-store", credentials:"include" });
+
+    if(secondary.ok && secondary.data){
+      return { src: tryPrivateFirst ? "public" : "private", json: secondary.data };
+    }
 
     // both failed
-    throw new Error(`Failed to fetch JSON (private:${a.status} / public:${b.status})`);
+    throw new Error(
+      `Failed to fetch JSON (primary:${primary.status}${primary.data?.error ? ":"+primary.data.error : ""} / secondary:${secondary.status}${secondary.data?.error ? ":"+secondary.data.error : ""})`
+    );
   }
 
   async function loadMetaSmart(id){
-    // meta は private → public の順
-    const a = await fetchJson(API_SUB_META_PRIVATE(id), { cache:"no-store", credentials:"include" });
-    if(a.ok && a.data) return { src:"private", meta:a.data };
+    // If logged out, skip private meta endpoint to avoid Access redirect/CORS failures.
+    if(ME_EMAIL){
+      const a = await fetchJson(API_SUB_META_PRIVATE(id), { cache:"no-store", credentials:"include" });
+      if(a.ok && a.data) return { src:"private", meta:a.data };
+    }
 
     const b = await fetchJson(API_SUB_META_PUBLIC(id), { cache:"no-store" });
     if(b.ok && b.data) return { src:"public", meta:b.data };
 
-    return { src:"none", meta:null, a, b };
+    // Optional: try private last if logged-in only (already done above)
+    return { src:"none", meta:null, b };
   }
 
   async function loadScreensSmart(id, meta){
@@ -1328,14 +1350,16 @@
       return { ids, src:"meta" };
     }
 
-    // endpoint を叩く（private→public）
-    const a = await fetchJson(API_SCREENS_PRIVATE(id), { cache:"no-store", credentials:"include" });
-    if(a.ok && a.data){
-      const arr = Array.isArray(a.data.items) ? a.data.items
-               : Array.isArray(a.data.screens) ? a.data.screens
-               : Array.isArray(a.data) ? a.data : [];
-      const ids2 = arr.map(x => String(x.id || x.screen_id || x.screenId || x)).filter(Boolean);
-      return { ids: ids2, src:"private" };
+    // endpoint を叩く（ログアウト時は public のみ）
+    if(ME_EMAIL){
+      const a = await fetchJson(API_SCREENS_PRIVATE(id), { cache:"no-store", credentials:"include" });
+      if(a.ok && a.data){
+        const arr = Array.isArray(a.data.items) ? a.data.items
+                 : Array.isArray(a.data.screens) ? a.data.screens
+                 : Array.isArray(a.data) ? a.data : [];
+        const ids2 = arr.map(x => String(x.id || x.screen_id || x.screenId || x)).filter(Boolean);
+        return { ids: ids2, src:"private" };
+      }
     }
 
     const b = await fetchJson(API_SCREENS_PUBLIC(id), { cache:"no-store" });
