@@ -556,6 +556,21 @@
 
   const warnEl = document.getElementById("warn");
 
+  // Show unexpected runtime errors on the page (helps debugging in secret-mode/prod where console isn't shared).
+  const reportFatal = (label, err) => {
+    try{
+      const msg = String((err && (err.stack || err.message)) || err || "");
+      warnEl.style.display = "block";
+      warnEl.textContent = `[${label}] ${msg}`;
+    }catch{}
+  };
+  window.addEventListener("error", (e) => {
+    reportFatal("error", e && (e.error || e.message));
+  });
+  window.addEventListener("unhandledrejection", (e) => {
+    reportFatal("unhandledrejection", e && e.reason);
+  });
+
   const dlBtn = document.getElementById("dlBtn");
   const editBtn = document.getElementById("editBtn");
   const submitBtn = document.getElementById("submitBtn");
