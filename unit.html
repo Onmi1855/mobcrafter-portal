@@ -606,6 +606,7 @@
   // comments (MVP)
   // =========================
   const COMMENTS_API = api("/api/comments");
+  const COMMENTS_API_PUBLIC = api("/api/public/comments");
   const commentsStateEl = document.getElementById("commentsState");
   const commentsLoginHintEl = document.getElementById("commentsLoginHint");
   const commentFormEl = document.getElementById("commentForm");
@@ -664,7 +665,8 @@
     sp.set("submission_id", submissionId);
     sp.set("page", String(page));
     sp.set("page_size", String(pageSize));
-    const url = COMMENTS_API + "?" + sp.toString();
+    const base = ME_EMAIL ? COMMENTS_API : COMMENTS_API_PUBLIC;
+    const url = base + "?" + sp.toString();
 
     const r = await fetch(url, { cache:"no-store", credentials:"include" });
     const t = await r.text();

@@ -341,6 +341,7 @@
 
   // comments
   const COMMENTS_API = api("/api/comments");
+  const COMMENTS_API_PUBLIC = api("/api/public/comments");
 
   const el = (id) => document.getElementById(id);
 
@@ -382,7 +383,8 @@
     sp.set("submission_id", submissionId);
     sp.set("page", String(page));
     sp.set("page_size", String(pageSize));
-    const url = COMMENTS_API + "?" + sp.toString();
+    const base = (window.ME_EMAIL) ? COMMENTS_API : COMMENTS_API_PUBLIC;
+    const url = base + "?" + sp.toString();
 
     const r = await fetch(url, { cache:"no-store", credentials:"include" });
     const t = await r.text();
@@ -521,7 +523,9 @@
       try{
         const rr = await commentsFetchList(submissionId, page, pageSize);
         if(!rr.ok){
-          const msg = rr.status === 401 ? "Login required." : rr.status === 403 ? "Forbidden." : "Failed to load.";
+          const base = rr.status === 401 ? "Login required." : rr.status === 403 ? "Forbidden." : "Failed to load.";
+          const err = (rr.data && rr.data.error) ? String(rr.data.error) : "";
+          const msg = err ? `${base} (${err})` : base;
           setCommentsState(msg);
           renderComments([], { canAdminDelete:false });
           setPager({ page:1, totalPages:1 });
@@ -561,7 +565,9 @@
         try{
           const rr = await commentsPost(submissionId, text);
           if(!rr.ok){
-            const msg = rr.status === 429 ? "Too fast. Please wait." : "Post failed.";
+            const base = rr.status === 429 ? "Too fast. Please wait." : rr.status === 401 ? "Login required." : rr.status === 403 ? "Forbidden." : "Post failed.";
+            const err = (rr.data && rr.data.error) ? String(rr.data.error) : "";
+            const msg = err ? `${base} (${err})` : base;
             if(commentPostMsgEl) commentPostMsgEl.textContent = msg;
             return;
           }
