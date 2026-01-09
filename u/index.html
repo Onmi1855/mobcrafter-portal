@@ -383,8 +383,8 @@
     sp.set("submission_id", submissionId);
     sp.set("page", String(page));
     sp.set("page_size", String(pageSize));
-    const base = (window.ME_EMAIL) ? COMMENTS_API : COMMENTS_API_PUBLIC;
-    const url = base + "?" + sp.toString();
+    // /u/ page shows approved-only units, so comment list can always use public endpoint.
+    const url = COMMENTS_API_PUBLIC + "?" + sp.toString();
 
     const r = await fetch(url, { cache:"no-store", credentials:"include" });
     const t = await r.text();
@@ -540,6 +540,10 @@
         setCommentsState(`${items.length} shown`);
         renderComments(items, { canAdminDelete: Boolean(canAdminDelete) });
         setPager({ page, totalPages: tp });
+      }catch(e){
+        setCommentsState("Failed to load. (network_error)");
+        renderComments([], { canAdminDelete:false });
+        setPager({ page:1, totalPages:1 });
       }finally{
         loading = false;
       }
@@ -576,6 +580,8 @@
           page = 1;
           await refresh();
           setTimeout(()=>{ if(commentPostMsgEl) commentPostMsgEl.textContent = ""; }, 1200);
+        }catch(e){
+          if(commentPostMsgEl) commentPostMsgEl.textContent = "Post failed. (network_error)";
         }finally{
           commentSendEl.disabled = false;
         }
@@ -695,6 +701,14 @@
       return;
     }
 
+    // --- whoami (used for editor + comment posting permission) ---
+    let who = { ok:true, email:null, is_admin:false };
+    try{
+      who = await apiJson(API_WHOAMI, "GET");
+    }catch{
+      who = { ok:false, email:null, is_admin:false };
+    }
+
     // comments (MVP) - use submission UUID
     try{
       initComments(String(item.id), { canPost: Boolean(who && who.email), canAdminDelete: Boolean(who && who.is_admin) });
@@ -751,14 +765,6 @@
         setMsg(`<div class="err">Copy failed.</div>`);
       }
     };
-
-    // --- editor (whoami) ---
-    let who = { ok:true, email:null, is_admin:false };
-    try{
-      who = await apiJson(API_WHOAMI, "GET");
-    }catch{
-      who = { ok:false, email:null, is_admin:false };
-    }
 
     if(who && who.email){
       el("editor").style.display = "block";
