@@ -812,7 +812,9 @@
       try{
         const rr = await commentsFetchList(submissionId, page, pageSize);
         if(!rr.ok){
-          const msg = rr.status === 401 ? "Login required." : rr.status === 403 ? "Forbidden." : "Failed to load.";
+          const base = rr.status === 401 ? "Login required." : rr.status === 403 ? "Forbidden." : "Failed to load.";
+          const err = (rr.data && rr.data.error) ? String(rr.data.error) : "";
+          const msg = err ? `${base} (${err})` : base;
           setCommentsState(msg);
           renderComments([], { canAdminDelete: false });
           setPager({ page:1, totalPages:1 });
@@ -857,7 +859,9 @@
         try{
           const rr = await commentsPost(submissionId, text);
           if(!rr.ok){
-            const msg = rr.status === 429 ? "Too fast. Please wait." : "Post failed.";
+            const base = rr.status === 429 ? "Too fast. Please wait." : rr.status === 401 ? "Login required." : rr.status === 403 ? "Forbidden." : "Post failed.";
+            const err = (rr.data && rr.data.error) ? String(rr.data.error) : "";
+            const msg = err ? `${base} (${err})` : base;
             if(commentPostMsgEl) commentPostMsgEl.textContent = msg;
             return;
           }
@@ -1166,6 +1170,9 @@
   // =========================
   const queryId = qs("id");
   const queryNo = qs("no"); // optional
+  // queryId may be either UUID or numeric submission_no.
+  // We resolve to UUID (EFFECTIVE_ID) once in main() and use it for all API calls.
+  let EFFECTIVE_ID = queryId;
   qIdEl.textContent = queryId || "(missing)";
   qNoEl.textContent = queryNo || "(empty)";
   subtitle.textContent = queryId ? `id=${queryId}` : "Missing id";
@@ -1210,7 +1217,7 @@
 
   function setMetaFromSubmission(meta){
     // ここは “取れた分だけ” でOK（環境差があるので）
-    const id = String(meta.id ?? meta.submission_id ?? meta.submissionId ?? queryId ?? "");
+    const id = String(meta.id ?? meta.submission_id ?? meta.submissionId ?? EFFECTIVE_ID ?? queryId ?? "");
     const no = meta.submission_no ?? meta.submissionNo ?? meta.no ?? null;
     const title = meta.title || meta.name || meta.displayName || "";
     const author = meta.author_name || meta.authorName || meta.author || "unknown";
@@ -1405,12 +1412,32 @@
       return;
     }
 
+    // Resolve numeric submission_no -> UUID first, so logged-out users can still load JSON/screens/comments.
+    // This uses the existing public endpoint and does not require login.
+    try{
+      const raw = String(queryId || "").trim();
+      if(!isUuidLike(raw) && /^\d+$/.test(raw)){
+        const r = await fetch(api(`/api/public/u/${encodeURIComponent(raw)}`), { cache:"no-store" });
+        if(r.ok){
+          const d = await r.json();
+          const id = String(d?.item?.id || "").trim();
+          if(isUuidLike(id)){
+            EFFECTIVE_ID = id;
+            // reflect in UI for debugging/clarity
+            qIdEl.textContent = id;
+            if(!queryNo) qNoEl.textContent = raw;
+            subtitle.textContent = `id=${id}`;
+          }
+        }
+      }
+    }catch{}
+
     hideWarn();
     await loadWhoami();
     await loadPalette();
 
     // まず meta を試す（not_foundの可能性あり）
-    const metaRes = await loadMetaSmart(queryId);
+    const metaRes = await loadMetaSmart(EFFECTIVE_ID);
 
     if(metaRes.meta){
       setMetaFromSubmission(metaRes.meta);
@@ -1423,20 +1450,20 @@
         "- /api/submissions/:id may be not_found while /api/submissions/:id/json still works",
         "- UUID may be available only via private endpoints (requires login)",
         "",
-        `入力: id=${queryId} / no=${queryNo || "(empty)"}`
+        `入力: id=${String(EFFECTIVE_ID || queryId)} / no=${queryNo || "(empty)"}`
       ].join("\n");
       showWarn(hint);
     }
 
     // JSON は最優先で取りに行く（ここが取れれば3Dは成立）
     try{
-      const { json } = await loadUnitJsonSmart(queryId);
+      const { json } = await loadUnitJsonSmart(EFFECTIVE_ID);
       UNIT_JSON = json;
       FRONT_YAW = (typeof json.frontYaw === "number") ? json.frontYaw : null;
 
       // metaが無い場合は JSON から最低限表示を復旧
       if(!metaRes.meta){
-        setMetaFallbackFromJson(queryId, json);
+        setMetaFallbackFromJson(EFFECTIVE_ID, json);
       }else{
         // subtitleに blocks/size を足す（控えめ）
         const blocks = Array.isArray(json.blocks) ? json.blocks.length : 0;
@@ -1446,7 +1473,7 @@
       }
 
       // JSONは必要時だけ表示（でも取れてるので details は出す）
-      renderJsonSection(queryId, json);
+      renderJsonSection(EFFECTIVE_ID, json);
 
       // 3D描画
       render3D();
@@ -1456,7 +1483,7 @@
 
     // Screens：metaが取れた時は meta を渡して補助する
     try{
-      const { ids } = await loadScreensSmart(queryId, metaRes.meta);
+      const { ids } = await loadScreensSmart(EFFECTIVE_ID, metaRes.meta);
       renderScreens(ids);
     }catch{
       renderScreens([]);
@@ -1464,7 +1491,7 @@
 
     // Comments (MVP)
     try{
-      const submissionIdForComments = await resolveSubmissionIdForComments(queryId, metaRes.meta);
+      const submissionIdForComments = await resolveSubmissionIdForComments(EFFECTIVE_ID, metaRes.meta);
       if(submissionIdForComments){
         initComments(submissionIdForComments);
       }else{
