@@ -389,8 +389,12 @@
     const r = await fetch(url, { cache:"no-store", credentials:"include" });
     const t = await r.text();
     let d = null;
-    try{ d = JSON.parse(t); }catch{ d = null; }
-    return { ok:r.ok, status:r.status, data:d, raw:t };
+    let parsed = false;
+    try{ d = JSON.parse(t); parsed = true; }catch{ d = null; parsed = false; }
+    if(!parsed && r.ok){
+      d = { ok:false, error:"non_json_response" };
+    }
+    return { ok:(r.ok && parsed), status:r.status, data:d, raw:t };
   }
 
   async function commentsPost(submissionId, body){
@@ -403,8 +407,12 @@
     });
     const t = await r.text();
     let d = null;
-    try{ d = JSON.parse(t); }catch{ d = null; }
-    return { ok:r.ok, status:r.status, data:d, raw:t };
+    let parsed = false;
+    try{ d = JSON.parse(t); parsed = true; }catch{ d = null; parsed = false; }
+    if(!parsed && r.ok){
+      d = { ok:false, error:"non_json_response" };
+    }
+    return { ok:(r.ok && parsed), status:r.status, data:d, raw:t };
   }
 
   async function commentsDelete(commentId){
@@ -416,8 +424,12 @@
     });
     const t = await r.text();
     let d = null;
-    try{ d = JSON.parse(t); }catch{ d = null; }
-    return { ok:r.ok, status:r.status, data:d, raw:t };
+    let parsed = false;
+    try{ d = JSON.parse(t); parsed = true; }catch{ d = null; parsed = false; }
+    if(!parsed && r.ok){
+      d = { ok:false, error:"non_json_response" };
+    }
+    return { ok:(r.ok && parsed), status:r.status, data:d, raw:t };
   }
 
   function renderComments(items, { canAdminDelete } = {}){
@@ -640,8 +652,12 @@
 
   async function fetchApprovedList(){
     const r = await fetch(API_LIST, { cache:"no-store" });
+    const t = await r.text();
+    let data = null;
+    let parsed = false;
+    try{ data = JSON.parse(t); parsed = true; }catch{ data = null; parsed = false; }
     if(!r.ok) throw new Error("list HTTP " + r.status);
-    const data = await r.json();
+    if(!parsed) throw new Error("list non_json_response");
     return Array.isArray(data.items) ? data.items : [];
   }
 

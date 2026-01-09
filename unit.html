@@ -671,8 +671,12 @@
     const r = await fetch(url, { cache:"no-store", credentials:"include" });
     const t = await r.text();
     let d = null;
-    try{ d = JSON.parse(t); }catch{ d = null; }
-    return { ok:r.ok, status:r.status, data:d, raw:t };
+    let parsed = false;
+    try{ d = JSON.parse(t); parsed = true; }catch{ d = null; parsed = false; }
+    if(!parsed && r.ok){
+      d = { ok:false, error:"non_json_response" };
+    }
+    return { ok:(r.ok && parsed), status:r.status, data:d, raw:t };
   }
 
   async function commentsPost(submissionId, body){
@@ -685,8 +689,12 @@
     });
     const t = await r.text();
     let d = null;
-    try{ d = JSON.parse(t); }catch{ d = null; }
-    return { ok:r.ok, status:r.status, data:d, raw:t };
+    let parsed = false;
+    try{ d = JSON.parse(t); parsed = true; }catch{ d = null; parsed = false; }
+    if(!parsed && r.ok){
+      d = { ok:false, error:"non_json_response" };
+    }
+    return { ok:(r.ok && parsed), status:r.status, data:d, raw:t };
   }
 
   async function commentsDelete(commentId){
@@ -698,8 +706,12 @@
     });
     const t = await r.text();
     let d = null;
-    try{ d = JSON.parse(t); }catch{ d = null; }
-    return { ok:r.ok, status:r.status, data:d, raw:t };
+    let parsed = false;
+    try{ d = JSON.parse(t); parsed = true; }catch{ d = null; parsed = false; }
+    if(!parsed && r.ok){
+      d = { ok:false, error:"non_json_response" };
+    }
+    return { ok:(r.ok && parsed), status:r.status, data:d, raw:t };
   }
 
   function renderComments(items, { canAdminDelete } = {}){
@@ -895,8 +907,12 @@
     const r = await fetch(url, opt);
     const txt = await r.text();
     let data = null;
-    try{ data = JSON.parse(txt); }catch{ data = null; }
-    return { ok:r.ok, status:r.status, text:txt, data };
+    let parsed = false;
+    try{ data = JSON.parse(txt); parsed = true; }catch{ data = null; parsed = false; }
+    if(!parsed && r.ok){
+      data = { ok:false, error:"non_json_response" };
+    }
+    return { ok:(r.ok && parsed), status:r.status, text:txt, data };
   }
 
   // =========================
