@@ -133,6 +133,65 @@
       white-space:pre-wrap;
       margin-top:10px;
     }
+
+    /* comments (MVP) */
+    .commentsBox{
+      margin-top:12px;
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      background:#fff;
+      overflow:hidden;
+    }
+    .commentsHead{
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      background:linear-gradient(180deg, rgba(37,99,235,.05), rgba(22,163,74,.04));
+    }
+    .commentsHead .ttl{ font-weight:800; }
+    .commentsBody{ padding:12px 14px; }
+    .commentList{ display:flex; flex-direction:column; gap:10px; }
+    .commentItem{
+      border:1px solid rgba(148,163,184,.25);
+      border-radius:12px;
+      padding:10px 12px;
+      background:#fff;
+    }
+    .commentMeta{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:6px;
+    }
+    .commentBodyTxt{
+      white-space:pre-wrap;
+      word-break:break-word;
+      font-size:13px;
+      line-height:1.5;
+    }
+    .commentForm{ margin-top:10px; }
+    .commentForm textarea{
+      width:100%;
+      min-height:84px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:14px;
+      background:#fff;
+      color:var(--text);
+      resize:vertical;
+    }
+    .commentActions{ margin-top:8px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .commentPager{ margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .commentHint{ color:var(--muted); font-size:12px; }
   </style>
 </head>
 <body>
@@ -162,6 +221,33 @@
         <summary>JSON preview (collapsed)</summary>
         <pre id="jsonPreview">...</pre>
       </details>
+
+      <!-- comments (MVP) -->
+      <section class="commentsBox" aria-label="comments">
+        <div class="commentsHead">
+          <div class="ttl">Comments</div>
+          <div class="commentHint" id="commentsState">Loading…</div>
+        </div>
+        <div class="commentsBody">
+          <div id="commentsLoginHint" class="commentHint" style="display:none;"></div>
+
+          <div class="commentForm" id="commentForm" style="display:none;">
+            <textarea id="commentBody" maxlength="1000" placeholder="Write a comment (max 1000 chars)"></textarea>
+            <div class="commentActions">
+              <button id="commentSend" class="btn primary" type="button">Send</button>
+              <span class="commentHint" id="commentPostMsg"></span>
+            </div>
+          </div>
+
+          <div class="commentList" id="commentList"></div>
+
+          <div class="commentPager" id="commentPager" style="display:none;">
+            <button class="btn" id="commentPrev" type="button">Prev</button>
+            <button class="btn" id="commentNext" type="button">Next</button>
+            <span class="commentHint" id="commentPageInfo"></span>
+          </div>
+        </div>
+      </section>
 
       <details>
         <summary>How to use in-game (copy/paste)</summary>
@@ -253,7 +339,246 @@
   const API_OWNER_META = (id) => api(`/api/submissions/${id}`);          // PUT, DELETE
   const API_OWNER_JSON = (id) => api(`/api/submissions/${id}/json`);     // PUT
 
+  // comments
+  const COMMENTS_API = api("/api/comments");
+
   const el = (id) => document.getElementById(id);
+
+  const commentsStateEl = el("commentsState");
+  const commentsLoginHintEl = el("commentsLoginHint");
+  const commentFormEl = el("commentForm");
+  const commentBodyEl = el("commentBody");
+  const commentSendEl = el("commentSend");
+  const commentPostMsgEl = el("commentPostMsg");
+  const commentListEl = el("commentList");
+  const commentPagerEl = el("commentPager");
+  const commentPrevEl = el("commentPrev");
+  const commentNextEl = el("commentNext");
+  const commentPageInfoEl = el("commentPageInfo");
+
+  function setCommentsState(msg){
+    if(!commentsStateEl) return;
+    commentsStateEl.textContent = String(msg || "");
+  }
+
+  function clearChildren(node){
+    while(node && node.firstChild) node.removeChild(node.firstChild);
+  }
+
+  function fmtWhen(iso){
+    const s = String(iso || "").trim();
+    if(!s) return "";
+    try{
+      const d = new Date(s);
+      if(Number.isNaN(d.getTime())) return s;
+      return d.toLocaleString();
+    }catch{
+      return s;
+    }
+  }
+
+  async function commentsFetchList(submissionId, page, pageSize){
+    const sp = new URLSearchParams();
+    sp.set("submission_id", submissionId);
+    sp.set("page", String(page));
+    sp.set("page_size", String(pageSize));
+    const url = COMMENTS_API + "?" + sp.toString();
+
+    const r = await fetch(url, { cache:"no-store", credentials:"include" });
+    const t = await r.text();
+    let d = null;
+    try{ d = JSON.parse(t); }catch{ d = null; }
+    return { ok:r.ok, status:r.status, data:d, raw:t };
+  }
+
+  async function commentsPost(submissionId, body){
+    const r = await fetch(COMMENTS_API, {
+      method: "POST",
+      cache: "no-store",
+      credentials: "include",
+      headers: { "Content-Type":"application/json", "Accept":"application/json" },
+      body: JSON.stringify({ submission_id: submissionId, body })
+    });
+    const t = await r.text();
+    let d = null;
+    try{ d = JSON.parse(t); }catch{ d = null; }
+    return { ok:r.ok, status:r.status, data:d, raw:t };
+  }
+
+  async function commentsDelete(commentId){
+    const r = await fetch(api(`/api/comments/${encodeURIComponent(commentId)}`), {
+      method: "DELETE",
+      cache: "no-store",
+      credentials: "include",
+      headers: { "Accept":"application/json" }
+    });
+    const t = await r.text();
+    let d = null;
+    try{ d = JSON.parse(t); }catch{ d = null; }
+    return { ok:r.ok, status:r.status, data:d, raw:t };
+  }
+
+  function renderComments(items, { canAdminDelete } = {}){
+    if(!commentListEl) return;
+    clearChildren(commentListEl);
+
+    if(!Array.isArray(items) || items.length === 0){
+      const hint = document.createElement("div");
+      hint.className = "commentHint";
+      hint.textContent = "No comments yet.";
+      commentListEl.appendChild(hint);
+      return;
+    }
+
+    for(const it of items){
+      const wrap = document.createElement("div");
+      wrap.className = "commentItem";
+
+      const meta = document.createElement("div");
+      meta.className = "commentMeta";
+
+      const left = document.createElement("span");
+      const who = String(it?.author_name || it?.authorName || "").trim();
+      left.textContent = who ? who : "unknown";
+
+      const right = document.createElement("span");
+      right.textContent = fmtWhen(it?.created_at || it?.createdAt || "");
+
+      meta.appendChild(left);
+      meta.appendChild(right);
+
+      const body = document.createElement("div");
+      body.className = "commentBodyTxt";
+      body.textContent = String(it?.body ?? "");
+
+      wrap.appendChild(meta);
+      wrap.appendChild(body);
+
+      if(canAdminDelete && it && it.id){
+        const actions = document.createElement("div");
+        actions.className = "commentActions";
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "btn danger";
+        del.textContent = "Delete";
+        del.onclick = async () => {
+          const ok = confirm("Delete this comment? (soft delete)");
+          if(!ok) return;
+          del.disabled = true;
+          try{
+            const rr = await commentsDelete(String(it.id));
+            if(!rr.ok){
+              alert("Delete failed: HTTP " + rr.status);
+              return;
+            }
+            document.dispatchEvent(new CustomEvent("comments:refresh"));
+          }finally{
+            del.disabled = false;
+          }
+        };
+        actions.appendChild(del);
+        wrap.appendChild(actions);
+      }
+
+      commentListEl.appendChild(wrap);
+    }
+  }
+
+  function setPager({ page, totalPages } = {}){
+    if(!commentPagerEl) return;
+    const p = Number(page || 1);
+    const tp = Number(totalPages || 1);
+    if(tp <= 1){
+      commentPagerEl.style.display = "none";
+      return;
+    }
+    commentPagerEl.style.display = "flex";
+    if(commentPrevEl) commentPrevEl.disabled = (p <= 1);
+    if(commentNextEl) commentNextEl.disabled = (p >= tp);
+    if(commentPageInfoEl) commentPageInfoEl.textContent = `Page ${p} / ${tp}`;
+  }
+
+  function initComments(submissionId, { canPost, canAdminDelete } = {}){
+    const pageSize = 20;
+    let page = 1;
+    let loading = false;
+
+    if(commentFormEl) commentFormEl.style.display = canPost ? "block" : "none";
+    if(commentsLoginHintEl){
+      if(canPost){
+        commentsLoginHintEl.style.display = "none";
+        commentsLoginHintEl.textContent = "";
+      }else{
+        commentsLoginHintEl.style.display = "block";
+        commentsLoginHintEl.textContent = "Log in to post comments.";
+      }
+    }
+
+    async function refresh(){
+      if(loading) return;
+      loading = true;
+      setCommentsState("Loading…");
+      try{
+        const rr = await commentsFetchList(submissionId, page, pageSize);
+        if(!rr.ok){
+          const msg = rr.status === 401 ? "Login required." : rr.status === 403 ? "Forbidden." : "Failed to load.";
+          setCommentsState(msg);
+          renderComments([], { canAdminDelete:false });
+          setPager({ page:1, totalPages:1 });
+          return;
+        }
+        const data = rr.data || {};
+        const items = Array.isArray(data.items) ? data.items : [];
+        const tp = Number(data.total_pages || 1);
+        const p = Number(data.page || page);
+        page = p || 1;
+
+        setCommentsState(`${items.length} shown`);
+        renderComments(items, { canAdminDelete: Boolean(canAdminDelete) });
+        setPager({ page, totalPages: tp });
+      }finally{
+        loading = false;
+      }
+    }
+
+    if(commentPrevEl) commentPrevEl.onclick = () => { if(page > 1){ page -= 1; refresh(); } };
+    if(commentNextEl) commentNextEl.onclick = () => { page += 1; refresh(); };
+
+    if(commentSendEl){
+      commentSendEl.onclick = async () => {
+        if(!canPost) return;
+        const text = String(commentBodyEl?.value ?? "").trim();
+        if(!text){
+          if(commentPostMsgEl) commentPostMsgEl.textContent = "Empty.";
+          return;
+        }
+        if(text.length > 1000){
+          if(commentPostMsgEl) commentPostMsgEl.textContent = "Too long.";
+          return;
+        }
+        commentSendEl.disabled = true;
+        if(commentPostMsgEl) commentPostMsgEl.textContent = "Sending…";
+        try{
+          const rr = await commentsPost(submissionId, text);
+          if(!rr.ok){
+            const msg = rr.status === 429 ? "Too fast. Please wait." : "Post failed.";
+            if(commentPostMsgEl) commentPostMsgEl.textContent = msg;
+            return;
+          }
+          if(commentBodyEl) commentBodyEl.value = "";
+          if(commentPostMsgEl) commentPostMsgEl.textContent = "Posted.";
+          page = 1;
+          await refresh();
+          setTimeout(()=>{ if(commentPostMsgEl) commentPostMsgEl.textContent = ""; }, 1200);
+        }finally{
+          commentSendEl.disabled = false;
+        }
+      };
+    }
+
+    document.addEventListener("comments:refresh", () => refresh());
+    refresh();
+  }
 
   function escapeHtml(s){
     return String(s ?? "")
@@ -362,6 +687,13 @@
     if(!item){
       setMsg(`<div class="err">Unit not found.\n(It may be missing from the approved list or already deleted.)</div>`);
       return;
+    }
+
+    // comments (MVP) - use submission UUID
+    try{
+      initComments(String(item.id), { canPost: Boolean(who && who.email), canAdminDelete: Boolean(who && who.is_admin) });
+    }catch{
+      setCommentsState("Comments unavailable");
     }
 
     // 表示
