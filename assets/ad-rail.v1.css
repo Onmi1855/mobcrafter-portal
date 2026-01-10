@@ -65,6 +65,14 @@
   }
 }
 
+/* Index page has a (usually empty) ad slot as the first grid row.
+   Put the right rail on row 2 so it aligns with the topbar instead of creating a big blank row. */
+@media (min-width: 1240px){
+  body.mc-page-index main > .mc-right-rail{
+    grid-row: 2;
+  }
+}
+
 /* Submit page uses a wrapper instead of <main> */
 @media (min-width: 1240px){
   .mc-submit-shell{
