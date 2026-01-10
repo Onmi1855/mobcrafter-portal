@@ -50,6 +50,10 @@
     gap: 16px;
     align-items: start;
   }
+  /* Keep existing page content in the left column; reserve the right column for the rail only */
+  main > :not(.mc-right-rail){
+    grid-column: 1;
+  }
   main > .mc-right-rail{
     display: block;
     grid-column: 2;
