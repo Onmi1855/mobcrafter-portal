@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Advertisement</title>
+  <style>
+    html, body {
+      width: 160px;
+      height: 600px;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #fff;
+    }
+    #fallback {
+      width: 160px;
+      height: 600px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 12px;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      font-size: 12px;
+      color: rgba(15, 23, 42, 0.55);
+    }
+  </style>
+</head>
+<body>
+  <div id="fallback">Ad blocked / not available</div>
+
+  <script>
+    // Adsterra invoke.js expects atOptions in the global scope.
+    // If invoke.js is blocked, the fallback remains visible.
+    var atOptions = {
+      key: "2d5106258af9409063c547ff07cdce76",
+      format: "iframe",
+      height: 600,
+      width: 160,
+      params: {}
+    };
+
+    (function () {
+      var fb = document.getElementById("fallback");
+      if (!fb) return;
+
+      var maybeHide = function () {
+        try {
+          // If the provider injects an iframe, hide fallback.
+          if (document.querySelector("iframe")) fb.style.display = "none";
+        } catch (_) {}
+      };
+
+      try {
+        new MutationObserver(maybeHide).observe(document.documentElement, {
+          childList: true,
+          subtree: true
+        });
+      } catch (_) {}
+
+      setTimeout(maybeHide, 250);
+      setTimeout(maybeHide, 1000);
+    })();
+  </script>
+
+  <script src="https://www.highperformanceformat.com/2d5106258af9409063c547ff07cdce76/invoke.js"></script>
+</body>
+</html>

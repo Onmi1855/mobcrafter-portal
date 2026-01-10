@@ -5,7 +5,7 @@
   // - Renders inside an isolated iframe (prevents document.write issues)
 
   const HOST_SELECTOR = "[data-adsterra-banner-host]";
-  const SCRIPT_SRC = "https://www.highperformanceformat.com/2d5106258af9409063c547ff07cdce76/invoke.js";
+  const CONTAINER_SRC = "/assets/adsterra-container.v1.html?v=20260111c";
 
   const OPTIONS = {
     key: "2d5106258af9409063c547ff07cdce76",
@@ -34,7 +34,6 @@
       frame.title = "advertisement";
       frame.referrerPolicy = "no-referrer-when-downgrade";
       // NOTE: Do NOT add allow-same-origin; we want isolation.
-      // Use srcdoc so we don't need to access contentDocument (blocked by sandbox).
       frame.setAttribute(
         "sandbox",
         "allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
@@ -42,18 +41,9 @@
       frame.setAttribute("scrolling", "no");
       host.appendChild(frame);
 
-      const optionsJson = JSON.stringify({
-        key: OPTIONS.key,
-        format: OPTIONS.format,
-        height: OPTIONS.height,
-        width: OPTIONS.width,
-        params: OPTIONS.params,
-      });
-
-      frame.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0; padding:0; overflow:hidden;">
-<script>var atOptions=${optionsJson};</script>
-<script src="${SCRIPT_SRC}"></script>
-</body></html>`;
+      // Use a first-party HTML container so document.location/referrer look normal.
+      // This improves compatibility with some providers that bail out on about:srcdoc.
+      frame.src = CONTAINER_SRC;
     } catch {
       // never block page
     }
