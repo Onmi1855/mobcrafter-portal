@@ -360,6 +360,8 @@
     .commentPager{ margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     .commentHint{ color:var(--muted); font-size:12px; }
   </style>
+  <link rel="stylesheet" href="/assets/ad-rail.v1.css" />
+  <script src="/assets/adsterra-banner.v1.js" defer></script>
 </head>
 <body>
 <header>
@@ -488,6 +490,16 @@
 
     <a class="back" href="/">← Back to list</a>
   </section>
+
+  <!-- Right rail (layout only; ad code inserted later) -->
+  <aside class="mc-right-rail" aria-label="advertisement">
+    <div class="mc-right-rail-inner">
+      <div class="mc-ad-frame">
+        <div class="mc-ad-frame-label">Advertisement</div>
+        <div class="mc-ad-frame-box" data-adsterra-banner-host></div>
+      </div>
+    </div>
+  </aside>
 </main>
 
     <!-- Ad slot (unit_legacy_top) - renders only when ads are enabled -->

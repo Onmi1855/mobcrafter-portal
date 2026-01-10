@@ -8,6 +8,7 @@
   <!-- Ads (default OFF): enable via /assets/ads-config.v1.js after approval -->
   <script src="/assets/ads-config.v1.js" defer></script>
   <script src="/assets/ads.v1.js" defer></script>
+  <script src="/assets/adsterra-banner.v1.js" defer></script>
   <style>
     :root{
       --bg:#f6f8fb;
@@ -372,6 +373,7 @@
     }
     .chip input{ transform: translateY(1px); }
   </style>
+  <link rel="stylesheet" href="/assets/ad-rail.v1.css" />
 </head>
 <body>
 <header>
@@ -492,6 +494,16 @@
 
   <section id="grid" class="grid"></section>
   <div id="pager" class="pager" style="display:none;"></div>
+
+  <!-- Right rail (layout only; ad code inserted later) -->
+  <aside class="mc-right-rail" aria-label="advertisement">
+    <div class="mc-right-rail-inner">
+      <div class="mc-ad-frame">
+        <div class="mc-ad-frame-label">Advertisement</div>
+        <div class="mc-ad-frame-box" data-adsterra-banner-host></div>
+      </div>
+    </div>
+  </aside>
 
   <footer>© 2025 MobCrafter Portal — MVP</footer>
 </main>

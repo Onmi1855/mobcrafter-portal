@@ -1,0 +1,71 @@
+/* Right-side banner rail (160x600)
+   Note: intentionally scoped by being included only on specific pages.
+*/
+
+.mc-right-rail{ display:none; }
+
+/* Mid-size desktop: show rail below (no layout risk) */
+@media (min-width: 900px){
+  .mc-right-rail{
+    display:block;
+    margin-top: 14px;
+  }
+}
+
+.mc-right-rail-inner{
+  position: sticky;
+  top: 16px;
+}
+
+.mc-ad-frame{
+  width: 160px;
+  background: #ffffff;
+  border: 1px solid rgba(148,163,184,.35);
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgba(15,23,42,.08);
+  overflow: hidden;
+}
+
+.mc-ad-frame-label{
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  font-size: 11px;
+  color: #64748b;
+  letter-spacing: .2px;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(148,163,184,.18);
+  background: rgba(148,163,184,.06);
+}
+
+.mc-ad-frame-box{
+  width: 160px;
+  height: 600px;
+}
+
+/* Desktop: add a second column without shrinking existing content */
+@media (min-width: 1240px){
+  main{
+    max-width: 1240px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 180px;
+    gap: 16px;
+    align-items: start;
+  }
+  main > .mc-right-rail{
+    display: block;
+    grid-column: 2;
+    grid-row: 1 / -1;
+    width: 180px;
+    margin-top: 0;
+  }
+}
+
+/* Submit page uses a wrapper instead of <main> */
+@media (min-width: 1240px){
+  .mc-submit-shell{
+    display: grid;
+    grid-template-columns: minmax(0, 880px) 180px;
+    gap: 16px;
+    align-items: start;
+  }
+  .mc-submit-shell > .mc-right-rail{ display:block; width:180px; }
+}

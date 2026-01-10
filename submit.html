@@ -32,9 +32,12 @@
     .canvaswrap{ width:100%; max-width:920px; margin:10px 0 0; }
     .canvaswrap canvas{ width:100%; height:auto; display:block; border-radius:12px; }
 </style>
+  <link rel="stylesheet" href="/assets/ad-rail.v1.css" />
+  <script src="/assets/adsterra-banner.v1.js" defer></script>
 </head>
 <body>
 
+<div class="mc-submit-shell">
 <div class="card">
   <div class="toplinks">
     <a href="/">← Back to Home</a>
@@ -121,6 +124,17 @@
   </div>
 </div>
 
+</div>
+
+  <!-- Right rail (layout only; ad code inserted later) -->
+  <aside class="mc-right-rail" aria-label="advertisement">
+    <div class="mc-right-rail-inner">
+      <div class="mc-ad-frame">
+        <div class="mc-ad-frame-label">Advertisement</div>
+        <div class="mc-ad-frame-box" data-adsterra-banner-host></div>
+      </div>
+    </div>
+  </aside>
 </div>
 
 <script>
