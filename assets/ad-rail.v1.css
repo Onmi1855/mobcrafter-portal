@@ -4,20 +4,13 @@
 
 .mc-right-rail{ display:none; }
 
-/* Mid-size desktop: show rail below (no layout risk) */
-@media (min-width: 900px){
-  .mc-right-rail{
-    display:block;
-    margin-top: 14px;
-  }
-}
-
 .mc-right-rail-inner{
   position: sticky;
   top: 16px;
 }
 
 .mc-ad-frame{
+  position: relative;
   width: 160px;
   height: 600px;
   background: #ffffff;
@@ -28,12 +21,37 @@
 }
 
 .mc-ad-frame-label{
-  display:none;
+  display:block;
+  position:absolute;
+  top:10px;
+  left:10px;
+  z-index: 2;
+  pointer-events:none;
+  font-size: 11px;
+  line-height: 1;
+  color: rgba(15,23,42,.70);
+  background: rgba(255,255,255,.92);
+  border: 1px solid rgba(148,163,184,.35);
+  padding: 3px 8px;
+  border-radius: 999px;
 }
 
 .mc-ad-frame-box{
   width: 160px;
   height: 600px;
+}
+
+/* If ad JS is blocked, keep a visible placeholder instead of looking "missing" */
+.mc-ad-frame-box:empty::before{
+  content: "Ad blocked / not available";
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100%;
+  padding: 14px;
+  text-align:center;
+  color: rgba(15,23,42,.55);
+  font-size: 12px;
 }
 
 .mc-ad-frame-box iframe{
@@ -44,7 +62,7 @@
 }
 
 /* Desktop: add a second column without shrinking existing content */
-@media (min-width: 1240px){
+@media (min-width: 1100px){
   main{
     max-width: 1240px;
     display: grid;
@@ -68,7 +86,7 @@
 }
 
 /* Submit page uses a wrapper instead of <main> */
-@media (min-width: 1240px){
+@media (min-width: 1100px){
   .mc-submit-shell{
     display: grid;
     grid-template-columns: minmax(0, 880px) 180px;
