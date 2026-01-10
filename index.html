@@ -8,7 +8,7 @@
   <!-- Ads (default OFF): enable via /assets/ads-config.v1.js after approval -->
   <script src="/assets/ads-config.v1.js" defer></script>
   <script src="/assets/ads.v1.js" defer></script>
-  <script src="/assets/adsterra-banner.v1.js?v=20260111a" defer></script>
+  <script src="/assets/adsterra-banner.v1.js?v=20260111b" defer></script>
   <style>
     :root{
       --bg:#f6f8fb;
@@ -373,7 +373,7 @@
     }
     .chip input{ transform: translateY(1px); }
   </style>
-  <link rel="stylesheet" href="/assets/ad-rail.v1.css?v=20260111a" />
+  <link rel="stylesheet" href="/assets/ad-rail.v1.css?v=20260111b" />
 </head>
 <body class="mc-page-index">
 <header>
@@ -395,10 +395,11 @@
 </header>
 
 <main>
-  <!-- Ad slot (index_top) - renders only when ads are enabled -->
-  <div data-ad-slot-key="index_top"></div>
+  <div class="mc-main-col">
+    <!-- Ad slot (index_top) - renders only when ads are enabled -->
+    <div data-ad-slot-key="index_top"></div>
 
-  <div class="topbar">
+    <div class="topbar">
     <div class="leftbox">
       <div class="field">
         <label>Search</label>
@@ -452,8 +453,8 @@
         <a id="postLink" class="primary" href="/submit.html">Submit</a>
       </div>
     </div>
-  </div>
-  <section style="width:100%; margin-top:12px; background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:14px; box-shadow: 0 10px 25px rgba(15,23,42,.08);">
+    </div>
+    <section style="width:100%; margin-top:12px; background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:14px; box-shadow: 0 10px 25px rgba(15,23,42,.08);">
     <h2 style="margin:0 0 8px; font-size:14px;">About MobCrafter (Quick Overview)</h2>
     <div style="color:#334155; font-size:12px; line-height:1.7;">
       <p style="margin:0 0 8px;">
@@ -490,10 +491,10 @@
       <li>Do not upload copyrighted character models/textures unless you have permission.</li>
       <li>If your unit uses blocks from other mods, mention them as dependencies.</li>
     </ul>
-  </section>
+    </section>
 
-  <section id="grid" class="grid"></section>
-  <div id="pager" class="pager" style="display:none;"></div>
+    <section id="grid" class="grid"></section>
+    <div id="pager" class="pager" style="display:none;"></div>
 
   <!-- Right rail (layout only; ad code inserted later) -->
   <aside class="mc-right-rail" aria-label="advertisement">
@@ -505,7 +506,8 @@
     </div>
   </aside>
 
-  <footer>© 2025 MobCrafter Portal — MVP</footer>
+    <footer>© 2025 MobCrafter Portal — MVP</footer>
+  </div>
 </main>
 
 <script>

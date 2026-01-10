@@ -52,6 +52,8 @@
     gap: 16px;
     align-items: start;
   }
+  /* Preferred: wrap the left content in one container so the rail height doesn't create blank rows */
+  main > .mc-main-col{ grid-column: 1; min-width: 0; }
   /* Keep existing page content in the left column; reserve the right column for the rail only */
   main > :not(.mc-right-rail){
     grid-column: 1;
@@ -59,17 +61,9 @@
   main > .mc-right-rail{
     display: block;
     grid-column: 2;
-    grid-row: 1 / -1;
+    grid-row: 1;
     width: 180px;
     margin-top: 0;
-  }
-}
-
-/* Index page has a (usually empty) ad slot as the first grid row.
-   Put the right rail on row 2 so it aligns with the topbar instead of creating a big blank row. */
-@media (min-width: 1240px){
-  body.mc-page-index main > .mc-right-rail{
-    grid-row: 2;
   }
 }
 

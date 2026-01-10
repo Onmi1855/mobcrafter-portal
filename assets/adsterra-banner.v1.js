@@ -31,30 +31,29 @@
       frame.style.border = "0";
       frame.style.overflow = "hidden";
       frame.loading = "lazy";
+      frame.title = "advertisement";
       frame.referrerPolicy = "no-referrer-when-downgrade";
+      // NOTE: Do NOT add allow-same-origin; we want isolation.
+      // Use srcdoc so we don't need to access contentDocument (blocked by sandbox).
       frame.setAttribute(
         "sandbox",
         "allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
       );
+      frame.setAttribute("scrolling", "no");
       host.appendChild(frame);
 
-      const doc = frame.contentDocument;
-      if (!doc) return;
-
-      const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0; padding:0; overflow:hidden;">
-<script>var atOptions=${JSON.stringify({
+      const optionsJson = JSON.stringify({
         key: OPTIONS.key,
         format: OPTIONS.format,
         height: OPTIONS.height,
         width: OPTIONS.width,
         params: OPTIONS.params,
-      })};</script>
+      });
+
+      frame.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0; padding:0; overflow:hidden;">
+<script>var atOptions=${optionsJson};</script>
 <script src="${SCRIPT_SRC}"></script>
 </body></html>`;
-
-      doc.open();
-      doc.write(html);
-      doc.close();
     } catch {
       // never block page
     }
