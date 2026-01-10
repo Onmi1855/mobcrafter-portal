@@ -19,6 +19,7 @@
 
 .mc-ad-frame{
   width: 160px;
+  height: 600px;
   background: #ffffff;
   border: 1px solid rgba(148,163,184,.35);
   border-radius: 14px;
@@ -27,18 +28,19 @@
 }
 
 .mc-ad-frame-label{
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-  font-size: 11px;
-  color: #64748b;
-  letter-spacing: .2px;
-  padding: 8px 10px;
-  border-bottom: 1px solid rgba(148,163,184,.18);
-  background: rgba(148,163,184,.06);
+  display:none;
 }
 
 .mc-ad-frame-box{
   width: 160px;
   height: 600px;
+}
+
+.mc-ad-frame-box iframe{
+  display:block;
+  width:160px;
+  height:600px;
+  border:0;
 }
 
 /* Desktop: add a second column without shrinking existing content */
