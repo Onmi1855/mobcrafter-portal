@@ -372,6 +372,37 @@
       user-select:none;
     }
     .chip input{ transform: translateY(1px); }
+
+    /* Collapsible overview (keeps page focused on 3D grid) */
+    .mc-collapsible{
+      width:100%;
+      margin-top: 12px;
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:16px;
+      padding: 0;
+      box-shadow: 0 10px 25px rgba(15,23,42,.08);
+      overflow: hidden;
+    }
+    .mc-collapsible > summary{
+      cursor: pointer;
+      list-style: none;
+      padding: 14px;
+      font-size: 13px;
+      font-weight: 700;
+      user-select: none;
+    }
+    .mc-collapsible > summary::-webkit-details-marker{ display:none; }
+    .mc-collapsible > summary .mc-collapsible-hint{
+      font-weight: 400;
+      color: var(--muted);
+      margin-left: 8px;
+      font-size: 12px;
+    }
+    .mc-collapsible .mc-collapsible-body{
+      padding: 0 14px 14px;
+      border-top: 1px solid #e5e7eb;
+    }
   </style>
   <link rel="stylesheet" href="/assets/ad-rail.v1.css?v=20260111d" />
 </head>
@@ -464,47 +495,52 @@
       </div>
     </div>
     </div>
-    <section style="width:100%; margin-top:12px; background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:14px; box-shadow: 0 10px 25px rgba(15,23,42,.08);">
-    <h2 style="margin:0 0 8px; font-size:14px;">About MobCrafter (Quick Overview)</h2>
-    <div style="color:#334155; font-size:12px; line-height:1.7;">
-      <p style="margin:0 0 8px;">
-        MobCrafter is a Minecraft Forge mod that lets you turn block-built creations into a single controllable unit.
-        Build with normal blocks, capture the structure as unit data, then summon it in your world for testing and experimentation.
-      </p>
-      <p style="margin:0 0 8px;">
-        Basic flow:
-      </p>
-      <ol style="margin:0 0 8px; padding-left:18px;">
-        <li>Build a structure with blocks.</li>
-        <li>Attach a Bone Block as the core/pivot.</li>
-        <li>Use the Capture Tool on the Bone Block to save the structure as a unit.</li>
-        <li>Summon the unit in-game.</li>
-      </ol>
-      <p style="margin:0 0 8px;">
-        Unit JSON files are loaded from <code>config/mob_crafter/units/</code>. In multiplayer, server-side JSON is used and synced to clients.
-      </p>
-      <p style="margin:0;">
-        Note: Units shown in mod screenshots are personal examples and are not bundled with the mod. This portal shares community unit JSON files.
-      </p>
-    </div>
-
-    <h2 style="margin:0 0 8px; font-size:14px;">How to use</h2>
-    <ol style="margin:0; padding-left:18px; color:#334155; font-size:12px; line-height:1.7;">
-      <li>Download a unit JSON from this portal.</li>
-      <li>Place the JSON into MobCrafter's unit folder (your modpack must include required dependency mods if used).</li>
-      <li>Use MobCrafter items in-game to summon the unit.</li>
-    </ol>
-
-    <h2 style="margin:12px 0 8px; font-size:14px;">Posting rules</h2>
-    <ul style="margin:0; padding-left:18px; color:#334155; font-size:12px; line-height:1.7;">
-      <li>Only upload content you have rights to share.</li>
-      <li>Do not upload copyrighted character models/textures unless you have permission.</li>
-      <li>If your unit uses blocks from other mods, mention them as dependencies.</li>
-    </ul>
-    </section>
-
     <section id="grid" class="grid"></section>
     <div id="pager" class="pager" style="display:none;"></div>
+
+    <details class="mc-collapsible" id="overview">
+      <summary>
+        About / How to use / Posting rules
+        <span class="mc-collapsible-hint">(click to expand)</span>
+      </summary>
+      <div class="mc-collapsible-body">
+        <h2 style="margin:12px 0 8px; font-size:14px;">About MobCrafter (Quick Overview)</h2>
+        <div style="color:#334155; font-size:12px; line-height:1.7;">
+          <p style="margin:0 0 8px;">
+            MobCrafter is a Minecraft Forge mod that lets you turn block-built creations into a single controllable unit.
+            Build with normal blocks, capture the structure as unit data, then summon it in your world for testing and experimentation.
+          </p>
+          <p style="margin:0 0 8px;">Basic flow:</p>
+          <ol style="margin:0 0 8px; padding-left:18px;">
+            <li>Build a structure with blocks.</li>
+            <li>Attach a Bone Block as the core/pivot.</li>
+            <li>Use the Capture Tool on the Bone Block to save the structure as a unit.</li>
+            <li>Summon the unit in-game.</li>
+          </ol>
+          <p style="margin:0 0 8px;">
+            Unit JSON files are loaded from <code>config/mob_crafter/units/</code>. In multiplayer, server-side JSON is used and synced to clients.
+          </p>
+          <p style="margin:0;">
+            Note: Units shown in mod screenshots are personal examples and are not bundled with the mod. This portal shares community unit JSON files.
+          </p>
+        </div>
+
+        <h2 style="margin:12px 0 8px; font-size:14px;">How to use</h2>
+        <ol style="margin:0; padding-left:18px; color:#334155; font-size:12px; line-height:1.7;">
+          <li>Download a unit JSON from this portal.</li>
+          <li>Place the JSON into MobCrafter's unit folder (your modpack must include required dependency mods if used).</li>
+          <li>Use MobCrafter items in-game to summon the unit.</li>
+        </ol>
+
+        <h2 style="margin:12px 0 8px; font-size:14px;">Posting rules</h2>
+        <ul style="margin:0; padding-left:18px; color:#334155; font-size:12px; line-height:1.7;">
+          <li>Only upload content you have rights to share.</li>
+          <li>Do not upload copyrighted character models/textures unless you have permission.</li>
+          <li>If your unit uses blocks from other mods, mention them as dependencies.</li>
+        </ul>
+      </div>
+    </details>
+
     <footer>© 2025 MobCrafter Portal — MVP</footer>
   </div>
 
