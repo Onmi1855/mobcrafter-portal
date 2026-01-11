@@ -26,14 +26,38 @@
       font-size: 12px;
       color: rgba(15, 23, 42, 0.55);
     }
+
+    /* Debug overlay (only when ?debug=1) */
+    #dbg {
+      display: none;
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      padding: 8px;
+      box-sizing: border-box;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 10px;
+      line-height: 1.35;
+      color: rgba(15, 23, 42, 0.85);
+    }
+    #dbg .box {
+      pointer-events: auto;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(148,163,184,.45);
+      border-radius: 10px;
+      padding: 8px;
+      box-shadow: 0 10px 25px rgba(15,23,42,.08);
+    }
+    #dbg b { font-weight: 700; }
   </style>
 </head>
 <body>
   <div id="fallback">Ad blocked / not available</div>
+  <div id="dbg"><div class="box" id="dbgBox"></div></div>
 
   <script>
     // Adsterra invoke.js expects atOptions in the global scope.
-    // If invoke.js is blocked, the fallback remains visible.
+    // If invoke.js is blocked or returns no fill, the fallback remains visible.
     var atOptions = {
       key: "2d5106258af9409063c547ff07cdce76",
       format: "iframe",
@@ -41,6 +65,130 @@
       width: 160,
       params: {}
     };
+
+    (function () {
+      var params = new URLSearchParams(location.search);
+      var debug = params.get("debug") === "1";
+      var dbg = document.getElementById("dbg");
+      var dbgBox = document.getElementById("dbgBox");
+
+      function esc(s) {
+        return String(s || "").replace(/[&<>]/g, function (c) {
+          return c === "&" ? "&amp;" : c === "<" ? "&lt;" : "&gt;";
+        });
+      }
+
+      function renderDebug(state) {
+        if (!debug || !dbg || !dbgBox) return;
+        dbg.style.display = "block";
+        dbgBox.innerHTML =
+          "<b>adsterra-container debug</b><br>" +
+          "time: " + esc(state.t) + "ms<br>" +
+          "referrer: " + esc(state.ref) + "<br>" +
+          "top==self: " + esc(state.top) + "<br>" +
+          "invoke loaded: " + esc(state.invokeLoaded) + "<br>" +
+          "invoke error: " + esc(state.invokeError) + "<br>" +
+          "iframe injected: " + esc(state.iframeInjected);
+      }
+
+      var t0 = Date.now();
+      var isTop;
+      try { isTop = (window.top === window.self); } catch { isTop = false; }
+
+      var state = {
+        t: 0,
+        ref: document.referrer || "(empty)",
+        top: isTop ? "yes" : "no",
+        invokeLoaded: "pending",
+        invokeError: "",
+        iframeInjected: "no"
+      };
+
+      function tick() {
+        state.t = Date.now() - t0;
+        renderDebug(state);
+      }
+
+      tick();
+      setInterval(tick, 500);
+
+      // Expose a tiny hook for onload/onerror attributes.
+      window.__mcAdsterra = {
+        onInvokeLoad: function () {
+          state.invokeLoaded = "yes";
+          state.invokeError = "";
+          tick();
+        },
+        onInvokeError: function (msg) {
+          state.invokeLoaded = "no";
+          state.invokeError = msg || "load failed";
+          tick();
+        }
+      };
+
+      function loadInvokeJs() {
+        try {
+          var s = document.createElement("script");
+          s.src = "https://www.highperformanceformat.com/2d5106258af9409063c547ff07cdce76/invoke.js";
+          s.async = true;
+          s.onload = function () {
+            if (window.__mcAdsterra && window.__mcAdsterra.onInvokeLoad) window.__mcAdsterra.onInvokeLoad();
+          };
+          s.onerror = function () {
+            if (window.__mcAdsterra && window.__mcAdsterra.onInvokeError) window.__mcAdsterra.onInvokeError("invoke.js blocked or failed");
+          };
+          document.body.appendChild(s);
+        } catch (e) {
+          if (window.__mcAdsterra && window.__mcAdsterra.onInvokeError) window.__mcAdsterra.onInvokeError(String(e && e.message ? e.message : e));
+        }
+      }
+
+      // Important: some ad scripts navigate/redirect when opened top-level.
+      // For debugging, avoid auto-loading unless user explicitly clicks.
+      if (debug && isTop) {
+        state.invokeLoaded = "manual";
+        tick();
+        try {
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.textContent = "Load ad script";
+          btn.style.position = "absolute";
+          btn.style.left = "10px";
+          btn.style.bottom = "10px";
+          btn.style.zIndex = "3";
+          btn.style.fontSize = "12px";
+          btn.style.padding = "6px 10px";
+          btn.style.borderRadius = "10px";
+          btn.style.border = "1px solid rgba(148,163,184,.55)";
+          btn.style.background = "rgba(255,255,255,.95)";
+          btn.addEventListener("click", function () {
+            state.invokeLoaded = "pending";
+            tick();
+            loadInvokeJs();
+            btn.disabled = true;
+            btn.textContent = "Loading...";
+          });
+          document.body.appendChild(btn);
+        } catch (_) {}
+      } else {
+        loadInvokeJs();
+      }
+
+      // Detect provider injecting an iframe.
+      function checkInjected() {
+        try {
+          if (document.querySelector("iframe")) state.iframeInjected = "yes";
+        } catch (_) {}
+      }
+      try {
+        new MutationObserver(function () {
+          checkInjected();
+          tick();
+        }).observe(document.documentElement, { childList: true, subtree: true });
+      } catch (_) {}
+      setTimeout(function () { checkInjected(); tick(); }, 250);
+      setTimeout(function () { checkInjected(); tick(); }, 1000);
+    })();
 
     (function () {
       var fb = document.getElementById("fallback");
@@ -64,7 +212,5 @@
       setTimeout(maybeHide, 1000);
     })();
   </script>
-
-  <script src="https://www.highperformanceformat.com/2d5106258af9409063c547ff07cdce76/invoke.js"></script>
 </body>
 </html>

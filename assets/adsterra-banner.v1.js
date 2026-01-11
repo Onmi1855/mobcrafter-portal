@@ -5,7 +5,7 @@
   // - Renders inside an isolated iframe (prevents document.write issues)
 
   const HOST_SELECTOR = "[data-adsterra-banner-host]";
-  const CONTAINER_SRC = "/assets/adsterra-container.v1.html?v=20260111c";
+  const CONTAINER_SRC = "/assets/adsterra-container.v1.html?v=20260111e";
 
   const OPTIONS = {
     key: "2d5106258af9409063c547ff07cdce76",
@@ -32,7 +32,8 @@
       frame.style.overflow = "hidden";
       frame.loading = "lazy";
       frame.title = "advertisement";
-      frame.referrerPolicy = "no-referrer-when-downgrade";
+      // Some providers require a full referrer URL to validate placement.
+      frame.referrerPolicy = "unsafe-url";
       // NOTE: Do NOT add allow-same-origin; we want isolation.
       frame.setAttribute(
         "sandbox",
