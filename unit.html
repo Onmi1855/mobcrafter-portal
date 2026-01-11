@@ -357,6 +357,16 @@
     button.btn.primary{ background:var(--brand); border-color:var(--brand); color:#fff; }
     button.btn.danger{ background:var(--danger); border-color:var(--danger); color:#fff; }
     button.btn:disabled{ opacity:.6; cursor:not-allowed; }
+    button.likeBtn{
+      padding:4px 10px;
+      border-color: rgba(220, 38, 38, .25);
+      color: rgba(220, 38, 38, 1);
+    }
+    button.likeBtn[aria-pressed="true"]{
+      background: rgba(220, 38, 38, .92);
+      border-color: rgba(220, 38, 38, .25);
+      color:#fff;
+    }
     .commentPager{ margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     .commentHint{ color:var(--muted); font-size:12px; }
   </style>
@@ -408,6 +418,11 @@
           <div class="k">Author</div><div class="v" id="author">(unknown)</div>
           <div class="k">Created</div><div class="v" id="created">(unknown)</div>
           <div class="k">DL</div><div class="v" id="dl">(unknown)</div>
+          <div class="k">Likes</div>
+          <div class="v">
+            <button class="btn likeBtn" id="likeBtn" type="button" aria-pressed="false" title="Like">♥</button>
+            <span id="likesCount">0</span>
+          </div>
         </div>
 
         <div class="bannerErr" id="warn"></div>
@@ -548,6 +563,10 @@
   const API_DL_PUBLIC = (id) => api(`/api/public/submissions/${encodeURIComponent(id)}/download`);
   const API_DL_PRIVATE = (id) => api(`/api/submissions/${encodeURIComponent(id)}/download`);
 
+  const API_LIKES_PUBLIC = (id) => api(`/api/public/submissions/${encodeURIComponent(id)}/likes`);
+  const API_LIKES_PRIVATE = (id) => api(`/api/submissions/${encodeURIComponent(id)}/likes`);
+  const API_LIKES_TOGGLE = (id) => api(`/api/submissions/${encodeURIComponent(id)}/likes/toggle`);
+
   // screens: public / private どちらも試す（環境差がある前提）
   const API_SCREENS_PUBLIC  = (id) => api(`/api/public/submissions/${encodeURIComponent(id)}/screens`);
   const API_SCREENS_PRIVATE = (id) => api(`/api/submissions/${encodeURIComponent(id)}/screens`);
@@ -578,6 +597,8 @@
   const authorEl = document.getElementById("author");
   const createdEl = document.getElementById("created");
   const dlEl = document.getElementById("dl");
+  const likeBtn = document.getElementById("likeBtn");
+  const likesCountEl = document.getElementById("likesCount");
 
   const warnEl = document.getElementById("warn");
 
@@ -1281,6 +1302,8 @@
     createdEl.textContent = "(unknown)";
     statusEl.textContent = "(unknown)";
     dlEl.textContent = "(unknown)";
+    if (likesCountEl) likesCountEl.textContent = "0";
+    if (likeBtn) likeBtn.setAttribute("aria-pressed", "false");
 
     subtitle.textContent = name + `  — blocks:${blocks} / size:${size}`;
   }
@@ -1294,6 +1317,7 @@
     const created = meta.created_at || meta.createdAt || meta.created || "";
     const status = (meta.status ?? meta.review_status ?? meta.state ?? "approved");
     const dl = meta.download_count ?? meta.downloadCount ?? meta.dl ?? "";
+    const likesCount = Number(meta.likes_count ?? meta.likesCount ?? meta.like_count ?? meta.likeCount ?? 0) || 0;
 
     subIdEl.textContent = id || "(unknown)";
     unitIdEl.textContent = meta.unit_id || meta.unitId || meta.id || "(unknown)";
@@ -1301,6 +1325,7 @@
     createdEl.textContent = created ? String(created) : "(unknown)";
     statusEl.textContent = String(status || "(unknown)");
     dlEl.textContent = (dl === "" || dl == null) ? "(unknown)" : String(dl);
+    if (likesCountEl) likesCountEl.textContent = String(likesCount);
 
     if(title) subtitle.textContent = title;
 
@@ -1323,6 +1348,85 @@
       submitBtn.href = `/submit?edit=${encodeURIComponent(id)}`;
       ownerHint.style.display = "inline";
     }
+  }
+
+  function setLikeUi({ likesCount, likedByMe, canToggle }){
+    if (likesCountEl) likesCountEl.textContent = String(Number(likesCount || 0) || 0);
+    if (likeBtn) {
+      likeBtn.setAttribute("aria-pressed", likedByMe ? "true" : "false");
+      likeBtn.title = canToggle ? "Like" : "Log in to like";
+    }
+  }
+
+  async function loadLikesSmart(id){
+    // If logged out, do not call private endpoint.
+    if (ME_EMAIL) {
+      try {
+        const r = await fetch(API_LIKES_PRIVATE(id), { cache: "no-store", credentials: "include" });
+        const text = await r.text().catch(() => "");
+        let data = null;
+        try { data = JSON.parse(text); } catch { data = null; }
+        if (r.ok && data && data.ok === true) {
+          setLikeUi({ likesCount: data.likes_count, likedByMe: Boolean(data.liked_by_me), canToggle: true });
+          return;
+        }
+      } catch {}
+    }
+
+    try {
+      const r = await fetch(API_LIKES_PUBLIC(id), { cache: "no-store" });
+      const data = await r.json().catch(() => null);
+      if (r.ok && data && data.ok === true) {
+        setLikeUi({ likesCount: data.likes_count, likedByMe: false, canToggle: Boolean(ME_EMAIL) });
+        return;
+      }
+    } catch {}
+
+    // fallback
+    setLikeUi({ likesCount: (likesCountEl && Number(likesCountEl.textContent)) || 0, likedByMe: false, canToggle: Boolean(ME_EMAIL) });
+  }
+
+  if (likeBtn) {
+    likeBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      if (!EFFECTIVE_ID) return;
+
+      if (!ME_EMAIL) {
+        location.href = `/api/login?next=${encodeURIComponent(location.pathname + location.search)}`;
+        return;
+      }
+
+      if (likeBtn.dataset.busy === "1") return;
+      likeBtn.dataset.busy = "1";
+      likeBtn.disabled = true;
+
+      try {
+        const r = await fetch(API_LIKES_TOGGLE(EFFECTIVE_ID), {
+          method: "POST",
+          cache: "no-store",
+          credentials: "include",
+        });
+        const text = await r.text().catch(() => "");
+        let data = null;
+        try { data = JSON.parse(text); } catch { data = null; }
+
+        if (!r.ok || !data || data.ok !== true) {
+          if (r.status === 401 || (data && data.error === "unauthorized")) {
+            location.href = `/api/login?next=${encodeURIComponent(location.pathname + location.search)}`;
+            return;
+          }
+          throw new Error((data && (data.error || data.message)) || ("HTTP " + r.status));
+        }
+
+        setLikeUi({ likesCount: data.likes_count, likedByMe: Boolean(data.liked_by_me), canToggle: true });
+      } catch (err) {
+        showWarn(`Like failed: ${String(err?.message || err)}`);
+      } finally {
+        likeBtn.dataset.busy = "0";
+        likeBtn.disabled = false;
+      }
+    });
   }
 
   async function loadUnitJsonSmart(id){
@@ -1542,6 +1646,9 @@
       ].join("\n");
       showWarn(hint);
     }
+
+    // Likes (count + my status)
+    await loadLikesSmart(EFFECTIVE_ID);
 
     // JSON は最優先で取りに行く（ここが取れれば3Dは成立）
     try{

@@ -250,6 +250,32 @@
       gap:6px;
       align-items:center;
     }
+    .meta .like{
+      display:flex;
+      gap:6px;
+      align-items:center;
+    }
+    .btn-like{
+      appearance:none;
+      -webkit-appearance:none;
+      border:1px solid rgba(148,163,184,.45);
+      background: rgba(255,255,255,.75);
+      color:#0f172a;
+      border-radius:999px;
+      padding:2px 8px;
+      font-size:12px;
+      line-height:1.6;
+      cursor:pointer;
+    }
+    .btn-like[aria-pressed="true"]{
+      background: rgba(220, 38, 38, .92);
+      border-color: rgba(220, 38, 38, .25);
+      color:#fff;
+    }
+    .btn-like:disabled{
+      opacity:.6;
+      cursor:not-allowed;
+    }
     .tagline{
       margin-top:8px;
       font-size:12px;
@@ -579,6 +605,9 @@
   const API_DL   = (id) => api(`/api/public/submissions/${id}/download`);
   const API_PUBLIC_SCREEN = (screenId) => api(`/api/public/screens/${encodeURIComponent(screenId)}`);
   const API_PRIVATE_SCREEN = (screenId) => api(`/api/screens/${encodeURIComponent(screenId)}`);
+
+  const API_LIKES_TOGGLE = (id) => api(`/api/submissions/${encodeURIComponent(id)}/likes/toggle`);
+  const API_LIKES_BATCH = api(`/api/likes/batch`);
 
   // ====== AUTH ======
   const API_WHOAMI = api("/api/whoami");
@@ -1040,6 +1069,10 @@
           <div class="left">
             <div class="author">👤 <span>${escapeHtml(it.author || "unknown")}</span></div>
             <div class="dl">⬇ ${escapeHtml(it.dl ?? 0)}</div>
+            <div class="like">
+              <button class="btn-like" type="button" data-like-btn data-submission-id="${escapeHtml(it.id)}" aria-pressed="false" title="Like">♥</button>
+              <span data-like-count>${escapeHtml(it.likesCount ?? 0)}</span>
+            </div>
           </div>
           <div class="time">🕒 ${escapeHtml(it.createdText)}</div>
         </div>
@@ -1060,6 +1093,51 @@
         e.stopPropagation();
         goUnit(it);
       });
+
+      const likeBtn = card.querySelector("[data-like-btn]");
+      const likeCountEl = card.querySelector("[data-like-count]");
+      if (likeBtn && likeCountEl) {
+        likeBtn.addEventListener("click", async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          // If logged out, send user to login flow.
+          if (!meEmail) {
+            location.href = `/api/login?next=${encodeURIComponent(location.pathname + location.search)}`;
+            return;
+          }
+
+          if (likeBtn.dataset.busy === "1") return;
+          likeBtn.dataset.busy = "1";
+          likeBtn.disabled = true;
+
+          try {
+            const r = await fetch(API_LIKES_TOGGLE(it.id), {
+              method: "POST",
+              cache: "no-store",
+              credentials: "include",
+            });
+            const text = await r.text();
+            let data = null;
+            try { data = JSON.parse(text); } catch { data = null; }
+
+            if (!r.ok || !data || data.ok !== true) {
+              // Access redirect or unauthorized: fall back to login.
+              if (r.status === 401 || (data && data.error === "unauthorized")) {
+                location.href = `/api/login?next=${encodeURIComponent(location.pathname + location.search)}`;
+                return;
+              }
+              throw new Error((data && (data.error || data.message)) || ("HTTP " + r.status));
+            }
+
+            likeCountEl.textContent = String(data.likes_count ?? 0);
+            likeBtn.setAttribute("aria-pressed", data.liked_by_me ? "true" : "false");
+          } finally {
+            likeBtn.dataset.busy = "0";
+            likeBtn.disabled = false;
+          }
+        });
+      }
     }
 
     const img = card.querySelector("img.thumbimg");
@@ -1224,6 +1302,7 @@
       const created = asDateIso(r.created_at || r.createdAt || r.created);
       const createdText = created ? created.slice(0,10) : "";
       const tags = normalizeTags(r.tags);
+      const likesCount = Number(r.likes_count ?? r.likesCount ?? r.like_count ?? r.likeCount ?? 0) || 0;
       const no = resolveNo(r);
       const rawStatus =
         (r.status ?? r.review_status ?? r.reviewStatus ?? r.state ?? r.approval_status ?? r.approvalStatus ?? "");
@@ -1249,6 +1328,7 @@
         authorEmail: r.author_email || r.authorEmail || r.author_id || r.authorId || "",
         authorId: r.author_email || r.authorEmail || r.author_id || r.authorId || "",
         dl: Number(r.download_count ?? r.downloadCount ?? 0),
+        likesCount,
         mod: r.mod_version || r.modVersion || "Forge",
         created: created || "",
         createdText,
@@ -1257,6 +1337,47 @@
         status
       });
     });
+  }
+
+  async function hydrateLikesForGrid(ids){
+    if(!meEmail) return;
+    const uniq = Array.from(new Set((ids || []).map(x=>String(x||"").trim()).filter(Boolean))).slice(0, 50);
+    if(!uniq.length) return;
+
+    try{
+      const r = await fetch(API_LIKES_BATCH, {
+        method: "POST",
+        cache: "no-store",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ submission_ids: uniq }),
+      });
+      const text = await r.text().catch(()=> "");
+      let data = null;
+      try { data = JSON.parse(text); } catch { data = null; }
+      if(!r.ok || !data || data.ok !== true) return;
+
+      const map = new Map();
+      for(const it of (data.items || [])){
+        const id = String(it?.submission_id || "").trim();
+        if(!id) continue;
+        map.set(id, {
+          likes_count: Number(it?.likes_count || 0) || 0,
+          liked_by_me: Boolean(it?.liked_by_me)
+        });
+      }
+
+      const btns = grid.querySelectorAll("[data-like-btn]");
+      btns.forEach(btn => {
+        const id = String(btn.getAttribute("data-submission-id") || "").trim();
+        if(!id) return;
+        const v = map.get(id);
+        if(!v) return;
+        btn.setAttribute("aria-pressed", v.liked_by_me ? "true" : "false");
+        const countEl = btn.parentElement ? btn.parentElement.querySelector("[data-like-count]") : null;
+        if(countEl) countEl.textContent = String(v.likes_count);
+      });
+    }catch{}
   }
 
   async function load(){
@@ -1292,6 +1413,7 @@
       items = mapItems(arr);
 
       renderGrid(items);
+      hydrateLikesForGrid(items.map(x=>x.id));
       renderPager(meta);
     }catch(e){
       showError("Failed to load the list.\n" + String(e.message || e));
