@@ -249,6 +249,13 @@
       display:flex;
       gap:6px;
       align-items:center;
+      line-height: 1;
+    }
+    .meta .dl .dl-ico{
+      display:inline-block;
+      width: 1em;
+      text-align:center;
+      transform: translateY(0.5px);
     }
     .meta .like{
       display:flex;
@@ -260,7 +267,7 @@
       -webkit-appearance:none;
       border:1px solid rgba(148,163,184,.45);
       background: rgba(255,255,255,.75);
-      color:#0f172a;
+      color: rgba(220, 38, 38, .75);
       border-radius:999px;
       padding:2px 8px;
       font-size:12px;
@@ -268,9 +275,9 @@
       cursor:pointer;
     }
     .btn-like[aria-pressed="true"]{
-      background: rgba(220, 38, 38, .92);
-      border-color: rgba(220, 38, 38, .25);
-      color:#fff;
+      background: rgba(220, 38, 38, .10);
+      border-color: rgba(220, 38, 38, .35);
+      color:#dc2626;
     }
     .btn-like:disabled{
       opacity:.6;
@@ -1068,9 +1075,9 @@
         <div class="meta">
           <div class="left">
             <div class="author">👤 <span>${escapeHtml(it.author || "unknown")}</span></div>
-            <div class="dl">⬇ ${escapeHtml(it.dl ?? 0)}</div>
+            <div class="dl"><span class="dl-ico">↓</span><span class="dl-num">${escapeHtml(it.dl ?? 0)}</span></div>
             <div class="like">
-              <button class="btn-like" type="button" data-like-btn data-submission-id="${escapeHtml(it.id)}" aria-pressed="false" title="Like">♥</button>
+              <button class="btn-like" type="button" data-like-btn data-submission-id="${escapeHtml(it.id)}" aria-pressed="false" title="Like">♡</button>
               <span data-like-count>${escapeHtml(it.likesCount ?? 0)}</span>
             </div>
           </div>
@@ -1093,51 +1100,53 @@
         e.stopPropagation();
         goUnit(it);
       });
+    }
 
-      const likeBtn = card.querySelector("[data-like-btn]");
-      const likeCountEl = card.querySelector("[data-like-count]");
-      if (likeBtn && likeCountEl) {
-        likeBtn.addEventListener("click", async (e) => {
-          e.preventDefault();
-          e.stopPropagation();
+    const likeBtn = card.querySelector("[data-like-btn]");
+    const likeCountEl = card.querySelector("[data-like-count]");
+    if (likeBtn && likeCountEl) {
+      likeBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
 
-          // If logged out, send user to login flow.
-          if (!meEmail) {
-            location.href = `/api/login?next=${encodeURIComponent(location.pathname + location.search)}`;
-            return;
-          }
+        // If logged out, send user to login flow.
+        if (!meEmail) {
+          location.href = `/api/login?next=${encodeURIComponent(location.pathname + location.search)}`;
+          return;
+        }
 
-          if (likeBtn.dataset.busy === "1") return;
-          likeBtn.dataset.busy = "1";
-          likeBtn.disabled = true;
+        if (likeBtn.dataset.busy === "1") return;
+        likeBtn.dataset.busy = "1";
+        likeBtn.disabled = true;
 
-          try {
-            const r = await fetch(API_LIKES_TOGGLE(it.id), {
-              method: "POST",
-              cache: "no-store",
-              credentials: "include",
-            });
-            const text = await r.text();
-            let data = null;
-            try { data = JSON.parse(text); } catch { data = null; }
+        try {
+          const r = await fetch(API_LIKES_TOGGLE(it.id), {
+            method: "POST",
+            cache: "no-store",
+            credentials: "include",
+          });
+          const text = await r.text();
+          let data = null;
+          try { data = JSON.parse(text); } catch { data = null; }
 
-            if (!r.ok || !data || data.ok !== true) {
-              // Access redirect or unauthorized: fall back to login.
-              if (r.status === 401 || (data && data.error === "unauthorized")) {
-                location.href = `/api/login?next=${encodeURIComponent(location.pathname + location.search)}`;
-                return;
-              }
-              throw new Error((data && (data.error || data.message)) || ("HTTP " + r.status));
+          if (!r.ok || !data || data.ok !== true) {
+            // Access redirect or unauthorized: fall back to login.
+            if (r.status === 401 || (data && data.error === "unauthorized")) {
+              location.href = `/api/login?next=${encodeURIComponent(location.pathname + location.search)}`;
+              return;
             }
-
-            likeCountEl.textContent = String(data.likes_count ?? 0);
-            likeBtn.setAttribute("aria-pressed", data.liked_by_me ? "true" : "false");
-          } finally {
-            likeBtn.dataset.busy = "0";
-            likeBtn.disabled = false;
+            throw new Error((data && (data.error || data.message)) || ("HTTP " + r.status));
           }
-        });
-      }
+
+          const liked = Boolean(data.liked_by_me);
+          likeCountEl.textContent = String(data.likes_count ?? 0);
+          likeBtn.setAttribute("aria-pressed", liked ? "true" : "false");
+          likeBtn.textContent = liked ? "♥" : "♡";
+        } finally {
+          likeBtn.dataset.busy = "0";
+          likeBtn.disabled = false;
+        }
+      });
     }
 
     const img = card.querySelector("img.thumbimg");
@@ -1374,6 +1383,7 @@
         const v = map.get(id);
         if(!v) return;
         btn.setAttribute("aria-pressed", v.liked_by_me ? "true" : "false");
+        btn.textContent = v.liked_by_me ? "♥" : "♡";
         const countEl = btn.parentElement ? btn.parentElement.querySelector("[data-like-count]") : null;
         if(countEl) countEl.textContent = String(v.likes_count);
       });
