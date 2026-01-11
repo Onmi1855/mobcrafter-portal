@@ -8,7 +8,7 @@
   <!-- Ads (default OFF): enable via /assets/ads-config.v1.js after approval -->
   <script src="/assets/ads-config.v1.js" defer></script>
   <script src="/assets/ads.v1.js" defer></script>
-  <script src="/assets/adsterra-banner.v1.js?v=20260111g" defer></script>
+  <script src="/assets/adsterra-banner.v1.js?v=20260111h" defer></script>
   <style>
     :root{
       --bg:#f6f8fb;
@@ -373,7 +373,7 @@
     }
     .chip input{ transform: translateY(1px); }
   </style>
-  <link rel="stylesheet" href="/assets/ad-rail.v1.css?v=20260111c" />
+  <link rel="stylesheet" href="/assets/ad-rail.v1.css?v=20260111d" />
 </head>
 <body class="mc-page-index">
 <header>
@@ -395,6 +395,16 @@
 </header>
 
 <main>
+  <!-- Left rail (layout only; ad code inserted later) -->
+  <aside class="mc-left-rail" aria-label="advertisement">
+    <div class="mc-left-rail-inner">
+      <div class="mc-ad-frame">
+        <div class="mc-ad-frame-label">Advertisement</div>
+        <div class="mc-ad-frame-box" data-adsterra-banner-host></div>
+      </div>
+    </div>
+  </aside>
+
   <div class="mc-main-col">
     <!-- Ad slot (index_top) - renders only when ads are enabled -->
     <div data-ad-slot-key="index_top"></div>

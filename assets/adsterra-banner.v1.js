@@ -5,7 +5,7 @@
   // - Renders inside an isolated iframe (prevents document.write issues)
 
   const HOST_SELECTOR = "[data-adsterra-banner-host]";
-  const CONTAINER_SRC = "/assets/adsterra-container.v1.html?v=20260111g";
+  const CONTAINER_SRC = "/assets/adsterra-container.v1.html?v=20260111h";
 
   const OPTIONS = {
     key: "2d5106258af9409063c547ff07cdce76",
@@ -41,68 +41,83 @@
 
   const boot = () => {
     try {
-      const host = document.querySelector(HOST_SELECTOR);
-      if (!host) return;
-      if (host.getAttribute("data-adsterra-mounted") === "1") return;
+      const hosts = Array.from(document.querySelectorAll(HOST_SELECTOR));
+      if (hosts.length === 0) return;
 
-      host.setAttribute("data-adsterra-mounted", "1");
+      // One shared listener; per-frame state stored in a Map.
+      const REGISTRY_KEY = "__mcAdsterraRegistry";
+      const LISTENER_KEY = "__mcAdsterraListenerAdded";
+      const registry = (window[REGISTRY_KEY] ||= new Map());
 
-      // Render inside an iframe so provider scripts that use document.write won't affect the main page.
-      host.textContent = "";
-      const frame = document.createElement("iframe");
-      frame.width = String(OPTIONS.width);
-      frame.height = String(OPTIONS.height);
-      frame.style.border = "0";
-      frame.style.overflow = "hidden";
-      frame.loading = "lazy";
-      frame.title = "advertisement";
-      // Some providers require a full referrer URL to validate placement.
-      frame.referrerPolicy = "unsafe-url";
-      frame.setAttribute("sandbox", STRICT_SANDBOX);
-      frame.setAttribute("scrolling", "no");
-      host.appendChild(frame);
-
-      let settled = false;
-      let attempt = 1;
-
-      const onMessage = (ev) => {
-        try {
-          if (ev.source !== frame.contentWindow) return;
-          const data = ev.data;
-          if (!data || data.type !== "mc-adsterra") return;
-          if (data.status === "filled") {
-            settled = true;
-            window.removeEventListener("message", onMessage);
+      if (!window[LISTENER_KEY]) {
+        window[LISTENER_KEY] = true;
+        window.addEventListener("message", (ev) => {
+          try {
+            const rec = registry.get(ev.source);
+            if (!rec) return;
+            const data = ev.data;
+            if (!data || data.type !== "mc-adsterra") return;
+            if (data.status === "filled") {
+              rec.settled = true;
+              if (rec.timer) {
+                clearTimeout(rec.timer);
+                rec.timer = null;
+              }
+            }
+          } catch {
+            // ignore
           }
-        } catch {
-          // ignore
-        }
-      };
+        });
+      }
 
-      window.addEventListener("message", onMessage);
-
-      const loadAttempt = (sandboxValue) => {
+      for (const host of hosts) {
         try {
-          frame.setAttribute("sandbox", sandboxValue);
-          frame.src = buildContainerSrc(attempt);
-        } catch {
-          // ignore
-        }
-      };
+          if (!host) continue;
+          if (host.getAttribute("data-adsterra-mounted") === "1") continue;
+          host.setAttribute("data-adsterra-mounted", "1");
 
-      // Attempt 1: strict isolation.
-      loadAttempt(STRICT_SANDBOX);
+          host.textContent = "";
+          const frame = document.createElement("iframe");
+          frame.width = String(OPTIONS.width);
+          frame.height = String(OPTIONS.height);
+          frame.style.border = "0";
+          frame.style.overflow = "hidden";
+          frame.loading = "lazy";
+          frame.title = "advertisement";
+          frame.referrerPolicy = "unsafe-url";
+          frame.setAttribute("sandbox", STRICT_SANDBOX);
+          frame.setAttribute("scrolling", "no");
+          host.appendChild(frame);
 
-      // If we don't hear back quickly, retry with relaxed sandbox.
-      setTimeout(() => {
-        try {
-          if (settled) return;
-          attempt = 2;
-          loadAttempt(RELAXED_SANDBOX);
+          const rec = { frame, settled: false, attempt: 1, timer: null };
+          registry.set(frame.contentWindow, rec);
+
+          const loadAttempt = (sandboxValue) => {
+            try {
+              frame.setAttribute("sandbox", sandboxValue);
+              frame.src = buildContainerSrc(rec.attempt);
+            } catch {
+              // ignore
+            }
+          };
+
+          // Attempt 1: strict isolation.
+          loadAttempt(STRICT_SANDBOX);
+
+          // Attempt 2: relaxed sandbox (for providers that require non-opaque origin).
+          rec.timer = setTimeout(() => {
+            try {
+              if (rec.settled) return;
+              rec.attempt = 2;
+              loadAttempt(RELAXED_SANDBOX);
+            } catch {
+              // ignore
+            }
+          }, 3000);
         } catch {
-          // ignore
+          // ignore single slot failures
         }
-      }, 3000);
+      }
     } catch {
       // never block page
     }
