@@ -5,7 +5,7 @@
   // - Renders inside an isolated iframe (prevents document.write issues)
 
   const HOST_SELECTOR = "[data-adsterra-banner-host]";
-  const CONTAINER_SRC = "/assets/adsterra-container.v1.html?v=20260111e";
+  const CONTAINER_SRC = "/assets/adsterra-container.v1.html?v=20260111g";
 
   const OPTIONS = {
     key: "2d5106258af9409063c547ff07cdce76",
@@ -14,6 +14,30 @@
     width: 160,
     params: {},
   };
+
+  const hasDebugFlag = () => {
+    try {
+      return new URLSearchParams(window.location.search).get("addebug") === "1";
+    } catch {
+      return false;
+    }
+  };
+
+  const buildContainerSrc = (attempt) => {
+    const join = CONTAINER_SRC.includes("?") ? "&" : "?";
+    const parts = [CONTAINER_SRC];
+    if (hasDebugFlag()) parts.push(join + "debug=1");
+    const join2 = parts.join("&");
+    const sep = join2.includes("?") ? "&" : "?";
+    return join2 + sep + "attempt=" + encodeURIComponent(String(attempt || 1));
+  };
+
+  const STRICT_SANDBOX =
+    "allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox";
+  // Fallback for providers that refuse opaque origins (sandbox without allow-same-origin).
+  // Still blocks top navigation.
+  const RELAXED_SANDBOX =
+    "allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox";
 
   const boot = () => {
     try {
@@ -34,17 +58,51 @@
       frame.title = "advertisement";
       // Some providers require a full referrer URL to validate placement.
       frame.referrerPolicy = "unsafe-url";
-      // NOTE: Do NOT add allow-same-origin; we want isolation.
-      frame.setAttribute(
-        "sandbox",
-        "allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
-      );
+      frame.setAttribute("sandbox", STRICT_SANDBOX);
       frame.setAttribute("scrolling", "no");
       host.appendChild(frame);
 
-      // Use a first-party HTML container so document.location/referrer look normal.
-      // This improves compatibility with some providers that bail out on about:srcdoc.
-      frame.src = CONTAINER_SRC;
+      let settled = false;
+      let attempt = 1;
+
+      const onMessage = (ev) => {
+        try {
+          if (ev.source !== frame.contentWindow) return;
+          const data = ev.data;
+          if (!data || data.type !== "mc-adsterra") return;
+          if (data.status === "filled") {
+            settled = true;
+            window.removeEventListener("message", onMessage);
+          }
+        } catch {
+          // ignore
+        }
+      };
+
+      window.addEventListener("message", onMessage);
+
+      const loadAttempt = (sandboxValue) => {
+        try {
+          frame.setAttribute("sandbox", sandboxValue);
+          frame.src = buildContainerSrc(attempt);
+        } catch {
+          // ignore
+        }
+      };
+
+      // Attempt 1: strict isolation.
+      loadAttempt(STRICT_SANDBOX);
+
+      // If we don't hear back quickly, retry with relaxed sandbox.
+      setTimeout(() => {
+        try {
+          if (settled) return;
+          attempt = 2;
+          loadAttempt(RELAXED_SANDBOX);
+        } catch {
+          // ignore
+        }
+      }, 3000);
     } catch {
       // never block page
     }

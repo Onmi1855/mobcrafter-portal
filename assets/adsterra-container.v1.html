@@ -86,6 +86,7 @@
           "time: " + esc(state.t) + "ms<br>" +
           "referrer: " + esc(state.ref) + "<br>" +
           "top==self: " + esc(state.top) + "<br>" +
+          "attempt: " + esc(state.attempt) + "<br>" +
           "invoke loaded: " + esc(state.invokeLoaded) + "<br>" +
           "invoke error: " + esc(state.invokeError) + "<br>" +
           "iframe injected: " + esc(state.iframeInjected);
@@ -95,14 +96,31 @@
       var isTop;
       try { isTop = (window.top === window.self); } catch { isTop = false; }
 
+      var attempt = "";
+      try {
+        attempt = (new URLSearchParams(location.search)).get("attempt") || "";
+      } catch (_) {}
+
       var state = {
         t: 0,
         ref: document.referrer || "(empty)",
         top: isTop ? "yes" : "no",
+        attempt: attempt || "(none)",
         invokeLoaded: "pending",
         invokeError: "",
         iframeInjected: "no"
       };
+
+      function notify(status, extra) {
+        try {
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage(
+              { type: "mc-adsterra", status: status, attempt: attempt || "" , extra: extra || "" },
+              "*"
+            );
+          }
+        } catch (_) {}
+      }
 
       function tick() {
         state.t = Date.now() - t0;
@@ -122,6 +140,7 @@
         onInvokeError: function (msg) {
           state.invokeLoaded = "no";
           state.invokeError = msg || "load failed";
+          notify("invoke_error", state.invokeError);
           tick();
         }
       };
@@ -177,7 +196,10 @@
       // Detect provider injecting an iframe.
       function checkInjected() {
         try {
-          if (document.querySelector("iframe")) state.iframeInjected = "yes";
+          if (document.querySelector("iframe")) {
+            state.iframeInjected = "yes";
+            notify("filled", "iframe detected");
+          }
         } catch (_) {}
       }
       try {
