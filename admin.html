@@ -378,6 +378,14 @@
     }[m]));
   }
 
+  function normalizeThumbMode(v){
+    if (v === null || v === undefined) return "3d";
+    const s = String(v).trim().toLowerCase();
+    if (!s) return "3d";
+    if (s === "screen" || s === "screenshot" || s === "1" || s === "true") return "screen";
+    return "3d";
+  }
+
   function parseTags(tags) {
     try {
       if (Array.isArray(tags)) return tags;
@@ -737,9 +745,11 @@
             const detailLink = no ? `<a class="btnlink" href="/u/${encodeURIComponent(no)}" target="_blank">Public detail</a>` : "";
             const delPill = deleted ? `<span class="pill red">deleted</span>` : "";
 
-            const thumbMode = String(it.thumb_mode || "").toLowerCase();
-            const screenId = (it.thumb_screen_id != null && it.thumb_screen_id !== "") ? String(it.thumb_screen_id) : "";
-            const hasScreen = (thumbMode === "screen" && screenId);
+            const thumbMode = normalizeThumbMode(it.thumb_mode);
+            const thumbScreenId = (it.thumb_screen_id != null && it.thumb_screen_id !== "") ? String(it.thumb_screen_id) : "";
+            const latestScreenId = (it.latest_screen_id != null && it.latest_screen_id !== "") ? String(it.latest_screen_id) : "";
+            const screenId = (thumbMode === "screen" && thumbScreenId) ? thumbScreenId : (latestScreenId || "");
+            const hasScreen = Boolean(screenId);
 
             const screenHtml = hasScreen
               ? `<div class="thumbCol">
@@ -748,7 +758,7 @@
                      <img class="thumbimg"
                           alt=""
                           data-submission-id="${id}"
-                          data-screen-id="${esc(screenId)}"
+                       data-screen-id="${esc(screenId)}"
                           data-v="${cacheBuster(it)}"
                      />
                    </div>

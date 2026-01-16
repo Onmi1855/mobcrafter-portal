@@ -132,6 +132,11 @@
     <button id="btnUploadScreen" class="secondary">Upload screenshot</button>
     <span id="screenResult" class="mini"></span>
   </div>
+
+  <div class="actions" style="margin-top:8px;">
+    <button id="btnGenThumb" class="secondary">Generate static 3D image (for search)</button>
+    <span id="genResult" class="mini"></span>
+  </div>
 </div>
 
 </div>
@@ -729,7 +734,7 @@ setResult({ http: resp.status, ok: resp.ok, ...data });
         const $after = document.getElementById("afterSuccess");
 if ($after && resp.ok) {
   const submissionId =
-    (data && (data.id || data.submission_id || data.submissionId)) || "";
+    (data && (data.id || data.submission_id || data.submissionId)) || (isEditMode ? editId : "");
 
   const unitId =
     (data && (data.unit_id || data.unitId)) || "";
@@ -762,6 +767,8 @@ if ($after && resp.ok) {
 const $btnUpload = document.getElementById("btnUploadScreen");
 // ※ $screenFile は上で定義済みのものを再利用する
 const $screenResult = document.getElementById("screenResult");
+const $btnGenThumb = document.getElementById("btnGenThumb");
+const $genResult = document.getElementById("genResult");
 
 if ($btnUpload) {
   $btnUpload.addEventListener("click", async () => {
@@ -805,6 +812,56 @@ if ($btnUpload) {
       $screenResult.textContent = "Upload succeeded";
     } catch (e) {
       $screenResult.textContent = "Upload failed";
+    }
+  });
+}
+
+if ($btnGenThumb) {
+  $btnGenThumb.addEventListener("click", async () => {
+    if (!lastSubmissionId) {
+      if ($genResult) $genResult.textContent = "submission_id is not available";
+      return;
+    }
+    if (!canvas) {
+      if ($genResult) $genResult.textContent = "canvas is not available";
+      return;
+    }
+
+    if ($genResult) $genResult.textContent = "Generating...";
+
+    try {
+      const blob = await new Promise((resolve) => {
+        canvas.toBlob((b) => resolve(b), "image/png", 0.92);
+      });
+      if (!blob) {
+        if ($genResult) $genResult.textContent = "Failed to create image";
+        return;
+      }
+
+      const fd = new FormData();
+      fd.append("file", blob, "unit-thumb.png");
+      fd.append("thumb_mode", "3d");
+
+      const r = await fetch(
+        api(`/api/submissions/${encodeURIComponent(lastSubmissionId)}/screens`),
+        {
+          method: "POST",
+          body: fd,
+          credentials: "include"
+        }
+      );
+
+      const t = await r.text();
+      let d; try { d = JSON.parse(t); } catch { d = { raw:t }; }
+
+      if (!r.ok) {
+        if ($genResult) $genResult.textContent = "Failed: " + r.status;
+        return;
+      }
+
+      if ($genResult) $genResult.textContent = "Static image uploaded";
+    } catch (e) {
+      if ($genResult) $genResult.textContent = "Upload failed";
     }
   });
 }

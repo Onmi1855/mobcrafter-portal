@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MobCrafter Portal | Unit</title>
   <meta name="description" content="MobCrafter unit JSON details page. Download, JSON preview, and usage instructions." />
+  <meta property="og:type" content="article" />
+  <meta property="og:image" content="" />
+  <meta property="og:image:secure_url" content="" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="" />
+  <link rel="image_src" href="" />
+  <script type="application/ld+json" id="ldJson">
+  {"@context":"https://schema.org","@type":"CreativeWork","name":"","image":""}
+  </script>
   <!-- Ads (default OFF): enable via /assets/ads-config.v1.js after approval -->
   <script src="/assets/ads-config.v1.js" defer></script>
   <script src="/assets/ads.v1.js" defer></script>
@@ -200,6 +209,8 @@
   <p>Unit JSON details</p>
 </header>
 
+<img id="ogImageHidden" alt="" style="display:none;" />
+
 <main>
   <div class="wrap">
     <section class="card">
@@ -356,10 +367,38 @@
   const commentPrevEl = el("commentPrev");
   const commentNextEl = el("commentNext");
   const commentPageInfoEl = el("commentPageInfo");
+  const ogHiddenImg = el("ogImageHidden");
 
   function setCommentsState(msg){
     if(!commentsStateEl) return;
     commentsStateEl.textContent = String(msg || "");
+  }
+
+  function setOgImageByKey(key){
+    if (!key) return;
+    const url = new URL(`/api/public/submissions/${encodeURIComponent(key)}/og-image`, location.origin).toString();
+    const og = document.querySelector('meta[property="og:image"]');
+    const ogs = document.querySelector('meta[property="og:image:secure_url"]');
+    const tw = document.querySelector('meta[name="twitter:image"]');
+    const ln = document.querySelector('link[rel="image_src"]');
+    if (og) og.setAttribute("content", url);
+    if (ogs) ogs.setAttribute("content", url);
+    if (tw) tw.setAttribute("content", url);
+    if (ln) ln.setAttribute("href", url);
+    if (ogHiddenImg) ogHiddenImg.src = url;
+    return url;
+  }
+
+  function setStructuredData({ name, imageUrl } = {}){
+    const el = document.getElementById("ldJson");
+    if (!el) return;
+    const data = {
+      "@context": "https://schema.org",
+      "@type": "CreativeWork",
+      "name": name || "",
+      "image": imageUrl || ""
+    };
+    el.textContent = JSON.stringify(data);
   }
 
   function clearChildren(node){
@@ -701,6 +740,8 @@
       return;
     }
 
+    const ogUrl = setOgImageByKey(key);
+
     const isNo = /^\d+$/.test(key);
     const list = await fetchApprovedList();
 
@@ -734,6 +775,7 @@
 
     // 表示
     el("title").textContent = item.title || item.name || "Untitled";
+    setStructuredData({ name: (item.title || item.name || "Untitled"), imageUrl: ogUrl });
     el("sub").textContent = `#${item.submission_no ?? "?"} / ${item.unit_id ?? ""}`;
 
     const tags = normalizeTags(item.tags);

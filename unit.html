@@ -4,6 +4,15 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MobCrafter - Unit</title>
+  <meta property="og:type" content="article" />
+  <meta property="og:image" content="" />
+  <meta property="og:image:secure_url" content="" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="" />
+  <link rel="image_src" href="" />
+  <script type="application/ld+json" id="ldJson">
+  {"@context":"https://schema.org","@type":"CreativeWork","name":"","image":""}
+  </script>
   <style>
     :root{
       --bg:#f6f8fb;
@@ -390,6 +399,8 @@
   </div>
 </header>
 
+<img id="ogImageHidden" alt="" style="display:none;" />
+
 <main>
   <!-- Left rail (layout only; ad code inserted later) -->
   <aside class="mc-left-rail" aria-label="advertisement">
@@ -601,6 +612,7 @@
   const likesCountEl = document.getElementById("likesCount");
 
   const warnEl = document.getElementById("warn");
+  const ogHiddenImg = document.getElementById("ogImageHidden");
 
   // Show unexpected runtime errors on the page (helps debugging in secret-mode/prod where console isn't shared).
   const reportFatal = (label, err) => {
@@ -661,6 +673,36 @@
   function hideWarn(){
     warnEl.style.display = "none";
     warnEl.textContent = "";
+  }
+
+  function setOgImageById(id){
+    if (!id) return;
+    const url = new URL(`/api/public/submissions/${encodeURIComponent(id)}/og-image`, location.origin).toString();
+
+    const og = document.querySelector('meta[property="og:image"]');
+    const ogs = document.querySelector('meta[property="og:image:secure_url"]');
+    const tw = document.querySelector('meta[name="twitter:image"]');
+    const ln = document.querySelector('link[rel="image_src"]');
+
+    if (og) og.setAttribute("content", url);
+    if (ogs) ogs.setAttribute("content", url);
+    if (tw) tw.setAttribute("content", url);
+    if (ln) ln.setAttribute("href", url);
+    if (ogHiddenImg) ogHiddenImg.src = url;
+
+    return url;
+  }
+
+  function setStructuredData({ name, imageUrl } = {}){
+    const el = document.getElementById("ldJson");
+    if (!el) return;
+    const data = {
+      "@context": "https://schema.org",
+      "@type": "CreativeWork",
+      "name": name || "",
+      "image": imageUrl || ""
+    };
+    el.textContent = JSON.stringify(data);
   }
 
   // =========================
@@ -1306,6 +1348,9 @@
     if (likeBtn) likeBtn.setAttribute("aria-pressed", "false");
 
     subtitle.textContent = name + `  — blocks:${blocks} / size:${size}`;
+
+    const ogUrl = setOgImageById(id);
+    setStructuredData({ name, imageUrl: ogUrl });
   }
 
   function setMetaFromSubmission(meta){
@@ -1328,6 +1373,9 @@
     if (likesCountEl) likesCountEl.textContent = String(likesCount);
 
     if(title) subtitle.textContent = title;
+
+    const ogUrl = setOgImageById(id);
+    setStructuredData({ name: title || "", imageUrl: ogUrl });
 
     // DLボタン（public優先・ダメならprivate）
     dlBtn.style.display = "inline-flex";
@@ -1625,6 +1673,7 @@
     }catch{}
 
     hideWarn();
+    setOgImageById(EFFECTIVE_ID);
     await loadWhoami();
     await loadPalette();
 

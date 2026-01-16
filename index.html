@@ -744,6 +744,14 @@
     return String(t).split(/[\s,]+/).map(x=>x.trim()).filter(Boolean);
   }
 
+  function normalizeThumbMode(v){
+    if (v === null || v === undefined) return "3d";
+    const s = String(v).trim().toLowerCase();
+    if (!s) return "3d";
+    if (s === "screen" || s === "screenshot" || s === "1" || s === "true") return "screen";
+    return "3d";
+  }
+
   function asDateIso(s){
     try{
       const d = new Date(s);
@@ -1032,7 +1040,7 @@
     const canEdit = isMine;
 
     const hasScreen = Boolean(it.thumbScreenId);
-    const useScreenThumb = hasScreen;
+    const useScreenThumb = (it.thumbMode === "screen") && hasScreen;
 
     const st = String(it.status || "approved").toLowerCase();
     const statusBadge = (st && st !== "approved")
@@ -1341,7 +1349,7 @@
         mod: r.mod_version || r.modVersion || "Forge",
         created: created || "",
         createdText,
-        thumbMode: String(thumbModeRaw).toLowerCase(),
+        thumbMode: normalizeThumbMode(thumbModeRaw),
         thumbScreenId: screenId ? String(screenId) : null,
         status
       });
