@@ -266,8 +266,23 @@ function setEditUi(){
       authEmailWrap.style.display = "none";
       isLoggedIn = false;
 
-      const r = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
-      const data = await r.json().catch(()=>null);
+      // cache-buster: some mobile/edge setups can serve a stale auth response
+      const whoamiUrl = API_WHOAMI + (API_WHOAMI.includes("?") ? "&" : "?") + "t=" + Date.now();
+      const r = await fetch(whoamiUrl, { cache:"no-store", credentials:"include" });
+      const txt = await r.text();
+      let data = null;
+      try { data = JSON.parse(txt); } catch { data = null; }
+
+      // When Cloudflare Access blocks the request, we may get 401/403 (often non-JSON).
+      if (r.status === 401 || r.status === 403) {
+        authState.textContent = "logged out";
+        authEmailWrap.style.display = "none";
+        isLoggedIn = false;
+        loggedInEmail = "";
+        $loginLink.style.display = "inline-block";
+        $needLogin.textContent = `* Log in to submit (HTTP ${r.status})`;
+        return;
+      }
 
       const email = data ? normEmail(data.email) : "";
       if(!email){

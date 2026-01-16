@@ -650,14 +650,23 @@
       meIsAdmin = false;
       meUserId = null;
 
-      const r = await fetch(API_WHOAMI, { cache:"no-store", credentials:"include" });
+      const whoamiUrl = API_WHOAMI + (API_WHOAMI.includes("?") ? "&" : "?") + "t=" + Date.now();
+      const r = await fetch(whoamiUrl, { cache:"no-store", credentials:"include" });
       const text = await r.text();
       let data = null;
       try { data = JSON.parse(text); } catch { data = null; }
 
       authActionLink.href = `/api/login?next=${encodeURIComponent("/")}`;
 
-      if(!r.ok || !data){
+      if (!r.ok || !data) {
+        // Access can block API calls with 401/403 (often returning HTML).
+        if (r.status === 401 || r.status === 403) {
+          authState.textContent = "logged out";
+          authActionLink.textContent = "Log in";
+          authActionLink.className = "";
+          postLink.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
+          return;
+        }
         authState.textContent = "unknown";
         authActionLink.textContent = "Log in";
         authActionLink.className = "";
