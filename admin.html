@@ -273,10 +273,23 @@
       authActionLink.className = "";
       authActionLink.href = "/api/login?next=" + encodeURIComponent(RETURN_PATH);
 
-      const r = await fetch(apiUrl("/api/whoami"), { cache:"no-store", credentials:"include" });
+      // cache-buster: some mobile/edge setups can serve a stale auth response
+      const whoamiUrl = apiUrl("/api/whoami") + "?t=" + Date.now();
+      const r = await fetch(whoamiUrl, { cache:"no-store", credentials:"include" });
       const text = await r.text();
       let data = null;
       try { data = JSON.parse(text); } catch { data = null; }
+
+      // When Cloudflare Access blocks the request, we may get 401/403 (often non-JSON).
+      if (r.status === 401 || r.status === 403) {
+        authState.textContent = "logged out";
+        authEmailWrap.style.display = "none";
+        authAdminWrap.style.display = "none";
+        authActionLink.textContent = "Log in";
+        authActionLink.className = "";
+        authActionLink.href = "/api/login?next=" + encodeURIComponent(RETURN_PATH);
+        return null;
+      }
 
       if(!r.ok || !data){
         authState.textContent = "unknown";
@@ -312,10 +325,22 @@
     }
   }
 
+  // Mobile browsers may restore pages from BFCache (back/forward cache),
+  // leaving a stale logged-out UI even after a successful Access login.
+  let whoamiRefreshPromise = null;
+  function refreshWhoami(){
+    if (whoamiRefreshPromise) return whoamiRefreshPromise;
+    whoamiRefreshPromise = Promise.resolve()
+      .then(() => loadWhoami())
+      .finally(() => { whoamiRefreshPromise = null; });
+    return whoamiRefreshPromise;
+  }
+
   // ★ Access セッション確立（admin叩く前に whoami を踏む）
   async function warmupAccessSession(){
     try{
-      const r = await fetch(apiUrl("/api/whoami"), {
+      const whoamiUrl = apiUrl("/api/whoami") + "?t=" + Date.now();
+      const r = await fetch(whoamiUrl, {
         cache: "no-store",
         credentials: "include",
         redirect: "manual",
@@ -978,10 +1003,27 @@
   $includeDeleted.addEventListener("change", load);
 
   (async () => {
-    await loadWhoami();            // 表示用（ログイン/ログアウト）
+    const auth = await refreshWhoami();            // 表示用（ログイン/ログアウト）
+    if (!auth || !auth.email) {
+      log({ ok: false, error: "login_required" });
+      return;
+    }
+    if (!auth.isAdmin) {
+      log({ ok: false, error: "not_admin", email: auth.email });
+      document.getElementById("list").innerHTML = `<div class="muted">Not an admin account (${esc(auth.email)}).</div>`;
+      return;
+    }
+
     const ok = await warmupAccessSession(); // 401/リダイレクト対策
     if (ok) await load();
   })();
+
+  // Re-check auth on BFCache restore / when the tab becomes active.
+  window.addEventListener("pageshow", () => { refreshWhoami(); });
+  window.addEventListener("focus", () => { refreshWhoami(); });
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) refreshWhoami();
+  });
 
 })();
 </script>

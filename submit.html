@@ -311,6 +311,21 @@ function setEditUi(){
     }
   }
 
+  // Mobile browsers may restore pages from BFCache (back/forward cache),
+  // leaving a stale logged-out UI even after a successful Access login.
+  // Use a small wrapper to re-check auth on page show/focus.
+  let whoamiRefreshPromise = null;
+  function refreshWhoami(){
+    if (whoamiRefreshPromise) return whoamiRefreshPromise;
+    whoamiRefreshPromise = Promise.resolve()
+      .then(() => loadWhoami())
+      .finally(() => {
+        updateButtonState();
+        whoamiRefreshPromise = null;
+      });
+    return whoamiRefreshPromise;
+  }
+
   function setPreview(v) {
     $prev.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
   }
@@ -606,10 +621,16 @@ function setEditUi(){
   }
 
   // 初回：ログイン確認
-  loadWhoami().finally(() => {
-    updateButtonState();
+  refreshWhoami().finally(() => {
     setEditUi();
     loadForEdit();
+  });
+
+  // Re-check auth on BFCache restore / when the tab becomes active.
+  window.addEventListener("pageshow", () => { refreshWhoami(); });
+  window.addEventListener("focus", () => { refreshWhoami(); });
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) refreshWhoami();
   });
 
   $file.addEventListener("change", async () => {
