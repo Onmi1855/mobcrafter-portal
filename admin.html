@@ -259,6 +259,23 @@
   const authAdmin = document.getElementById("authAdmin");
   const authActionLink = document.getElementById("authActionLink");
 
+  function serializeError(e){
+    try{
+      if (e == null) return null;
+      if (typeof e === "string") return { message: e };
+      if (e instanceof Error) {
+        return { name: e.name, message: e.message, stack: e.stack };
+      }
+      // plain objects
+      const out = {};
+      for (const k in e) out[k] = e[k];
+      if (!out.message) out.message = String(e);
+      return out;
+    } catch {
+      return { message: String(e) };
+    }
+  }
+
   function normEmail(v){
     const s = String(v || "").trim().toLowerCase();
     return (s && s.includes("@")) ? s : "";
@@ -271,7 +288,7 @@
       authAdminWrap.style.display = "none";
       authActionLink.textContent = "Log in";
       authActionLink.className = "";
-      authActionLink.href = "/api/login?next=" + encodeURIComponent(RETURN_PATH);
+      authActionLink.href = apiUrl("/api/login?next=" + encodeURIComponent(RETURN_PATH));
 
       // cache-buster: some mobile/edge setups can serve a stale auth response
       const whoamiUrl = apiUrl("/api/whoami") + "?t=" + Date.now();
@@ -287,7 +304,7 @@
         authAdminWrap.style.display = "none";
         authActionLink.textContent = "Log in";
         authActionLink.className = "";
-        authActionLink.href = "/api/login?next=" + encodeURIComponent(RETURN_PATH);
+        authActionLink.href = apiUrl("/api/login?next=" + encodeURIComponent(RETURN_PATH));
         return null;
       }
 
@@ -313,14 +330,14 @@
 
       authActionLink.textContent = "Log out";
       authActionLink.className = "danger";
-      authActionLink.href = "/cdn-cgi/access/logout?returnTo=" + encodeURIComponent(location.origin + RETURN_PATH);
+      authActionLink.href = apiUrl("/cdn-cgi/access/logout") + "?returnTo=" + encodeURIComponent(location.href);
 
       return { email, isAdmin };
     }catch{
       authState.textContent = "unknown";
       authActionLink.textContent = "Log in";
       authActionLink.className = "";
-      authActionLink.href = "/api/login?next=" + encodeURIComponent(RETURN_PATH);
+      authActionLink.href = apiUrl("/api/login?next=" + encodeURIComponent(RETURN_PATH));
       return null;
     }
   }
@@ -347,18 +364,18 @@
       });
 
       if (r.type === "opaqueredirect" || r.status === 0) {
-        location.href = "/api/login?next=" + encodeURIComponent(RETURN_PATH);
+        location.href = apiUrl("/api/login?next=" + encodeURIComponent(RETURN_PATH));
         return false;
       }
 
       const data = await r.json().catch(()=>null);
       if (!data || !data.email) {
-        location.href = "/api/login?next=" + encodeURIComponent(RETURN_PATH);
+        location.href = apiUrl("/api/login?next=" + encodeURIComponent(RETURN_PATH));
         return false;
       }
       return true;
     }catch(e){
-      location.href = "/api/login?next=" + encodeURIComponent(RETURN_PATH);
+      location.href = apiUrl("/api/login?next=" + encodeURIComponent(RETURN_PATH));
       return false;
     }
   }
@@ -448,11 +465,16 @@
       init.headers["Content-Type"] = "application/json";
       init.body = JSON.stringify(body);
     }
-    const r = await fetch(u, init);
+    let r;
+    try {
+      r = await fetch(u, init);
+    } catch (e) {
+      throw { network_error: true, url: u, error: serializeError(e) };
+    }
     const text = await r.text();
     let data;
     try { data = JSON.parse(text); } catch { data = { raw: text }; }
-    if (!r.ok) throw { http: r.status, data };
+    if (!r.ok) throw { http: r.status, url: u, data };
     return data;
   }
 
@@ -860,7 +882,7 @@
       log({
         ok: false,
         hint: "If 401: check Cloudflare Access protection scope (mobcrafter.net/api/admin*) and admin allow policy.",
-        error: e
+        error: serializeError(e)
       });
       document.getElementById("list").innerHTML = `<div class="muted">Load failed (see log)</div>`;
     }
