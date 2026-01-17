@@ -295,10 +295,11 @@
       authAdminWrap.style.display = "none";
       authActionLink.textContent = "Log in";
       authActionLink.className = "";
-      authActionLink.href = apiUrl("/api/login?next=" + encodeURIComponent(RETURN_PATH));
+      // Use admin-scoped whoami so Access app for /api/admin* is established.
+      authActionLink.href = apiUrl("/api/admin/whoami?next=" + encodeURIComponent(RETURN_PATH));
 
       // cache-buster: some mobile/edge setups can serve a stale auth response
-      const whoamiUrl = apiUrl("/api/whoami") + "?t=" + Date.now();
+      const whoamiUrl = apiUrl("/api/admin/whoami") + "?t=" + Date.now();
       const r = await fetch(whoamiUrl, { cache:"no-store", credentials:"include" });
       const text = await r.text();
       let data = null;
@@ -311,7 +312,7 @@
         authAdminWrap.style.display = "none";
         authActionLink.textContent = "Log in";
         authActionLink.className = "";
-        authActionLink.href = apiUrl("/api/login?next=" + encodeURIComponent(RETURN_PATH));
+        authActionLink.href = apiUrl("/api/admin/whoami?next=" + encodeURIComponent(RETURN_PATH));
         return null;
       }
 
@@ -344,7 +345,7 @@
       authState.textContent = "unknown";
       authActionLink.textContent = "Log in";
       authActionLink.className = "";
-      authActionLink.href = apiUrl("/api/login?next=" + encodeURIComponent(RETURN_PATH));
+      authActionLink.href = apiUrl("/api/admin/whoami?next=" + encodeURIComponent(RETURN_PATH));
       return null;
     }
   }
@@ -363,7 +364,7 @@
   // ★ Access セッション確立（admin叩く前に whoami を踏む）
   async function warmupAccessSession(){
     try{
-      const whoamiUrl = apiUrl("/api/whoami") + "?t=" + Date.now();
+      const whoamiUrl = apiUrl("/api/admin/whoami") + "?t=" + Date.now();
       const r = await fetch(whoamiUrl, {
         cache: "no-store",
         credentials: "include",
@@ -371,18 +372,19 @@
       });
 
       if (r.type === "opaqueredirect" || r.status === 0) {
-        location.href = apiUrl("/api/login?next=" + encodeURIComponent(RETURN_PATH));
+        // Top-level navigation lets Access complete login even if fetch would fail.
+        location.href = apiUrl("/api/admin/whoami?next=" + encodeURIComponent(RETURN_PATH));
         return false;
       }
 
       const data = await r.json().catch(()=>null);
       if (!data || !data.email) {
-        location.href = apiUrl("/api/login?next=" + encodeURIComponent(RETURN_PATH));
+        location.href = apiUrl("/api/admin/whoami?next=" + encodeURIComponent(RETURN_PATH));
         return false;
       }
       return true;
     }catch(e){
-      location.href = apiUrl("/api/login?next=" + encodeURIComponent(RETURN_PATH));
+      location.href = apiUrl("/api/admin/whoami?next=" + encodeURIComponent(RETURN_PATH));
       return false;
     }
   }
@@ -466,6 +468,7 @@
     const init = {
       method,
       credentials: "include",
+      cache: "no-store",
       headers: { "Accept": "application/json" }
     };
     if (body !== undefined) {
@@ -1032,6 +1035,9 @@
   $includeDeleted.addEventListener("change", load);
 
   (async () => {
+    const ok = await warmupAccessSession(); // admin scope login (prevents mobile fetch redirect failure)
+    if (!ok) return;
+
     const auth = await refreshWhoami();            // 表示用（ログイン/ログアウト）
     if (!auth || !auth.email) {
       log({ ok: false, error: "login_required" });
@@ -1043,8 +1049,7 @@
       return;
     }
 
-    const ok = await warmupAccessSession(); // 401/リダイレクト対策
-    if (ok) await load();
+    await load();
   })();
 
   // Re-check auth on BFCache restore / when the tab becomes active.
