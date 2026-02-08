@@ -186,6 +186,8 @@
   const $yawOffset = document.getElementById("yawOffset");
   const canvas = document.getElementById("canvas");
 
+  const MAX_JSON_FILE_BYTES = 4 * 1024 * 1024; // 4MB
+
   let parsedJson = null;
   let jsonDirty = false;
   let lastSubmissionId = "";
@@ -637,7 +639,7 @@ function setEditUi(){
     parsedJson = null; setResult("Not sent"); setPreview("{}");
     const f = $file.files && $file.files[0];
     if (!f) return;
-    if (f.size > 2_200_000) { setPreview("File is too large (over ~2MB)"); return; }
+    if (f.size > MAX_JSON_FILE_BYTES) { setPreview("File is too large (over 4MB)"); return; }
     try {
       const obj = JSON.parse(await f.text());
       const err = validateMobCrafterJson(obj);
