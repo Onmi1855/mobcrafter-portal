@@ -189,6 +189,7 @@
   const MAX_JSON_FILE_BYTES = 10 * 1024 * 1024; // 10MB
 
   let parsedJson = null;
+  let parsedBlocks = null; // normalized blocks array: [{dx,dy,dz,blockId}, ...]
   let jsonDirty = false;
   let lastSubmissionId = "";
 
@@ -239,14 +240,23 @@ function setEditUi(){
       const raw = await jsonResp.text();
       let parsed = null;
       try{ parsed = JSON.parse(raw); }catch{ parsed=null; }
-      if(!parsed || !Array.isArray(parsed.blocks)){
-        setResult("Invalid JSON for editing");
+      const norm = normalizeMobCrafterJson(parsed);
+      if(!norm.ok){
+        setResult("Invalid JSON for editing: " + norm.error);
         return;
       }
 
       parsedJson = parsed;
+      parsedBlocks = norm.blocks;
       jsonDirty = false;
-      $prev.textContent = JSON.stringify(summarize(parsedJson), null, 2);
+      const info = analyzeBlocks(parsedBlocks);
+      $prev.textContent = JSON.stringify({
+        mode: "edit",
+        blocks: norm.blockCount,
+        size: `${info.sizeX} x ${info.sizeY} x ${info.sizeZ}`,
+        frontYaw: (parsedJson.frontYaw ?? null),
+        yaw_offset_quarter: Number($yawOffset.value||"0")
+      }, null, 2);
       rerender();
       updateButtonState();
       setResult({ ok:true, mode:"edit", id: editId });
@@ -339,21 +349,93 @@ function setEditUi(){
     $btn.disabled = !(isLoggedIn && parsedJson && ($title.value || "").trim());
   }
 
-  function validateMobCrafterJson(obj) {
-    if (!obj || typeof obj !== "object") return "JSON is not an object";
-    if (!Array.isArray(obj.blocks)) return "`blocks` array is missing";
-    if (obj.blocks.length === 0) return "`blocks` is empty";
-    if (obj.blocks.length > 200000) return "`blocks` is too large (over 200k)";
-    for (let i = 0; i < Math.min(obj.blocks.length, 1000); i++) {
-      const b = obj.blocks[i];
-      if (typeof b.dx !== "number" || typeof b.dy !== "number" || typeof b.dz !== "number") {
-        return `blocks[${i}] is missing dx/dy/dz`;
+  function normalizeMobCrafterJson(obj){
+    if (!obj || typeof obj !== "object") return { ok:false, error:"JSON is not an object" };
+
+    // Old format: blocks: [{dx,dy,dz,blockId}, ...]
+    if (Array.isArray(obj.blocks)) {
+      const blocks = obj.blocks;
+      const blockCount = blocks.length;
+      if (blockCount === 0) return { ok:false, error:"`blocks` is empty" };
+      if (blockCount > 200000) return { ok:false, error:"`blocks` is too large (over 200k)" };
+      for (let i = 0; i < Math.min(blockCount, 1000); i++) {
+        const b = blocks[i];
+        if (!b || typeof b !== "object") return { ok:false, error:`blocks[${i}] is not an object` };
+        if (typeof b.dx !== "number" || typeof b.dy !== "number" || typeof b.dz !== "number") {
+          return { ok:false, error:`blocks[${i}] is missing dx/dy/dz` };
+        }
+        if (!Number.isFinite(b.dx) || !Number.isFinite(b.dy) || !Number.isFinite(b.dz)) {
+          return { ok:false, error:`blocks[${i}] has non-finite dx/dy/dz` };
+        }
+        if (typeof b.blockId !== "string") {
+          return { ok:false, error:`blocks[${i}] is missing blockId` };
+        }
       }
-      if (typeof b.blockId !== "string") {
-        return `blocks[${i}] is missing blockId`;
+      return { ok:true, blocks, blockCount, format:"array" };
+    }
+
+    // New format: blocks: { palette: string[], instances: number[] } where instances is [dx,dy,dz,paletteIndex,...]
+    const b = obj.blocks;
+    if (!b || typeof b !== "object") {
+      return { ok:false, error:"`blocks` is missing (expected array or {palette, instances})" };
+    }
+
+    const palette = b.palette;
+    const instances = b.instances;
+    if (!Array.isArray(palette) || !Array.isArray(instances)) {
+      return { ok:false, error:"`blocks` is invalid (expected {palette:[], instances:[]})" };
+    }
+    if (palette.length === 0) return { ok:false, error:"`blocks.palette` is empty" };
+    if (instances.length === 0) return { ok:false, error:"`blocks.instances` is empty" };
+    if (instances.length % 4 !== 0) return { ok:false, error:"`blocks.instances` length must be a multiple of 4" };
+
+    const blockCount = instances.length / 4;
+    if (blockCount > 200000) return { ok:false, error:"`blocks` is too large (over 200k)" };
+
+    // Validate palette entries (sample)
+    for (let i = 0; i < Math.min(palette.length, 200); i++) {
+      if (typeof palette[i] !== "string") return { ok:false, error:`blocks.palette[${i}] is not a string` };
+    }
+
+    // Validate instances (sample) — verify palette indices are in-range
+    const sample = Math.min(blockCount, 1000);
+    for (let k = 0; k < sample; k++) {
+      const i = k * 4;
+      const dx = instances[i];
+      const dy = instances[i + 1];
+      const dz = instances[i + 2];
+      const pi = instances[i + 3];
+      if (typeof dx !== "number" || typeof dy !== "number" || typeof dz !== "number") {
+        return { ok:false, error:`blocks.instances[${i}..${i+2}] must be numbers` };
+      }
+      if (!Number.isFinite(dx) || !Number.isFinite(dy) || !Number.isFinite(dz)) {
+        return { ok:false, error:`blocks.instances[${i}..${i+2}] must be finite numbers` };
+      }
+      if (!Number.isInteger(pi) || pi < 0 || pi >= palette.length) {
+        return { ok:false, error:`blocks.instances[${i+3}] paletteIndex is out of range` };
       }
     }
-    return null;
+
+    // Expand to the old internal representation for rendering.
+    // NOTE: This does not mutate obj.blocks.
+    const blocks = new Array(blockCount);
+    for (let k = 0; k < blockCount; k++) {
+      const i = k * 4;
+      const pi = instances[i + 3];
+      blocks[k] = {
+        dx: instances[i],
+        dy: instances[i + 1],
+        dz: instances[i + 2],
+        blockId: String(palette[pi] || "minecraft:air"),
+      };
+    }
+
+    return { ok:true, blocks, blockCount, format:"palette_instances" };
+  }
+
+  function validateMobCrafterJson(obj) {
+    const r = normalizeMobCrafterJson(obj);
+    return r.ok ? null : r.error;
   }
 
   function yawToQuarterTurns(frontYaw, extraOffsetQuarter){
@@ -500,7 +582,7 @@ function setEditUi(){
     return Math.min(6, Math.max(2, bin));
   }
 
-  function renderThumbToCanvas(canvas, unitJson, extraOffsetQuarter){
+  function renderThumbToCanvas(canvas, unitJson, blocks0, extraOffsetQuarter){
     const ctx = canvas.getContext("2d");
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0,0,w,h);
@@ -511,12 +593,12 @@ function setEditUi(){
     g.addColorStop(1,"rgba(22,163,74,.08)");
     ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
 
-    const blocks0 = unitJson.blocks || [];
+    const blocksSrc = Array.isArray(blocks0) ? blocks0 : [];
     const qTurns = yawToQuarterTurns(unitJson.frontYaw, extraOffsetQuarter);
 
     // binning for speed (keep)
-    const bin = chooseBinSize(blocks0.length);
-    const blocks = binBlocks(blocks0, bin);
+    const bin = chooseBinSize(blocksSrc.length);
+    const blocks = binBlocks(blocksSrc, bin);
 
     // Projected bounding box of ONE iso cube in "s-units"
     // drawIsoCube uses:
@@ -619,7 +701,7 @@ function setEditUi(){
   function rerender(){
     if(!parsedJson) return;
     const extra = Number($yawOffset.value || "0") % 4;
-    renderThumbToCanvas(canvas, parsedJson, extra);
+    renderThumbToCanvas(canvas, parsedJson, parsedBlocks, extra);
   }
 
   // 初回：ログイン確認
@@ -636,20 +718,24 @@ function setEditUi(){
   });
 
   $file.addEventListener("change", async () => {
-    parsedJson = null; setResult("Not sent"); setPreview("{}");
+    parsedJson = null;
+    parsedBlocks = null;
+    setResult("Not sent");
+    setPreview("{}");
     const f = $file.files && $file.files[0];
     if (!f) return;
     if (f.size > MAX_JSON_FILE_BYTES) { setPreview("File is too large (over 10MB)"); return; }
     try {
       const obj = JSON.parse(await f.text());
-      const err = validateMobCrafterJson(obj);
-      if (err) { setPreview(err); return; }
+      const norm = normalizeMobCrafterJson(obj);
+      if (!norm.ok) { setPreview(norm.error); return; }
       parsedJson = obj;
+      parsedBlocks = norm.blocks;
       // ✅ 追加：編集モードでファイルを選び直したら「JSON更新が必要」にする
       jsonDirty = isEditMode;
       if (!$title.value.trim()) $title.value = f.name.replace(/\.json$/i,"");
-      const info = analyzeBlocks(obj.blocks);
-      setPreview({ file:{name:f.name,size:f.size}, blocks: obj.blocks.length, size:`${info.sizeX} x ${info.sizeY} x ${info.sizeZ}`, frontYaw:(obj.frontYaw ?? null), yaw_offset_quarter:Number($yawOffset.value||"0") });
+      const info = analyzeBlocks(parsedBlocks);
+      setPreview({ file:{name:f.name,size:f.size}, blocks: norm.blockCount, size:`${info.sizeX} x ${info.sizeY} x ${info.sizeZ}`, frontYaw:(obj.frontYaw ?? null), yaw_offset_quarter:Number($yawOffset.value||"0") });
       loadPalette().finally(()=>rerender());
     } catch (e) {
       setPreview("Failed to parse JSON: " + (e?.message || String(e)));

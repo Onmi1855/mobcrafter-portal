@@ -708,6 +708,42 @@
     ctx.restore();
   }
 
+  const _UNIT_BLOCKS_CACHE = new WeakMap();
+  function normalizeBlocksForDraw(j){
+    if(!j || typeof j !== "object") return [];
+    const cached = _UNIT_BLOCKS_CACHE.get(j);
+    if(cached) return cached;
+
+    if(Array.isArray(j.blocks)){
+      _UNIT_BLOCKS_CACHE.set(j, j.blocks);
+      return j.blocks;
+    }
+
+    const b = j.blocks;
+    const palette = b && typeof b === "object" ? b.palette : null;
+    const instances = b && typeof b === "object" ? b.instances : null;
+    if(!Array.isArray(palette) || !Array.isArray(instances) || instances.length % 4 !== 0){
+      _UNIT_BLOCKS_CACHE.set(j, []);
+      return [];
+    }
+
+    const count = instances.length / 4;
+    const blocks = new Array(count);
+    for(let k=0;k<count;k++){
+      const i = k*4;
+      const pi = instances[i+3];
+      blocks[k] = {
+        dx: instances[i],
+        dy: instances[i+1],
+        dz: instances[i+2],
+        blockId: String(palette[pi] || "minecraft:air"),
+      };
+    }
+
+    _UNIT_BLOCKS_CACHE.set(j, blocks);
+    return blocks;
+  }
+
   async function fetchUnitJsonForAdmin(id){
     const r = await fetch(API_OWNER_JSON(id), { cache:"no-store", credentials:"include" });
     if(!r.ok){
@@ -720,7 +756,7 @@
   async function draw3DToCanvas(canvas, submissionId){
     const j = await fetchUnitJsonForAdmin(submissionId);
     await loadPalette();
-    drawIso(canvas, j.blocks, 270); // index と同じ既定
+    drawIso(canvas, normalizeBlocksForDraw(j), 270); // index と同じ既定
   }
 
   function cacheBuster(it){

@@ -904,6 +904,42 @@
     return s === "minecraft:air" || s.endsWith(":air");
   }
 
+  const _UNIT_BLOCKS_CACHE = new WeakMap();
+  function normalizeBlocksForDraw(j){
+    if(!j || typeof j !== "object") return [];
+    const cached = _UNIT_BLOCKS_CACHE.get(j);
+    if(cached) return cached;
+
+    if(Array.isArray(j.blocks)){
+      _UNIT_BLOCKS_CACHE.set(j, j.blocks);
+      return j.blocks;
+    }
+
+    const b = j.blocks;
+    const palette = b && typeof b === "object" ? b.palette : null;
+    const instances = b && typeof b === "object" ? b.instances : null;
+    if(!Array.isArray(palette) || !Array.isArray(instances) || instances.length % 4 !== 0){
+      _UNIT_BLOCKS_CACHE.set(j, []);
+      return [];
+    }
+
+    const count = instances.length / 4;
+    const blocks = new Array(count);
+    for(let k=0;k<count;k++){
+      const i = k*4;
+      const pi = instances[i+3];
+      blocks[k] = {
+        dx: instances[i],
+        dy: instances[i+1],
+        dz: instances[i+2],
+        blockId: String(palette[pi] || "minecraft:air"),
+      };
+    }
+
+    _UNIT_BLOCKS_CACHE.set(j, blocks);
+    return blocks;
+  }
+
   function drawIsoCube(ctx, x, y, z, s, col, stroke){
     const sx = (x - z) * s;
     const sy = (x + z) * s * 0.5 - y * s;
@@ -1193,7 +1229,7 @@
           const j = await fetchUnitJson(it.id);
           await loadPalette();
           const yaw = Number(yawUi.value || 270);
-          drawIso(canvas, j.blocks, yaw);
+          drawIso(canvas, normalizeBlocksForDraw(j), yaw);
         } catch {}
       }, { once:false });
     }
@@ -1205,7 +1241,7 @@
           const j = await fetchUnitJson(it.id);
           await loadPalette();
           const yaw = Number(yawUi.value || 270);
-          drawIso(canvas, j.blocks, yaw);
+          drawIso(canvas, normalizeBlocksForDraw(j), yaw);
         }catch{}
       })();
     }

@@ -1206,6 +1206,53 @@
     ctx.fill();
   }
 
+  function getBlockCountFromUnitJson(j){
+    if(!j || typeof j !== "object") return 0;
+    if(Array.isArray(j.blocks)) return j.blocks.length;
+    const b = j.blocks;
+    if(!b || typeof b !== "object") return 0;
+    const instances = b.instances;
+    if(Array.isArray(instances) && instances.length % 4 === 0) return (instances.length / 4);
+    return 0;
+  }
+
+  function normalizeBlocksFromUnitJson(j){
+    if(!j || typeof j !== "object") return { ok:false, error:"JSON is not an object", blocks:[] };
+    if(Array.isArray(j.blocks)) return { ok:true, blocks:j.blocks, count:j.blocks.length, format:"array" };
+    const b = j.blocks;
+    if(!b || typeof b !== "object") return { ok:false, error:"`blocks` is missing", blocks:[] };
+    const palette = b.palette;
+    const instances = b.instances;
+    if(!Array.isArray(palette) || !Array.isArray(instances)){
+      return { ok:false, error:"`blocks` is invalid (expected array or {palette, instances})", blocks:[] };
+    }
+    if(instances.length === 0) return { ok:false, error:"`blocks.instances` is empty", blocks:[] };
+    if(instances.length % 4 !== 0) return { ok:false, error:"`blocks.instances` length must be a multiple of 4", blocks:[] };
+
+    const count = instances.length / 4;
+    const sample = Math.min(count, 1000);
+    for(let k=0;k<sample;k++){
+      const i = k*4;
+      const pi = instances[i+3];
+      if(!Number.isInteger(pi) || pi < 0 || pi >= palette.length){
+        return { ok:false, error:"`blocks.instances` paletteIndex is out of range", blocks:[] };
+      }
+    }
+
+    const blocks = new Array(count);
+    for(let k=0;k<count;k++){
+      const i = k*4;
+      const pi = instances[i+3];
+      blocks[k] = {
+        dx: instances[i],
+        dy: instances[i+1],
+        dz: instances[i+2],
+        blockId: String(palette[pi] || "minecraft:air"),
+      };
+    }
+    return { ok:true, blocks, count, format:"palette_instances" };
+  }
+
   function drawIso(canvas, blocks, yawDeg){
     const ctx = canvas.getContext("2d");
     const w = canvas.width, h = canvas.height;
@@ -1311,6 +1358,7 @@
   subtitle.textContent = queryId ? `id=${queryId}` : "Missing id";
 
   let UNIT_JSON = null;
+  let UNIT_BLOCKS = null; // normalized blocks array for rendering
   let FRONT_YAW = null; // JSON frontYaw（例:-90）
   let YAW_BASE = 270;   // index寄りの既定
   let YAW_EXTRA = 0;    // ボタン回転分（90刻み）
@@ -1329,13 +1377,13 @@
   }
 
   function render3D(){
-    if(!UNIT_JSON || !Array.isArray(UNIT_JSON.blocks)) return;
-    drawIso(canvas, UNIT_JSON.blocks, computeYaw());
+    if(!UNIT_JSON) return;
+    drawIso(canvas, Array.isArray(UNIT_BLOCKS) ? UNIT_BLOCKS : [], computeYaw());
   }
 
   function setMetaFallbackFromJson(id, j){
     const name = (j && (j.displayName || j.name)) ? (j.displayName || j.name) : "(unknown)";
-    const blocks = Array.isArray(j.blocks) ? j.blocks.length : 0;
+    const blocks = getBlockCountFromUnitJson(j);
     const size = (j.size && Array.isArray(j.size)) ? `${j.size[0]} x ${j.size[1]} x ${j.size[2]}` : "(unknown)";
 
     subIdEl.textContent = id || "(unknown)";
@@ -1595,7 +1643,7 @@
     jsonDetails.style.display = "block";
     jsonPre.textContent = s;
 
-    const blocks = Array.isArray(json.blocks) ? json.blocks.length : 0;
+    const blocks = getBlockCountFromUnitJson(json);
     const size = (json.size && Array.isArray(json.size)) ? `${json.size[0]}×${json.size[1]}×${json.size[2]}` : "";
     jsonMeta.textContent = `blocks:${blocks}${size ? " / size:"+size : ""}`;
 
@@ -1703,6 +1751,8 @@
     try{
       const { json } = await loadUnitJsonSmart(EFFECTIVE_ID);
       UNIT_JSON = json;
+      const norm = normalizeBlocksFromUnitJson(json);
+      UNIT_BLOCKS = norm.ok ? norm.blocks : [];
       FRONT_YAW = (typeof json.frontYaw === "number") ? json.frontYaw : null;
 
       // metaが無い場合は JSON から最低限表示を復旧
@@ -1710,7 +1760,7 @@
         setMetaFallbackFromJson(EFFECTIVE_ID, json);
       }else{
         // subtitleに blocks/size を足す（控えめ）
-        const blocks = Array.isArray(json.blocks) ? json.blocks.length : 0;
+        const blocks = getBlockCountFromUnitJson(json);
         const size = (json.size && Array.isArray(json.size)) ? `${json.size[0]}x${json.size[1]}x${json.size[2]}` : "";
         const base = subtitle.textContent || "";
         subtitle.textContent = base + `  — blocks:${blocks}${size ? " / size:"+size : ""}`;
