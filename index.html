@@ -81,12 +81,18 @@
     }
     .mc-section-head h2{
       margin: 0;
-      font-size: 14px;
+      font-size: 16px;
       letter-spacing: .2px;
     }
     .mc-shelf{
       margin-top: 0;
     }
+    .mc-shelf.grid{
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+    .mc-shelf .thumbwrap{ height: 170px; }
+    .mc-shelf canvas.thumb,
+    .mc-shelf img.thumbimg{ height: 170px; }
     .hero{
   max-width:1060px;
   margin:0 auto 12px;
@@ -130,6 +136,16 @@
       border-radius:var(--radius);
       padding:14px 14px;
       box-shadow:var(--shadow);
+    }
+    body.mc-discover-on .topbar{
+      background: transparent;
+      box-shadow: none;
+      border-style: dashed;
+      padding: 12px;
+    }
+    body.mc-discover-on .topbar input[type="text"],
+    body.mc-discover-on .topbar select{
+      min-width: 220px;
     }
     .leftbox{
       display:flex;
@@ -208,8 +224,9 @@
       object-fit:cover;
       image-rendering:auto;
       display:block;
-    img.thumbimg.contain{ object-fit:contain; }
     }
+
+    img.thumbimg.contain{ object-fit:contain; }
 
     .pill{
       position:absolute;
@@ -1638,6 +1655,7 @@
   function setDiscoverVisible(on){
     if(discover) discover.style.display = on ? "block" : "none";
     if(newUnitsHead) newUnitsHead.style.display = on ? "flex" : "none";
+    try{ if(document.body) document.body.classList.toggle("mc-discover-on", !!on); }catch{}
 
     const secFeatured = document.getElementById("secFeatured");
     const secVanilla = document.getElementById("secVanilla");
