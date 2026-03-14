@@ -193,6 +193,49 @@
   let jsonDirty = false;
   let lastSubmissionId = "";
 
+  async function uploadScreenBlob({ submissionId, blob, filename, thumbMode, setThumb }){
+    if (!submissionId) throw new Error("submission_id is not available");
+    if (!blob) throw new Error("blob is not available");
+
+    const fd = new FormData();
+    fd.append("file", blob, filename || "image.png");
+    fd.append("thumb_mode", String(thumbMode || "3d"));
+    if (setThumb) fd.append("set_thumb", "1");
+
+    const r = await fetch(
+      api(`/api/submissions/${encodeURIComponent(submissionId)}/screens`),
+      {
+        method: "POST",
+        body: fd,
+        credentials: "include"
+      }
+    );
+
+    const t = await r.text().catch(()=>"");
+    let d; try { d = JSON.parse(t); } catch { d = { raw:t }; }
+    if (!r.ok) {
+      const msg = (d && (d.error || d.message)) ? String(d.error || d.message) : ("HTTP " + r.status);
+      throw new Error(msg);
+    }
+    return d;
+  }
+
+  async function makeStatic3DThumbBlob(){
+    if (!parsedJson || !parsedBlocks) throw new Error("missing_parsed_json");
+    // Dedicated OG-ish canvas so the stored asset is share/search friendly.
+    const c = document.createElement("canvas");
+    c.width = 1200;
+    c.height = 630;
+    const extra = Number($yawOffset.value || "0") % 4;
+    renderThumbToCanvas(c, parsedJson, parsedBlocks, extra);
+
+    const blob = await new Promise((resolve) => {
+      c.toBlob((b) => resolve(b), "image/png", 0.92);
+    });
+    if (!blob) throw new Error("Failed to create image");
+    return blob;
+  }
+
   // Always return to the exact current page after Access login.
   // This keeps compatibility with both /submit and /submit.html and preserves query params.
   $loginLink.href = "/api/login?next=" + encodeURIComponent(location.pathname + location.search);
@@ -879,6 +922,25 @@ if ($after && resp.ok) {
   // ★ ここでスクショ UI を解放（submissionId がある時だけ）
   const box = document.getElementById("screenBox");
   if (box && submissionId) box.style.display = "block";
+
+  // ★ New submissions: automatically upload a static 3D thumbnail (standard)
+  // Do not auto-run in edit mode to avoid overriding existing screenshot thumbs.
+  if (!isEditMode && submissionId) {
+    try {
+      if (typeof $genResult !== "undefined" && $genResult) $genResult.textContent = "Uploading static 3D thumbnail...";
+      const blob = await makeStatic3DThumbBlob();
+      await uploadScreenBlob({
+        submissionId,
+        blob,
+        filename: "unit-thumb-3d.png",
+        thumbMode: "3d",
+        setThumb: true,
+      });
+      if (typeof $genResult !== "undefined" && $genResult) $genResult.textContent = "Static 3D thumbnail uploaded";
+    } catch (e) {
+      if (typeof $genResult !== "undefined" && $genResult) $genResult.textContent = "Static 3D thumbnail upload failed";
+    }
+  }
 }
 
 
@@ -907,33 +969,21 @@ if ($btnUpload) {
       return;
     }
 
-    const fd = new FormData();
-    fd.append("file", f);
-
     const thumbMode =
       document.querySelector('input[name="thumbMode"]:checked')?.value || "3d";
-    fd.append("thumb_mode", thumbMode);
+    const setThumb = (String(thumbMode).trim().toLowerCase() === "screen");
 
     $screenResult.textContent = "Uploading...";
 
     try {
-      const r = await fetch(
-        api(`/api/submissions/${encodeURIComponent(lastSubmissionId)}/screens`),
-        {
-          method: "POST",
-          body: fd,
-          credentials: "include"
-        }
-      );
-
-      const t = await r.text();
-      let d; try { d = JSON.parse(t); } catch { d = { raw:t }; }
-
-      if (!r.ok) {
-        $screenResult.textContent = "Failed: " + r.status;
-        return;
-      }
-      $screenResult.textContent = "Upload succeeded";
+      await uploadScreenBlob({
+        submissionId: lastSubmissionId,
+        blob: f,
+        filename: f.name || "screenshot.png",
+        thumbMode,
+        setThumb,
+      });
+      $screenResult.textContent = setThumb ? "Upload succeeded (set as thumbnail)" : "Upload succeeded";
     } catch (e) {
       $screenResult.textContent = "Upload failed";
     }
@@ -946,44 +996,18 @@ if ($btnGenThumb) {
       if ($genResult) $genResult.textContent = "submission_id is not available";
       return;
     }
-    if (!canvas) {
-      if ($genResult) $genResult.textContent = "canvas is not available";
-      return;
-    }
-
     if ($genResult) $genResult.textContent = "Generating...";
 
     try {
-      const blob = await new Promise((resolve) => {
-        canvas.toBlob((b) => resolve(b), "image/png", 0.92);
+      const blob = await makeStatic3DThumbBlob();
+      await uploadScreenBlob({
+        submissionId: lastSubmissionId,
+        blob,
+        filename: "unit-thumb-3d.png",
+        thumbMode: "3d",
+        setThumb: true,
       });
-      if (!blob) {
-        if ($genResult) $genResult.textContent = "Failed to create image";
-        return;
-      }
-
-      const fd = new FormData();
-      fd.append("file", blob, "unit-thumb.png");
-      fd.append("thumb_mode", "3d");
-
-      const r = await fetch(
-        api(`/api/submissions/${encodeURIComponent(lastSubmissionId)}/screens`),
-        {
-          method: "POST",
-          body: fd,
-          credentials: "include"
-        }
-      );
-
-      const t = await r.text();
-      let d; try { d = JSON.parse(t); } catch { d = { raw:t }; }
-
-      if (!r.ok) {
-        if ($genResult) $genResult.textContent = "Failed: " + r.status;
-        return;
-      }
-
-      if ($genResult) $genResult.textContent = "Static image uploaded";
+      if ($genResult) $genResult.textContent = "Static 3D thumbnail uploaded";
     } catch (e) {
       if ($genResult) $genResult.textContent = "Upload failed";
     }

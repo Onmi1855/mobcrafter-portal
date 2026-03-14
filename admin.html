@@ -396,6 +396,7 @@
   // 画像/JSON取得（adminは private を使う）
   const API_PRIVATE_SCREEN = (screenId) => apiUrl(`/api/screens/${encodeURIComponent(screenId)}`);
   const API_OWNER_JSON = (id) => apiUrl(`/api/submissions/${encodeURIComponent(id)}/json`);
+  const API_UPLOAD_SCREEN = (id) => apiUrl(`/api/submissions/${encodeURIComponent(id)}/screens`);
 
   const $status = document.getElementById("status");
   const $reload = document.getElementById("reload");
@@ -759,6 +760,41 @@
     drawIso(canvas, normalizeBlocksForDraw(j), 270); // index と同じ既定
   }
 
+  async function uploadStatic3DThumb(submissionId){
+    const j = await fetchUnitJsonForAdmin(submissionId);
+    await loadPalette();
+
+    const c = document.createElement("canvas");
+    c.width = 1200;
+    c.height = 630;
+    drawIso(c, normalizeBlocksForDraw(j), 270);
+
+    const blob = await new Promise((resolve) => {
+      c.toBlob((b) => resolve(b), "image/png", 0.92);
+    });
+    if (!blob) throw new Error("blob_failed");
+
+    const fd = new FormData();
+    fd.append("file", blob, "unit-thumb-3d.png");
+    fd.append("thumb_mode", "3d");
+    fd.append("set_thumb", "1");
+
+    const r = await fetch(API_UPLOAD_SCREEN(submissionId), {
+      method: "POST",
+      body: fd,
+      credentials: "include",
+      cache: "no-store",
+    });
+
+    const t = await r.text().catch(()=>"");
+    let d = null;
+    try { d = JSON.parse(t); } catch { d = { raw: t }; }
+    if (!r.ok || !d || d.ok !== true) {
+      throw { http: r.status, data: d };
+    }
+    return d;
+  }
+
   function cacheBuster(it){
     return encodeURIComponent(String(it.updated_at || it.created_at || ""));
   }
@@ -898,6 +934,7 @@
                   <div class="row left" style="gap:8px;">
                     ${detailLink}
                     <button data-act="edit" data-id="${id}">Edit</button>
+                    <button data-act="thumb3d" data-id="${id}">Set 3D thumb</button>
                     <button class="primary" data-act="approve" data-id="${id}" ${(!canModerate || deleted) ? "disabled" : ""}>Approve</button>
                     <button class="danger"  data-act="reject"  data-id="${id}" ${(!canModerate || deleted) ? "disabled" : ""}>Reject</button>
                     <button class="danger"  data-act="delete"  data-id="${id}" ${deleted ? "disabled" : ""}>Delete</button>
@@ -989,6 +1026,13 @@
         if (!it) throw { msg: "not_found_in_view" };
         openEdit(it);
         return;
+      }
+      if (act === "thumb3d") {
+        const ok = confirm(`Generate & set static 3D thumbnail?\nID: ${id}`);
+        if (!ok) return;
+        log(`thumb3d... ${id}`);
+        const r = await uploadStatic3DThumb(id);
+        log({ ok: true, action: "thumb3d", id, response: r });
       }
       if (act === "approve") await doApprove(id);
       if (act === "reject")  await doReject(id);

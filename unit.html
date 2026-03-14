@@ -4,6 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MobCrafter - Unit</title>
+  <meta name="description" content="Download a MobCrafter unit JSON." />
+  <link rel="canonical" href="" id="canonicalLink" />
+  <meta property="og:url" content="" id="ogUrl" />
   <meta property="og:type" content="article" />
   <meta property="og:image" content="" />
   <meta property="og:image:secure_url" content="" />
@@ -113,6 +116,134 @@
       box-shadow:var(--shadow);
       padding:16px;
     }
+
+    /* Phase 3: CV hero */
+    .hero{
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 860px){
+      .hero{ grid-template-columns: 1fr; }
+    }
+    .heroMedia{
+      border:1px solid rgba(148,163,184,.25);
+      border-radius:14px;
+      overflow:hidden;
+      background:linear-gradient(180deg, rgba(37,99,235,.04), rgba(22,163,74,.03));
+    }
+    .heroMedia img{
+      width:100%;
+      height:auto;
+      display:block;
+      aspect-ratio: 1200 / 630;
+      object-fit: contain;
+      background:#fff;
+    }
+    .heroTitle{
+      margin:0;
+      font-size:22px;
+      line-height:1.2;
+      font-weight:900;
+      letter-spacing:.1px;
+    }
+    .heroSub{
+      margin-top:8px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+    }
+    .pillRow{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.25);
+      background:#fff;
+      font-size:12px;
+      color:#0f172a;
+      white-space:nowrap;
+    }
+    .pill.muted{ color:var(--muted); }
+    .tagRow{ margin-top:10px; display:flex; gap:6px; flex-wrap:wrap; }
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.25);
+      background:rgba(255,255,255,.9);
+      font-size:12px;
+      color:#0f172a;
+    }
+    .heroActions{ margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .heroActions .likeWrap{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid rgba(148,163,184,.25);
+      background:#fff;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .installBox{
+      margin-top:12px;
+      border:1px solid rgba(148,163,184,.25);
+      border-radius:14px;
+      background:linear-gradient(180deg, rgba(37,99,235,.05), rgba(22,163,74,.04));
+      padding:12px;
+    }
+    .installBox .ttl{ font-weight:900; font-size:13px; }
+    .installBox ol{ margin:8px 0 0; padding-left:18px; color:#334155; font-size:13px; line-height:1.6; }
+    .installBox code{ background:rgba(148,163,184,.15); border:1px solid rgba(148,163,184,.25); padding:2px 6px; border-radius:999px; }
+    .installHint{ margin-top:8px; color:var(--muted); font-size:12px; line-height:1.5; }
+
+    /* Phase 3: related */
+    .relatedRow{ margin-top:14px; display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+    @media (max-width: 860px){ .relatedRow{ grid-template-columns: 1fr; } }
+    .relatedBox{ border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#fff; }
+    .relatedHead{
+      padding:10px 12px;
+      border-bottom:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(37,99,235,.06), rgba(22,163,74,.05));
+      font-size:13px;
+      color:var(--muted);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .relatedBody{ padding:12px; }
+    .relatedGrid{ display:grid; grid-template-columns: 1fr; gap:10px; }
+    .relCard{
+      display:flex;
+      gap:10px;
+      text-decoration:none;
+      color:inherit;
+      border:1px solid rgba(148,163,184,.25);
+      border-radius:12px;
+      overflow:hidden;
+      background:#fff;
+    }
+    .relCard img{
+      width:120px;
+      height:68px;
+      object-fit:cover;
+      background:#fff;
+      flex:0 0 auto;
+    }
+    .relCard .txt{ padding:8px 10px; min-width:0; }
+    .relCard .t{ font-weight:800; font-size:13px; line-height:1.3; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; line-clamp:2; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+    .relCard .m{ margin-top:4px; color:var(--muted); font-size:12px; }
+
+    .bottomCta{ margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .row{
       display:flex;
       gap:14px;
@@ -417,35 +548,65 @@
     <div data-ad-slot-key="unit_legacy_top"></div>
 
   <section class="card">
-    <div class="row">
-      <div class="meta">
-        <div class="metaGrid">
-          <div class="k">Query id</div><div class="v" id="qId">(unknown)</div>
-          <div class="k">Query no</div><div class="v" id="qNo">(empty)</div>
-          <div class="k">Submission ID</div><div class="v" id="subId">(unknown)</div>
-          <div class="k">Unit ID</div><div class="v" id="unitId">(unknown)</div>
+    <div class="hero" aria-label="Unit hero">
+      <div class="heroMedia">
+        <img id="heroImg" alt="" loading="eager" decoding="async" />
+      </div>
+      <div>
+        <h2 class="heroTitle" id="heroTitle">Loading…</h2>
+        <div class="heroSub" id="heroDesc">Download this unit JSON and install it in seconds.</div>
 
-          <div class="k">Status</div><div class="v" id="status">(unknown)</div>
-          <div class="k">Author</div><div class="v" id="author">(unknown)</div>
-          <div class="k">Created</div><div class="v" id="created">(unknown)</div>
-          <div class="k">DL</div><div class="v" id="dl">(unknown)</div>
-          <div class="k">Likes</div>
-          <div class="v">
-            <button class="btn likeBtn" id="likeBtn" type="button" aria-pressed="false" title="Like">♥</button>
-            <span id="likesCount">0</span>
-          </div>
+        <div class="pillRow">
+          <span class="pill muted">By <span id="author">(unknown)</span></span>
+          <span class="pill muted">Created <span id="created">(unknown)</span></span>
+          <span class="pill muted">Downloads <span id="dl">(unknown)</span></span>
+          <span class="pill" id="status">(unknown)</span>
         </div>
 
-        <div class="bannerErr" id="warn"></div>
+        <div class="pillRow" style="margin-top:8px;">
+          <span class="pill muted">Unit ID <code id="unitId">(unknown)</code></span>
+        </div>
 
-        <div class="actions" id="actions">
-          <a class="btn primary" id="dlBtn" href="#" style="display:none;">Download</a>
+        <div class="tagRow" id="tagRow" aria-label="tags"></div>
+        <div class="installHint" id="depsLine"></div>
+
+        <div class="heroActions actions" id="actions">
+          <a class="btn primary" id="dlBtn" href="#" style="display:none;" download>Download JSON</a>
+          <span class="likeWrap" title="Likes">
+            <button class="btn likeBtn" id="likeBtn" type="button" aria-pressed="false" title="Like">♥</button>
+            <span id="likesCount">0</span>
+          </span>
           <a class="btn" id="editBtn" href="#" style="display:none;">Edit (owner only)</a>
           <a class="btn" id="submitBtn" href="#" style="display:none;">Open submit page (edit)</a>
           <span class="mutedNote" id="ownerHint" style="display:none;">Note: editing/resubmitting is done on the submit page</span>
         </div>
+
+        <div class="installBox" aria-label="install">
+          <div class="ttl">Install (quick)</div>
+          <ol>
+            <li>Click <b>Download JSON</b>.</li>
+            <li>Put the file into <code>config/mob_crafter/units/</code>.</li>
+            <li>Start Minecraft and load/summon the unit in-game.</li>
+          </ol>
+          <div class="installHint">
+            If this unit uses blocks from other mods, those mods must be installed as <b>required dependencies</b>.
+          </div>
+        </div>
       </div>
     </div>
+
+    <div class="bannerErr" id="warn"></div>
+
+    <details style="margin-top:12px;">
+      <summary>Details</summary>
+      <div class="panelBody" style="padding:12px 0 0; min-height:auto;">
+        <div class="metaGrid">
+          <div class="k">Query id</div><div class="v" id="qId">(unknown)</div>
+          <div class="k">Query no</div><div class="v" id="qNo">(empty)</div>
+          <div class="k">Submission ID</div><div class="v" id="subId">(unknown)</div>
+        </div>
+      </div>
+    </details>
 
     <div class="viewerRow">
       <div class="panel">
@@ -501,6 +662,28 @@
       </div>
     </details>
 
+    <div class="relatedRow" aria-label="related" id="relatedRow" style="display:none;">
+      <section class="relatedBox" id="moreByBox" style="display:none;">
+        <div class="relatedHead">
+          <span>More by <span id="moreByName"></span></span>
+          <span class="mutedNote" id="moreByState">Loading…</span>
+        </div>
+        <div class="relatedBody">
+          <div class="relatedGrid" id="moreByGrid"></div>
+        </div>
+      </section>
+
+      <section class="relatedBox" id="relatedBox" style="display:none;">
+        <div class="relatedHead">
+          <span>Related units</span>
+          <span class="mutedNote" id="relatedState">Loading…</span>
+        </div>
+        <div class="relatedBody">
+          <div class="relatedGrid" id="relatedGrid"></div>
+        </div>
+      </section>
+    </div>
+
     <!-- comments (MVP) -->
     <section class="commentsBox" aria-label="comments">
       <div class="commentsHead">
@@ -528,7 +711,10 @@
       </div>
     </section>
 
-    <a class="back" href="/">← Back to list</a>
+    <div class="bottomCta">
+      <a class="btn primary" id="dlBtnBottom" href="#" style="display:none;" download>Download JSON</a>
+      <a class="back" href="/">← Back to list</a>
+    </div>
   </section>
 
   </div>
@@ -611,6 +797,24 @@
   const likeBtn = document.getElementById("likeBtn");
   const likesCountEl = document.getElementById("likesCount");
 
+  const heroTitleEl = document.getElementById("heroTitle");
+  const heroDescEl = document.getElementById("heroDesc");
+  const heroImgEl = document.getElementById("heroImg");
+  const tagRowEl = document.getElementById("tagRow");
+  const depsLineEl = document.getElementById("depsLine");
+  const dlBtnBottom = document.getElementById("dlBtnBottom");
+  const canonicalLinkEl = document.getElementById("canonicalLink");
+  const ogUrlEl = document.getElementById("ogUrl");
+
+  const relatedRowEl = document.getElementById("relatedRow");
+  const moreByBoxEl = document.getElementById("moreByBox");
+  const moreByNameEl = document.getElementById("moreByName");
+  const moreByStateEl = document.getElementById("moreByState");
+  const moreByGridEl = document.getElementById("moreByGrid");
+  const relatedBoxEl = document.getElementById("relatedBox");
+  const relatedStateEl = document.getElementById("relatedState");
+  const relatedGridEl = document.getElementById("relatedGrid");
+
   const warnEl = document.getElementById("warn");
   const ogHiddenImg = document.getElementById("ogImageHidden");
 
@@ -675,9 +879,25 @@
     warnEl.textContent = "";
   }
 
+  function setCanonical(path){
+    const p = String(path || "").trim();
+    if(!p) return;
+    const safe = p.startsWith("/") ? p : ("/" + p);
+    const href = new URL(safe, location.origin).toString();
+    if (canonicalLinkEl) canonicalLinkEl.setAttribute("href", href);
+    return href;
+  }
+
+  function setPageDescription(text){
+    const meta = document.querySelector('meta[name="description"]');
+    if(!meta) return;
+    meta.setAttribute("content", String(text || "").trim());
+  }
+
   function setOgImageById(id){
     if (!id) return;
-    const url = new URL(`/api/public/submissions/${encodeURIComponent(id)}/og-image`, location.origin).toString();
+    const path = api(`/api/public/submissions/${encodeURIComponent(id)}/og-image`);
+    const url = new URL(path, location.href).toString();
 
     const og = document.querySelector('meta[property="og:image"]');
     const ogs = document.querySelector('meta[property="og:image:secure_url"]');
@@ -689,6 +909,8 @@
     if (tw) tw.setAttribute("content", url);
     if (ln) ln.setAttribute("href", url);
     if (ogHiddenImg) ogHiddenImg.src = url;
+
+    if (heroImgEl) heroImgEl.src = url;
 
     return url;
   }
@@ -703,6 +925,14 @@
       "image": imageUrl || ""
     };
     el.textContent = JSON.stringify(data);
+  }
+
+  function setOgUrl(path){
+    const p = String(path || "").trim();
+    if(!p) return;
+    const url = new URL(p.startsWith("/") ? p : ("/" + p), location.origin).toString();
+    if (ogUrlEl) ogUrlEl.setAttribute("content", url);
+    return url;
   }
 
   // =========================
@@ -1396,6 +1626,14 @@
     if (likeBtn) likeBtn.setAttribute("aria-pressed", "false");
 
     subtitle.textContent = name + `  — blocks:${blocks} / size:${size}`;
+    if (heroTitleEl) heroTitleEl.textContent = name;
+    if (heroDescEl) heroDescEl.textContent = "Download this unit JSON and install it in seconds.";
+    document.title = `MobCrafter | ${name}`;
+    setPageDescription(`Download this MobCrafter unit JSON: ${name}`);
+
+    // Prefer canonical to /u/<id> if we don't know the number.
+    setCanonical(`/u/${encodeURIComponent(String(id || ""))}`);
+    setOgUrl(`/u/${encodeURIComponent(String(id || ""))}`);
 
     const ogUrl = setOgImageById(id);
     setStructuredData({ name, imageUrl: ogUrl });
@@ -1406,6 +1644,7 @@
     const id = String(meta.id ?? meta.submission_id ?? meta.submissionId ?? EFFECTIVE_ID ?? queryId ?? "");
     const no = meta.submission_no ?? meta.submissionNo ?? meta.no ?? null;
     const title = meta.title || meta.name || meta.displayName || "";
+    const desc = String(meta.description || meta.desc || "").trim();
     const author = meta.author_name || meta.authorName || meta.author || "unknown";
     const created = meta.created_at || meta.createdAt || meta.created || "";
     const status = (meta.status ?? meta.review_status ?? meta.state ?? "approved");
@@ -1421,6 +1660,33 @@
     if (likesCountEl) likesCountEl.textContent = String(likesCount);
 
     if(title) subtitle.textContent = title;
+    if (heroTitleEl) heroTitleEl.textContent = title || "(untitled)";
+    if (heroDescEl) {
+      heroDescEl.textContent = desc ? desc : "Download this unit JSON and install it in seconds.";
+    }
+
+    // tags
+    try{
+      if(tagRowEl){
+        const tags = normalizeTags(meta.tags || meta.tag || "");
+        tagRowEl.innerHTML = "";
+        for(const t of tags){
+          const sp = document.createElement("span");
+          sp.className = "tag";
+          sp.textContent = String(t);
+          tagRowEl.appendChild(sp);
+        }
+      }
+    }catch{}
+
+    // SEO: title/description/canonical
+    const canonicalPath = (no != null && String(no).trim() !== "")
+      ? `/u/${encodeURIComponent(String(no))}`
+      : `/u/${encodeURIComponent(String(id || ""))}`;
+    setCanonical(canonicalPath);
+    setOgUrl(canonicalPath);
+    document.title = `MobCrafter | ${title || "Unit"}` + (no != null ? ` (#${no})` : "");
+    setPageDescription(desc ? desc : `Download this MobCrafter unit JSON: ${title || "Unit"}`);
 
     const ogUrl = setOgImageById(id);
     setStructuredData({ name: title || "", imageUrl: ogUrl });
@@ -1428,6 +1694,10 @@
     // DLボタン（public優先・ダメならprivate）
     dlBtn.style.display = "inline-flex";
     dlBtn.href = API_DL_PUBLIC(id);
+    if (dlBtnBottom) {
+      dlBtnBottom.style.display = "inline-flex";
+      dlBtnBottom.href = dlBtn.href;
+    }
     dlBtn.onclick = async (e) => {
       // public が落ちるケース用に、1回だけ private に切替を試す
       // ※ download はブラウザ遷移なので “事前検証” が重い。ここでは保険のリンクだけ用意。
@@ -1444,6 +1714,310 @@
       submitBtn.href = `/submit?edit=${encodeURIComponent(id)}`;
       ownerHint.style.display = "inline";
     }
+  }
+
+  function normalizeTags(t){
+    if(!t) return [];
+    if(Array.isArray(t)) return t.map(x=>String(x).trim()).filter(Boolean);
+    return String(t).split(/[\s,]+/).map(x=>x.trim()).filter(Boolean);
+  }
+
+  function getRequiredModsFromJson(j){
+    // Best-effort: derive mod ids from block ids used in the unit.
+    try{
+      if(!j || typeof j !== "object") return [];
+      const mods = new Set();
+      const add = (bid) => {
+        const s = String(bid || "").trim();
+        if(!s) return;
+        const idx = s.indexOf(":");
+        if(idx <= 0) return;
+        const ns = s.slice(0, idx).trim().toLowerCase();
+        if(!ns) return;
+        if(ns === "minecraft") return;
+        // MobCrafter units may include mobcrafter internal blocks; ignore if present.
+        if(ns === "mobcrafter") return;
+        mods.add(ns);
+      };
+
+      const blocks = j.blocks;
+      if(Array.isArray(blocks)){
+        for(const b of blocks){
+          add(b && (b.blockId || b.block_id || b.id || b.block));
+        }
+      }else if(blocks && typeof blocks === "object"){
+        const pal = blocks.palette;
+        if(Array.isArray(pal)){
+          for(const bid of pal) add(bid);
+        }
+      }
+      return Array.from(mods).sort();
+    }catch{
+      return [];
+    }
+  }
+
+  function setDepsLineFromJson(j){
+    if(!depsLineEl) return;
+    const mods = getRequiredModsFromJson(j);
+    if(mods.length === 0){
+      depsLineEl.textContent = "Vanilla blocks only (no extra mods detected).";
+      return;
+    }
+    const shown = mods.slice(0, 6);
+    const tail = mods.length > shown.length ? ` +${mods.length - shown.length} more` : "";
+    depsLineEl.textContent = `Required mods: ${shown.join(", ")}${tail}`;
+  }
+
+  async function fetchPublicList({ q, pageSize } = {}){
+    const sp = new URLSearchParams();
+    if(q) sp.set("q", String(q));
+    sp.set("page_size", String(pageSize || 20));
+    sp.set("sort", "dl");
+    const url = api(`/api/public/submissions?${sp.toString()}`);
+    const r = await fetch(url, { cache:"no-store" });
+    const t = await r.text();
+    let d = null;
+    try{ d = JSON.parse(t); }catch{ d = null; }
+    if(!r.ok || !d) throw new Error("list HTTP " + r.status);
+    return Array.isArray(d.items) ? d.items : [];
+  }
+
+  function toUnitHref(it){
+    const no = it?.submission_no ?? it?.submissionNo ?? null;
+    if(no != null && String(no).trim() !== ""){
+      return `/unit.html?id=${encodeURIComponent(String(no))}`;
+    }
+    return `/unit.html?id=${encodeURIComponent(String(it?.id || ""))}`;
+  }
+
+  function toThumbUrl(it){
+    const id = String(it?.id || "").trim();
+    if(!id) return "";
+    return api(`/api/public/submissions/${encodeURIComponent(id)}/og-image`);
+  }
+
+  function renderRelated(gridEl, items){
+    if(!gridEl) return;
+    gridEl.innerHTML = "";
+    for(const it of items){
+      const a = document.createElement("a");
+      a.className = "relCard";
+      a.href = toUnitHref(it);
+      a.title = String(it?.title || "");
+
+      const img = document.createElement("img");
+      img.loading = "lazy";
+      img.decoding = "async";
+      const src = toThumbUrl(it);
+      if(src) img.src = src;
+      img.alt = "";
+
+      const txt = document.createElement("div");
+      txt.className = "txt";
+      const t = document.createElement("div");
+      t.className = "t";
+      t.textContent = String(it?.title || it?.unit_id || it?.unitId || "Untitled");
+      const m = document.createElement("div");
+      m.className = "m";
+      const dl = Number(it?.download_count ?? it?.downloadCount ?? 0) || 0;
+      const likes = Number(it?.likes_count ?? it?.likesCount ?? 0) || 0;
+      m.textContent = `DL ${dl} · Likes ${likes}`;
+      txt.appendChild(t);
+      txt.appendChild(m);
+
+      a.appendChild(img);
+      a.appendChild(txt);
+      gridEl.appendChild(a);
+    }
+  }
+
+  async function loadRelated(meta){
+    // Keep this optional/lightweight; never block the main rendering.
+    try{
+      if(!relatedRowEl) return;
+      const title = String(meta?.title || "").trim();
+      const author = String(meta?.author_name || meta?.authorName || "").trim();
+      const tags = normalizeTags(meta?.tags || "");
+      const myId = String(meta?.id || EFFECTIVE_ID || "").trim();
+
+      // Operator/utility/difficulty tags:
+      // - index.html uses the "featured" tag for curation shelves.
+      // - Per product requirements: exclude these from shared-tag scoring and query preference.
+      // - NOTE: "vanilla" is excluded from shared-tag scoring, but still used for the vanilla-vs-vanilla bonus.
+      const OPERATOR_TAGS = new Set(["featured", "starter", "beginner", "vanilla"]);
+      const MAX_SHOW = 6;
+      const PAGE_SIZE = 30;
+
+      const norm = (s) => String(s || "").trim().toLowerCase();
+      const uniq = (arr) => {
+        const out = [];
+        const seen = new Set();
+        for(const x of (arr || [])){
+          const k = norm(x);
+          if(!k || seen.has(k)) continue;
+          seen.add(k);
+          out.push(k);
+        }
+        return out;
+      };
+
+      const toScoreTagList = (rawTags) => {
+        const arr = Array.isArray(rawTags) ? rawTags : normalizeTags(rawTags || "");
+        return uniq(arr).filter(t => !OPERATOR_TAGS.has(t));
+      };
+
+      const tokenizeTitleWords = (s) => {
+        const v = norm(s);
+        if(!v) return [];
+        // Keep it simple/fast: ASCII words only; tags/author are the primary signals.
+        const cleaned = v.replace(/[^a-z0-9]+/g, " ");
+        const parts = cleaned.split(/\s+/).map(w=>w.trim()).filter(Boolean);
+        // Do not prefer operator/utility/difficulty words as query terms.
+        // (Still allow vanilla bonus separately via tag logic.)
+        return uniq(parts.filter(w => w.length >= 3 && w.length <= 32 && !OPERATOR_TAGS.has(w)));
+      };
+
+      const myTagsAll = uniq(tags);
+      const myTagsScore = toScoreTagList(myTagsAll);
+      const myVanilla = myTagsAll.includes("vanilla");
+      const myTitleWords = tokenizeTitleWords(title);
+
+      const pickQueryTerm = () => {
+        // Prefer a non-operator tag; then a title word; use "vanilla" only as a last resort.
+        for(const t of myTagsScore){
+          return t;
+        }
+        // longest title token tends to be more specific
+        let best = "";
+        for(const w of myTitleWords){
+          if(w.length > best.length) best = w;
+        }
+        if(best) return best;
+        if(myVanilla) return "vanilla";
+        // If we have *only* operator/utility/difficulty tags and no other query signal,
+        // allow them as a last-resort query term (still excluded from scoring preference).
+        for(const t of myTagsAll){
+          if(t === "featured") continue;
+          if(OPERATOR_TAGS.has(t)) return t;
+        }
+        return "";
+      };
+
+      const qTerm = pickQueryTerm();
+      const qAuthor = author;
+
+      if(moreByStateEl) moreByStateEl.textContent = qAuthor ? "Loading…" : "None";
+      if(relatedStateEl) relatedStateEl.textContent = qTerm ? "Loading…" : "None";
+
+      let authorFetchOk = true;
+      let queryFetchOk = true;
+
+      const authorPromise = (qAuthor && qAuthor.length >= 2)
+        ? fetchPublicList({ q: qAuthor, pageSize: PAGE_SIZE }).catch(()=>{ authorFetchOk = false; return []; })
+        : Promise.resolve([]);
+
+      const queryPromise = (qTerm && qTerm.length >= 2 && norm(qTerm) !== norm(qAuthor))
+        ? fetchPublicList({ q: qTerm, pageSize: PAGE_SIZE }).catch(()=>{ queryFetchOk = false; return []; })
+        : Promise.resolve([]);
+
+      const [byAuthor, byQuery] = await Promise.all([authorPromise, queryPromise]);
+
+      const candidatesMap = new Map();
+      for(const it of ([]).concat(byAuthor || []).concat(byQuery || [])){
+        const id = String(it?.id || "").trim();
+        if(!id || id === myId) continue;
+        if(!candidatesMap.has(id)) candidatesMap.set(id, it);
+      }
+      const candidates = Array.from(candidatesMap.values());
+
+      const maxDl = candidates.reduce((m, it) => {
+        const dl = Number(it?.download_count ?? it?.downloadCount ?? 0) || 0;
+        return Math.max(m, dl);
+      }, 0);
+
+      const scoreOne = (it) => {
+        const itAuthor = String(it?.author_name || it?.authorName || "").trim();
+        const sameAuthor = Boolean(author && itAuthor && norm(itAuthor) === norm(author));
+
+        const itTagsAll = uniq(normalizeTags(it?.tags || ""));
+        const itTagsScore = toScoreTagList(itTagsAll);
+        const itVanilla = itTagsAll.includes("vanilla");
+
+        const myTagSet = new Set(myTagsScore);
+        let sharedTags = 0;
+        for(const t of itTagsScore){
+          if(myTagSet.has(t)) sharedTags++;
+        }
+
+        const itWords = tokenizeTitleWords(it?.title || "");
+        const myWordSet = new Set(myTitleWords);
+        let sharedWords = 0;
+        for(const w of itWords){
+          if(myWordSet.has(w)) sharedWords++;
+        }
+
+        const dl = Number(it?.download_count ?? it?.downloadCount ?? 0) || 0;
+        const dlBoost = maxDl > 0
+          ? Math.round(10 * (Math.log1p(Math.max(0, dl)) / Math.log1p(maxDl)))
+          : 0;
+        const dlBoostClamped = Math.max(0, Math.min(10, dlBoost));
+
+        let score = 0;
+        if(sameAuthor) score += 100;
+        score += sharedTags * 20;
+        if(myVanilla && itVanilla) score += 10;
+        score += sharedWords * 5;
+        score += dlBoostClamped;
+        return {
+          it,
+          score,
+          sameAuthor,
+          dl
+        };
+      };
+
+      const scored = candidates
+        .map(scoreOne)
+        .filter(x => (Number(x.score) || 0) > 0)
+        .sort((a,b) => (b.score - a.score) || (b.dl - a.dl));
+
+      let any = false;
+      let moreByShownIds = new Set();
+
+      // More by author (ranked)
+      if(qAuthor && moreByBoxEl && moreByGridEl && moreByNameEl && moreByStateEl){
+        moreByNameEl.textContent = qAuthor;
+        const mine = scored.filter(x => x.sameAuthor).slice(0, MAX_SHOW).map(x => x.it);
+        if(mine.length){
+          renderRelated(moreByGridEl, mine);
+          moreByBoxEl.style.display = "block";
+          moreByStateEl.textContent = `${mine.length} shown`;
+          any = true;
+          moreByShownIds = new Set(mine.map(x => String(x?.id || "").trim()).filter(Boolean));
+        }else{
+          moreByStateEl.textContent = authorFetchOk ? "None" : "Unavailable";
+        }
+      }
+
+      // Related (ranked), avoid duplicating "more by author" items when that section is visible
+      if(relatedBoxEl && relatedGridEl && relatedStateEl){
+        const rel = scored
+          .filter(x => !moreByShownIds.has(String(x.it?.id || "").trim()))
+          .slice(0, MAX_SHOW)
+          .map(x => x.it);
+        if(rel.length){
+          renderRelated(relatedGridEl, rel);
+          relatedBoxEl.style.display = "block";
+          relatedStateEl.textContent = `${rel.length} shown`;
+          any = true;
+        }else{
+          relatedStateEl.textContent = qTerm ? (queryFetchOk ? "None" : "Unavailable") : "None";
+        }
+      }
+
+      if(any) relatedRowEl.style.display = "grid";
+    }catch{}
   }
 
   function setLikeUi({ likesCount, likedByMe, canToggle }){
@@ -1730,6 +2304,8 @@
 
     if(metaRes.meta){
       setMetaFromSubmission(metaRes.meta);
+      // Related units / more by author (non-blocking)
+      try{ loadRelated(metaRes.meta); }catch{}
     }else{
       // metaが取れないケース：ここで “想定される原因” を出しつつ、JSON復旧へ進む
       const hint = [
@@ -1771,6 +2347,9 @@
 
       // 3D描画
       render3D();
+
+      // dependencies hint (vanilla/required mods)
+      try{ setDepsLineFromJson(json); }catch{}
     }catch(e){
       showWarn((warnEl.textContent ? (warnEl.textContent + "\n\n") : "") + "Failed to fetch JSON.\n" + String(e.message || e));
     }

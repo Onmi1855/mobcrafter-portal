@@ -28,6 +28,65 @@
       color:var(--text);
       background:var(--bg);
     }
+
+    /* ===== Phase 1: Hero + discovery sections ===== */
+    .mc-hero-copy{
+      max-width: 840px;
+      margin: 10px auto 0;
+      padding: 0 16px;
+      color: var(--text);
+    }
+    .mc-hero-copy .lead{
+      margin: 10px 0 0;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: .2px;
+      line-height: 1.25;
+    }
+    .mc-hero-cta{
+      margin: 12px 0 0;
+      display:flex;
+      gap:10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .mc-hero-cta a{
+      color: var(--brand);
+      text-decoration: none;
+      border: 1px solid rgba(37,99,235,.25);
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #fff;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .mc-hero-cta a.primary{
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
+    }
+    .mc-discover{
+      margin-top: 14px;
+    }
+    .mc-section-head{
+      display:flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 18px 2px 10px;
+    }
+    .mc-section-head h2{
+      margin: 0;
+      font-size: 14px;
+      letter-spacing: .2px;
+    }
+    .mc-shelf{
+      margin-top: 0;
+    }
     .hero{
   max-width:1060px;
   margin:0 auto 12px;
@@ -149,6 +208,7 @@
       object-fit:cover;
       image-rendering:auto;
       display:block;
+    img.thumbimg.contain{ object-fit:contain; }
     }
 
     .pill{
@@ -445,6 +505,14 @@
   <img class="hero-img" src="/assets/top_banner.png" alt="MobCrafter — Create Your Own Units!">
 </div>
   <h1>MobCrafter Portal</h1>
+  <div class="mc-hero-copy">
+    <div class="lead">Download ready-to-use Minecraft units for MobCrafter</div>
+    <div class="mc-hero-cta">
+      <a class="primary" href="https://www.curseforge.com/minecraft/mc-mods/mobcrafter" target="_blank" rel="noopener noreferrer">Get MobCrafter</a>
+      <a href="#overview" data-open-overview="1">How to Install Units</a>
+      <a href="#secVanilla">Browse Vanilla Only</a>
+    </div>
+  </div>
   <p>
     Unit JSON sharing portal for <strong>MobCrafter</strong> (Minecraft Forge <strong>1.20.1</strong>).<br />
     Download MobCrafter from CurseForge:
@@ -472,6 +540,30 @@
   <div class="mc-main-col">
     <!-- Ad slot (index_top) - renders only when ads are enabled -->
     <div data-ad-slot-key="index_top"></div>
+
+    <!-- Phase 1 discovery sections (shown on default view only) -->
+    <section id="discover" class="mc-discover" style="display:none;">
+      <div class="mc-section" id="secFeatured">
+        <div class="mc-section-head">
+          <h2>Featured Units</h2>
+        </div>
+        <section id="shelfFeatured" class="grid mc-shelf" aria-label="Featured Units"></section>
+      </div>
+
+      <div class="mc-section" id="secVanilla">
+        <div class="mc-section-head">
+          <h2>Vanilla Only</h2>
+        </div>
+        <section id="shelfVanilla" class="grid mc-shelf" aria-label="Vanilla Only"></section>
+      </div>
+
+      <div class="mc-section" id="secTrending">
+        <div class="mc-section-head">
+          <h2>Trending</h2>
+        </div>
+        <section id="shelfTrending" class="grid mc-shelf" aria-label="Trending"></section>
+      </div>
+    </section>
 
     <div class="topbar">
     <div class="leftbox">
@@ -527,6 +619,10 @@
         <a id="postLink" class="primary" href="/submit.html">Submit</a>
       </div>
     </div>
+    </div>
+
+    <div class="mc-section-head" id="newUnitsHead" style="display:none;">
+      <h2>New Units</h2>
     </div>
     <section id="grid" class="grid"></section>
     <div id="pager" class="pager" style="display:none;"></div>
@@ -727,7 +823,15 @@
   const yawUi = document.getElementById("yaw");
   const err = document.getElementById("err");
 
+  const discover = document.getElementById("discover");
+  const shelfFeatured = document.getElementById("shelfFeatured");
+  const shelfVanilla = document.getElementById("shelfVanilla");
+  const shelfTrending = document.getElementById("shelfTrending");
+  const newUnitsHead = document.getElementById("newUnitsHead");
+
   const PAGE_SIZE = 20;
+  const DISCOVERY_DL_PAGE_SIZE = 30;
+  const DISCOVERY_SHELF_SIZE = 6;
 
   function showError(msg){
     err.style.display = "block";
@@ -802,10 +906,10 @@
     else history.replaceState(null, "", nextUrl);
   }
 
-  function buildPublicListUrl({ page, q, sort }){
+  function buildPublicListUrl({ page, q, sort, page_size }){
     const sp = new URLSearchParams();
     sp.set("page", String(page));
-    sp.set("page_size", String(PAGE_SIZE));
+    sp.set("page_size", String(page_size || PAGE_SIZE));
     if(q && String(q).trim()) sp.set("q", String(q).trim());
     if(sort) sp.set("sort", String(sort));
     return API_PUBLIC_LIST + "?" + sp.toString();
@@ -1077,6 +1181,59 @@
     else location.href = `/unit.html?id=${encodeURIComponent(String(it.id))}`;
   }
 
+  // ===== Lazy 3D canvas thumbs (Phase 1 perf) =====
+  let _thumbObserver = null;
+  function getThumbObserver(){
+    if (typeof IntersectionObserver === "undefined") return null;
+    if(_thumbObserver) return _thumbObserver;
+    _thumbObserver = new IntersectionObserver((entries) => {
+      for(const ent of entries){
+        if(!ent.isIntersecting) continue;
+        const canvas = ent.target;
+        if(!canvas) continue;
+        if(canvas.getAttribute("data-done") === "1"){
+          try{ _thumbObserver.unobserve(canvas); }catch{}
+          continue;
+        }
+        canvas.setAttribute("data-done", "1");
+        try{ _thumbObserver.unobserve(canvas); }catch{}
+
+        const id = String(canvas.getAttribute("data-submission-id") || "").trim();
+        if(!id) continue;
+
+        (async () => {
+          try{
+            const j = await fetchUnitJson(id);
+            await loadPalette();
+            const yaw = Number(yawUi.value || 270);
+            drawIso(canvas, normalizeBlocksForDraw(j), yaw);
+          }catch{}
+        })();
+      }
+    }, { rootMargin: "220px 0px" });
+    return _thumbObserver;
+  }
+
+  function lazyRenderCanvasThumb(canvas, submissionId){
+    if(!canvas) return;
+    canvas.setAttribute("data-submission-id", String(submissionId || ""));
+    canvas.setAttribute("data-done", "0");
+    const obs = getThumbObserver();
+    if(!obs){
+      // Fallback (no IntersectionObserver support)
+      (async () => {
+        try{
+          const j = await fetchUnitJson(String(submissionId||""));
+          await loadPalette();
+          const yaw = Number(yawUi.value || 270);
+          drawIso(canvas, normalizeBlocksForDraw(j), yaw);
+        }catch{}
+      })();
+      return;
+    }
+    try{ obs.observe(canvas); }catch{}
+  }
+
   function renderCard(it){
     const card = document.createElement("article");
     card.className = "card";
@@ -1085,7 +1242,9 @@
     const canEdit = isMine;
 
     const hasScreen = Boolean(it.thumbScreenId);
-    const useScreenThumb = (it.thumbMode === "screen") && hasScreen;
+    // Prefer static image whenever thumbScreenId exists (screen or static 3D).
+    const useScreenThumb = hasScreen;
+    const imgFitClass = (String(it.thumbMode || "").toLowerCase() === "3d") ? " contain" : "";
 
     const st = String(it.status || "approved").toLowerCase();
     const statusBadge = (st && st !== "approved")
@@ -1106,7 +1265,7 @@
     card.innerHTML = `
       <div class="thumbwrap">
         ${useScreenThumb
-          ? `<img class="thumbimg"
+          ? `<img class="thumbimg${imgFitClass}"
                   src="${escapeHtml(initialSrc)}"
                   alt=""
                   data-public-src="${escapeHtml(publicSrc)}"
@@ -1236,14 +1395,7 @@
 
     const canvas = card.querySelector("canvas.thumb");
     if (canvas) {
-      (async () => {
-        try{
-          const j = await fetchUnitJson(it.id);
-          await loadPalette();
-          const yaw = Number(yawUi.value || 270);
-          drawIso(canvas, normalizeBlocksForDraw(j), yaw);
-        }catch{}
-      })();
+      lazyRenderCanvasThumb(canvas, it.id);
     }
 
     return card;
@@ -1326,8 +1478,8 @@
   }
 
   // ===== fetch list =====
-  async function fetchListPublic({ page, q, sort }){
-    const url = buildPublicListUrl({ page, q, sort });
+  async function fetchListPublic({ page, q, sort, page_size }){
+    const url = buildPublicListUrl({ page, q, sort, page_size });
     const r = await fetch(url, { cache:"no-store", credentials:"include" });
     const text = await r.text().catch(()=> "");
     let data = null;
@@ -1339,7 +1491,7 @@
     const arr = (data && Array.isArray(data.items)) ? data.items : [];
     const meta = {
       page: Number(data?.page || page),
-      page_size: Number(data?.page_size || PAGE_SIZE),
+      page_size: Number(data?.page_size || page_size || PAGE_SIZE),
       total_count: Number(data?.total_count || 0),
       total_pages: Number(data?.total_pages || 1),
     };
@@ -1429,7 +1581,7 @@
         });
       }
 
-      const btns = grid.querySelectorAll("[data-like-btn]");
+      const btns = document.querySelectorAll("[data-like-btn]");
       btns.forEach(btn => {
         const id = String(btn.getAttribute("data-submission-id") || "").trim();
         if(!id) return;
@@ -1441,6 +1593,90 @@
         if(countEl) countEl.textContent = String(v.likes_count);
       });
     }catch{}
+  }
+
+  function tagHas(it, want){
+    const w = String(want||"").trim().toLowerCase();
+    if(!w) return false;
+    return Array.isArray(it?.tags) && it.tags.some(t => String(t||"").trim().toLowerCase() === w);
+  }
+
+  function uniqById(arr){
+    const out = [];
+    const seen = new Set();
+    for(const it of (arr || [])){
+      const id = String(it?.id || "");
+      if(!id || seen.has(id)) continue;
+      seen.add(id);
+      out.push(it);
+    }
+    return out;
+  }
+
+  function preferScreenOrder(arr){
+    const screen = [];
+    const other = [];
+    for(const it of (arr || [])){
+      const okScreen = Boolean(it && it.thumbScreenId);
+      (okScreen ? screen : other).push(it);
+    }
+    return screen.concat(other);
+  }
+
+  function pickShelf(arr, n){
+    return preferScreenOrder(arr).slice(0, Math.max(0, n|0));
+  }
+
+  function renderShelf(el, arr){
+    if(!el) return;
+    el.innerHTML = "";
+    for(const it of (arr || [])){
+      el.appendChild(renderCard(it));
+    }
+  }
+
+  function setDiscoverVisible(on){
+    if(discover) discover.style.display = on ? "block" : "none";
+    if(newUnitsHead) newUnitsHead.style.display = on ? "flex" : "none";
+
+    const secFeatured = document.getElementById("secFeatured");
+    const secVanilla = document.getElementById("secVanilla");
+    const secTrending = document.getElementById("secTrending");
+
+    // Always reset shelves; updateDiscoverySections will re-show sections as needed.
+    if(secFeatured) secFeatured.style.display = "none";
+    if(secVanilla) secVanilla.style.display = "none";
+    if(secTrending) secTrending.style.display = "none";
+    if(shelfFeatured) shelfFeatured.innerHTML = "";
+    if(shelfVanilla) shelfVanilla.innerHTML = "";
+    if(shelfTrending) shelfTrending.innerHTML = "";
+  }
+
+  function updateDiscoverySections({ newItems, dlItems }){
+    const baseNew = Array.isArray(newItems) ? newItems : [];
+    const baseDl = Array.isArray(dlItems) ? dlItems : [];
+    const pool = uniqById(baseNew.concat(baseDl));
+
+    const featured = pickShelf(pool.filter(it => tagHas(it, "featured")), DISCOVERY_SHELF_SIZE);
+    const vanilla = pickShelf(pool.filter(it => tagHas(it, "vanilla")), DISCOVERY_SHELF_SIZE);
+
+    const trendingWindow = baseDl.slice(0, Math.max(DISCOVERY_SHELF_SIZE * 5, 20));
+    const trending = pickShelf(trendingWindow, DISCOVERY_SHELF_SIZE);
+
+    const secFeatured = document.getElementById("secFeatured");
+    const secVanilla = document.getElementById("secVanilla");
+    const secTrending = document.getElementById("secTrending");
+    if(secFeatured) secFeatured.style.display = featured.length ? "block" : "none";
+    if(secVanilla) secVanilla.style.display = vanilla.length ? "block" : "none";
+    if(secTrending) secTrending.style.display = trending.length ? "block" : "none";
+
+    renderShelf(shelfFeatured, featured);
+    renderShelf(shelfVanilla, vanilla);
+    renderShelf(shelfTrending, trending);
+
+    // likes hydrate: best-effort, limited to 50 ids.
+    const ids = uniqById(featured.concat(vanilla).concat(trending).concat(baseNew)).map(x=>x.id);
+    hydrateLikesForGrid(ids);
   }
 
   async function load(){
@@ -1460,6 +1696,14 @@
       const useMine = !!(mineOnly && mineOnly.checked && meEmail);
       currentUseMine = useMine;
 
+      const wantDiscover = (!useMine && p.page === 1 && !String(p.q || "").trim() && String(p.sort || "new") === "new");
+      setDiscoverVisible(wantDiscover);
+
+      // Start the single extra request early (overlaps with main list fetch).
+      const dlPromise = wantDiscover
+        ? fetchListPublic({ page: 1, q: "", sort: "dl", page_size: DISCOVERY_DL_PAGE_SIZE })
+        : null;
+
       let arr = [];
       let meta = null;
 
@@ -1476,8 +1720,22 @@
       items = mapItems(arr);
 
       renderGrid(items);
-      hydrateLikesForGrid(items.map(x=>x.id));
+      if (!wantDiscover) {
+        hydrateLikesForGrid(items.map(x=>x.id));
+      }
       renderPager(meta);
+
+      // Discovery shelves render after the base grid is ready.
+      if (wantDiscover && dlPromise) {
+        dlPromise
+          .then(({ arr: dlArr }) => {
+            const dlItems = mapItems(dlArr);
+            updateDiscoverySections({ newItems: items, dlItems });
+          })
+          .catch(() => {
+            try{ updateDiscoverySections({ newItems: items, dlItems: [] }); }catch{}
+          });
+      }
     }catch(e){
       showError("Failed to load the list.\n" + String(e.message || e));
     }
@@ -1529,6 +1787,14 @@
 
     await load();
   })();
+
+  // CTA helper: expand the existing overview section.
+  document.addEventListener("click", (ev) => {
+    const a = ev.target && ev.target.closest ? ev.target.closest('a[data-open-overview]') : null;
+    if(!a) return;
+    const ov = document.getElementById("overview");
+    if(ov && ov.tagName === "DETAILS") ov.open = true;
+  });
 })();
 </script>
 </body>

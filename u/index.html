@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MobCrafter Portal | Unit</title>
   <meta name="description" content="MobCrafter unit JSON details page. Download, JSON preview, and usage instructions." />
+  <link rel="canonical" href="" id="canonicalLink" />
+  <meta property="og:url" content="" id="ogUrl" />
   <meta property="og:type" content="article" />
   <meta property="og:image" content="" />
   <meta property="og:image:secure_url" content="" />
@@ -220,6 +222,10 @@
       <h2 class="title" id="title">Loading...</h2>
       <div class="muted" id="sub"></div>
 
+      <div style="margin-top:12px; border:1px solid rgba(148,163,184,.25); border-radius:14px; overflow:hidden; background:#fff;">
+        <img id="heroImg" alt="" style="width:100%; height:auto; display:block; aspect-ratio:1200/630; object-fit:contain; background:#fff;" loading="eager" decoding="async" />
+      </div>
+
       <div class="tags" id="tags"></div>
       <div class="kv" id="kv"></div>
 
@@ -350,6 +356,9 @@
   const API_OWNER_META = (id) => api(`/api/submissions/${id}`);          // PUT, DELETE
   const API_OWNER_JSON = (id) => api(`/api/submissions/${id}/json`);     // PUT
 
+  const API_PUBLIC_META = (id) => api(`/api/public/submissions/${encodeURIComponent(id)}`);
+  const API_PUBLIC_U = (no) => api(`/api/public/u/${encodeURIComponent(no)}`);
+
   // comments
   const COMMENTS_API = api("/api/comments");
   const COMMENTS_API_PUBLIC = api("/api/public/comments");
@@ -368,6 +377,10 @@
   const commentNextEl = el("commentNext");
   const commentPageInfoEl = el("commentPageInfo");
   const ogHiddenImg = el("ogImageHidden");
+  const heroImgEl = el("heroImg");
+
+  const canonicalLinkEl = el("canonicalLink");
+  const ogUrlEl = el("ogUrl");
 
   function setCommentsState(msg){
     if(!commentsStateEl) return;
@@ -376,7 +389,8 @@
 
   function setOgImageByKey(key){
     if (!key) return;
-    const url = new URL(`/api/public/submissions/${encodeURIComponent(key)}/og-image`, location.origin).toString();
+    const path = api(`/api/public/submissions/${encodeURIComponent(key)}/og-image`);
+    const url = new URL(path, location.href).toString();
     const og = document.querySelector('meta[property="og:image"]');
     const ogs = document.querySelector('meta[property="og:image:secure_url"]');
     const tw = document.querySelector('meta[name="twitter:image"]');
@@ -386,7 +400,31 @@
     if (tw) tw.setAttribute("content", url);
     if (ln) ln.setAttribute("href", url);
     if (ogHiddenImg) ogHiddenImg.src = url;
+    if (heroImgEl) heroImgEl.src = url;
     return url;
+  }
+
+  function setCanonical(path){
+    const p = String(path || "").trim();
+    if(!p) return;
+    const safe = p.startsWith("/") ? p : ("/" + p);
+    const href = new URL(safe, location.origin).toString();
+    if (canonicalLinkEl) canonicalLinkEl.setAttribute("href", href);
+    return href;
+  }
+
+  function setOgUrl(path){
+    const p = String(path || "").trim();
+    if(!p) return;
+    const url = new URL(p.startsWith("/") ? p : ("/" + p), location.origin).toString();
+    if (ogUrlEl) ogUrlEl.setAttribute("content", url);
+    return url;
+  }
+
+  function setPageDescription(text){
+    const meta = document.querySelector('meta[name="description"]');
+    if(!meta) return;
+    meta.setAttribute("content", String(text || "").trim());
   }
 
   function setStructuredData({ name, imageUrl } = {}){
@@ -689,15 +727,27 @@
     return null;
   }
 
-  async function fetchApprovedList(){
-    const r = await fetch(API_LIST, { cache:"no-store" });
+  async function fetchItemByKey(key){
+    const k = String(key || "").trim();
+    if(!k) return null;
+
+    // numeric submission_no
+    if(/^\d+$/.test(k)){
+      const r = await fetch(API_PUBLIC_U(k), { cache:"no-store" });
+      const t = await r.text();
+      let d = null;
+      try{ d = JSON.parse(t); }catch{ d = null; }
+      if(!r.ok || !d || d.ok !== true) return null;
+      return d.item || null;
+    }
+
+    // UUID
+    const r = await fetch(API_PUBLIC_META(k), { cache:"no-store" });
     const t = await r.text();
-    let data = null;
-    let parsed = false;
-    try{ data = JSON.parse(t); parsed = true; }catch{ data = null; parsed = false; }
-    if(!r.ok) throw new Error("list HTTP " + r.status);
-    if(!parsed) throw new Error("list non_json_response");
-    return Array.isArray(data.items) ? data.items : [];
+    let d = null;
+    try{ d = JSON.parse(t); }catch{ d = null; }
+    if(!r.ok || !d) return null;
+    return d;
   }
 
   async function apiJson(url, method, bodyObj){
@@ -742,21 +792,22 @@
 
     const ogUrl = setOgImageByKey(key);
 
-    const isNo = /^\d+$/.test(key);
-    const list = await fetchApprovedList();
-
-    let item = null;
-    if(isNo){
-      const no = Number(key);
-      item = list.find(x => Number(x.submission_no ?? x.submissionNo ?? 0) === no) || null;
-    }else{
-      item = list.find(x => String(x.id) === key) || null;
-    }
+    const item = await fetchItemByKey(key);
 
     if(!item){
       setMsg(`<div class="err">Unit not found.\n(It may be missing from the approved list or already deleted.)</div>`);
       return;
     }
+
+    // canonical/seo
+    const no = item.submission_no ?? item.submissionNo ?? null;
+    const canonicalPath = (no != null && String(no).trim() !== "")
+      ? `/u/${encodeURIComponent(String(no))}`
+      : `/u/${encodeURIComponent(String(item.id || key))}`;
+    setCanonical(canonicalPath);
+    setOgUrl(canonicalPath);
+    document.title = `MobCrafter | ${String(item.title || item.name || "Unit").trim()}` + (no != null ? ` (#${no})` : "");
+    setPageDescription(String(item.description || "").trim() || `Download this MobCrafter unit JSON: ${String(item.title || item.name || "Unit").trim()}`);
 
     // --- whoami (used for editor + comment posting permission) ---
     let who = { ok:true, email:null, is_admin:false };
