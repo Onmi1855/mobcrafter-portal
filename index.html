@@ -29,6 +29,75 @@
       background:var(--bg);
     }
 
+    /* ===== Submit call-to-action banner ===== */
+    .mc-submit-banner{
+      max-width: 840px;
+      margin: 10px auto 0;
+      padding: 0 16px;
+    }
+    .mc-submit-banner-inner{
+      background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+      border: 1px solid rgba(37,99,235,.18);
+      border-radius: 14px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .mc-submit-banner-text{
+      flex: 1;
+      min-width: 0;
+    }
+    .mc-submit-banner-text strong{
+      display: block;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+    .mc-submit-banner-text span{
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .mc-submit-banner-actions{
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .mc-submit-banner-actions a{
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 999px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      border: 1px solid rgba(22,163,74,.3);
+      color: #16a34a;
+      background: #fff;
+    }
+    .mc-submit-banner-actions a.primary{
+      background: #16a34a;
+      border-color: #16a34a;
+      color: #fff;
+    }
+    .mc-submit-banner-actions a.secondary{
+      color: var(--brand);
+      border-color: rgba(37,99,235,.25);
+    }
+    /* ===== Popular shelf ===== */
+    #secPopular{ margin-top: 18px; }
+    #secPopular .mc-section-head h2{
+      font-size: 16px;
+      font-weight: 800;
+    }
     /* ===== Phase 1: Hero + discovery sections ===== */
     .mc-hero-copy{
       max-width: 840px;
@@ -67,6 +136,11 @@
     .mc-hero-cta a.primary{
       background: var(--brand);
       border-color: var(--brand);
+      color: #fff;
+    }
+    .mc-hero-cta a.submit-cta{
+      background: #16a34a;
+      border-color: #16a34a;
       color: #fff;
     }
     .mc-discover{
@@ -562,7 +636,8 @@
     <div class="lead">Download ready-to-use Minecraft units for MobCrafter</div>
     <div class="mc-hero-cta">
       <a class="primary" href="https://www.curseforge.com/minecraft/mc-mods/mobcrafter" target="_blank" rel="noopener noreferrer">Get MobCrafter</a>
-      <a href="#overview" data-open-overview="1">How to Install Units</a>
+      <a class="submit-cta" id="heroCTASubmit" href="/submit.html">&#43; Submit Your Unit</a>
+      <a href="#overview" data-open-overview="1">How to Install</a>
       <a href="#secVanilla">Browse Vanilla Only</a>
     </div>
   </div>
@@ -577,6 +652,19 @@
     You can build units using blocks from other mods too, but you must install those mods as <strong>required dependencies</strong>
     in your modpack/world to use the unit.
   </p>
+  <!-- Submit / community banner -->
+  <div class="mc-submit-banner" id="submitBanner">
+    <div class="mc-submit-banner-inner">
+      <div class="mc-submit-banner-text">
+        <strong>Share Your Own Unit</strong>
+        <span>Upload your MobCrafter creation — screenshot, 3D thumbnail, tags, and dependencies all supported.</span>
+      </div>
+      <div class="mc-submit-banner-actions">
+        <a id="bannerSubmitLink" class="primary" href="/submit.html">&#43; Submit Unit</a>
+        <a id="bannerMyLink" class="secondary" href="/submit.html" style="display:none;">My Submissions</a>
+      </div>
+    </div>
+  </div>
 </header>
 
 <main>
@@ -612,9 +700,16 @@
 
       <div class="mc-section" id="secTrending">
         <div class="mc-section-head">
-          <h2>Trending</h2>
+          <h2>Trending Now <span style="font-size:12px;font-weight:400;color:var(--muted);margin-left:4px;">past 30 days</span></h2>
         </div>
-        <section id="shelfTrending" class="grid mc-shelf" aria-label="Trending"></section>
+        <section id="shelfTrending" class="grid mc-shelf" aria-label="Trending Now"></section>
+      </div>
+
+      <div class="mc-section" id="secPopular">
+        <div class="mc-section-head">
+          <h2>Popular <span style="font-size:12px;font-weight:400;color:var(--muted);margin-left:4px;">all&#8209;time</span></h2>
+        </div>
+        <section id="shelfPopular" class="grid mc-shelf" aria-label="Popular All-time"></section>
       </div>
     </section>
 
@@ -764,6 +859,9 @@
 
   const API_LIKES_TOGGLE = (id) => api(`/api/submissions/${encodeURIComponent(id)}/likes/toggle`);
   const API_LIKES_BATCH = api(`/api/likes/batch`);
+  // New: Trending (recent window) and Popular (all-time)
+  const API_TRENDING = api("/api/public/trending") + "?days=30&limit=20";
+  const API_POPULAR  = api("/api/public/popular")  + "?limit=20";
 
   // ====== AUTH ======
   const API_WHOAMI = api("/api/whoami");
@@ -814,12 +912,20 @@
           authActionLink.textContent = "Log in";
           authActionLink.className = "";
           postLink.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
+          const _bsl401 = document.getElementById("bannerSubmitLink");
+          const _hcs401 = document.getElementById("heroCTASubmit");
+          if(_bsl401) _bsl401.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
+          if(_hcs401) _hcs401.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
           return;
         }
         authState.textContent = "unknown";
         authActionLink.textContent = "Log in";
         authActionLink.className = "";
         postLink.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
+        const _bslU = document.getElementById("bannerSubmitLink");
+        const _hcsU = document.getElementById("heroCTASubmit");
+        if(_bslU) _bslU.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
+        if(_hcsU) _hcsU.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
         return;
       }
 
@@ -832,6 +938,10 @@
         authActionLink.textContent = "Log in";
         authActionLink.className = "";
         postLink.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
+        const _bslLO = document.getElementById("bannerSubmitLink");
+        const _hcsLO = document.getElementById("heroCTASubmit");
+        if(_bslLO) _bslLO.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
+        if(_hcsLO) _hcsLO.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
         return;
       }
 
@@ -852,6 +962,14 @@
 
       postLink.href = "/submit.html";
       mineWrap.style.display = "inline-flex";
+
+      // Submit banner: logged-in state — show My Submissions link
+      const bannerSubmitLink = document.getElementById("bannerSubmitLink");
+      const bannerMyLink     = document.getElementById("bannerMyLink");
+      const heroCTASubmit    = document.getElementById("heroCTASubmit");
+      if(bannerSubmitLink) bannerSubmitLink.href = "/submit.html";
+      if(bannerMyLink){ bannerMyLink.href = "/submit.html"; bannerMyLink.style.display = "inline-flex"; }
+      if(heroCTASubmit)   heroCTASubmit.href = "/submit.html";
     }catch{
       authState.textContent = "unknown";
       authActionLink.textContent = "Log in";
@@ -862,6 +980,10 @@
       meEmail = null;
       meIsAdmin = false;
       meUserId = null;
+      const _bsl2 = document.getElementById("bannerSubmitLink");
+      const _hcs2 = document.getElementById("heroCTASubmit");
+      if(_bsl2) _bsl2.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
+      if(_hcs2) _hcs2.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
     }
   }
 
@@ -880,6 +1002,7 @@
   const shelfFeatured = document.getElementById("shelfFeatured");
   const shelfVanilla = document.getElementById("shelfVanilla");
   const shelfTrending = document.getElementById("shelfTrending");
+  const shelfPopular  = document.getElementById("shelfPopular");
   const newUnitsHead = document.getElementById("newUnitsHead");
 
   const PAGE_SIZE = 20;
@@ -1179,7 +1302,8 @@
       const minX = sx0 - 1;
       const maxX = sx0 + 1;
       const minY = sy0 - 0.5;
-      const maxY = sy0 + 1.5;
+      // +2.0 includes the full bottom face of the isometric cube (was 1.5 = cut off)
+      const maxY = sy0 + 2.0;
 
       pts.push({x,y,z,bid,sx0,sy0,minX,maxX,minY,maxY});
     }
@@ -1204,7 +1328,7 @@
     const cx = (minPX + maxPX) * 0.5;
     const cy = (minPY + maxPY) * 0.5;
 
-    const margin = 16;
+    const margin = 22;
 
     const s = Math.max(
       1.8,
@@ -1214,8 +1338,10 @@
       )
     );
 
+    // Shift center slightly upward so tall models don't clip at the bottom.
+    const bottomBias = 0.04 * h;
     const ox = (w * 0.5) - (cx * s);
-    const oy = (h * 0.5) - (cy * s);
+    const oy = (h * 0.5) - (cy * s) - bottomBias;
 
     pts.sort((a,b)=> (a.x + a.z) - (b.x + b.z) || (a.y - b.y));
 
@@ -1696,40 +1822,49 @@
     const secFeatured = document.getElementById("secFeatured");
     const secVanilla = document.getElementById("secVanilla");
     const secTrending = document.getElementById("secTrending");
+    const secPopular  = document.getElementById("secPopular");
 
     // Always reset shelves; updateDiscoverySections will re-show sections as needed.
     if(secFeatured) secFeatured.style.display = "none";
     if(secVanilla) secVanilla.style.display = "none";
     if(secTrending) secTrending.style.display = "none";
+    if(secPopular)  secPopular.style.display  = "none";
     if(shelfFeatured) shelfFeatured.innerHTML = "";
     if(shelfVanilla) shelfVanilla.innerHTML = "";
     if(shelfTrending) shelfTrending.innerHTML = "";
+    if(shelfPopular)  shelfPopular.innerHTML  = "";
   }
 
-  function updateDiscoverySections({ newItems, dlItems }){
-    const baseNew = Array.isArray(newItems) ? newItems : [];
-    const baseDl = Array.isArray(dlItems) ? dlItems : [];
-    const pool = uniqById(baseNew.concat(baseDl));
+  function updateDiscoverySections({ newItems, trendingItems, popularItems }){
+    const baseNew  = Array.isArray(newItems)      ? newItems      : [];
+    const baseTrnd = Array.isArray(trendingItems) ? trendingItems : [];
+    const basePop  = Array.isArray(popularItems)  ? popularItems  : [];
+    const pool = uniqById(baseNew.concat(baseTrnd).concat(basePop));
 
-    const featured = pickShelf(pool.filter(it => tagHas(it, "featured")), DISCOVERY_SHELF_SIZE);
-    const vanilla = pickShelf(pool.filter(it => tagHas(it, "vanilla")), DISCOVERY_SHELF_SIZE);
-
-    const trendingWindow = baseDl.slice(0, Math.max(DISCOVERY_SHELF_SIZE * 5, 20));
-    const trending = pickShelf(trendingWindow, DISCOVERY_SHELF_SIZE);
+    const featured  = pickShelf(pool.filter(it => tagHas(it, "featured")), DISCOVERY_SHELF_SIZE);
+    const vanilla   = pickShelf(pool.filter(it => tagHas(it, "vanilla")),  DISCOVERY_SHELF_SIZE);
+    // Trending Now: from the dedicated Trending API result
+    const trending  = pickShelf(baseTrnd, DISCOVERY_SHELF_SIZE);
+    // Popular (all-time): from the dedicated Popular API result, exclude already shown in trending
+    const trendingIds = new Set(trending.map(x => x.id));
+    const popular   = pickShelf(basePop.filter(x => !trendingIds.has(x.id)), DISCOVERY_SHELF_SIZE);
 
     const secFeatured = document.getElementById("secFeatured");
-    const secVanilla = document.getElementById("secVanilla");
+    const secVanilla  = document.getElementById("secVanilla");
     const secTrending = document.getElementById("secTrending");
-    if(secFeatured) secFeatured.style.display = featured.length ? "block" : "none";
-    if(secVanilla) secVanilla.style.display = vanilla.length ? "block" : "none";
-    if(secTrending) secTrending.style.display = trending.length ? "block" : "none";
+    const secPopular  = document.getElementById("secPopular");
+    if(secFeatured) secFeatured.style.display = featured.length  ? "block" : "none";
+    if(secVanilla)  secVanilla.style.display  = vanilla.length   ? "block" : "none";
+    if(secTrending) secTrending.style.display = trending.length  ? "block" : "none";
+    if(secPopular)  secPopular.style.display  = popular.length   ? "block" : "none";
 
     renderShelf(shelfFeatured, featured);
-    renderShelf(shelfVanilla, vanilla);
+    renderShelf(shelfVanilla,  vanilla);
     renderShelf(shelfTrending, trending);
+    renderShelf(shelfPopular,  popular);
 
     // likes hydrate: best-effort, limited to 50 ids.
-    const ids = uniqById(featured.concat(vanilla).concat(trending).concat(baseNew)).map(x=>x.id);
+    const ids = uniqById(featured.concat(vanilla).concat(trending).concat(popular).concat(baseNew)).map(x=>x.id);
     hydrateLikesForGrid(ids);
   }
 
@@ -1753,9 +1888,12 @@
       const wantDiscover = (!useMine && p.page === 1 && !String(p.q || "").trim() && String(p.sort || "new") === "new");
       setDiscoverVisible(wantDiscover);
 
-      // Start the single extra request early (overlaps with main list fetch).
-      const dlPromise = wantDiscover
-        ? fetchListPublic({ page: 1, q: "", sort: "dl", page_size: DISCOVERY_DL_PAGE_SIZE })
+      // Start Trending + Popular requests early (overlaps with main list fetch).
+      const trendingPromise = wantDiscover
+        ? fetch(API_TRENDING, { cache: "no-store", credentials: "include" }).then(r => r.json()).catch(() => ({ items: [] }))
+        : null;
+      const popularPromise = wantDiscover
+        ? fetch(API_POPULAR, { cache: "no-store", credentials: "include" }).then(r => r.json()).catch(() => ({ items: [] }))
         : null;
 
       let arr = [];
@@ -1780,14 +1918,15 @@
       renderPager(meta);
 
       // Discovery shelves render after the base grid is ready.
-      if (wantDiscover && dlPromise) {
-        dlPromise
-          .then(({ arr: dlArr }) => {
-            const dlItems = mapItems(dlArr);
-            updateDiscoverySections({ newItems: items, dlItems });
+      if (wantDiscover && trendingPromise && popularPromise) {
+        Promise.all([trendingPromise, popularPromise])
+          .then(([tData, pData]) => {
+            const trendingItems = mapItems(Array.isArray(tData.items) ? tData.items : []);
+            const popularItems  = mapItems(Array.isArray(pData.items) ? pData.items : []);
+            updateDiscoverySections({ newItems: items, trendingItems, popularItems });
           })
           .catch(() => {
-            try{ updateDiscoverySections({ newItems: items, dlItems: [] }); }catch{}
+            try{ updateDiscoverySections({ newItems: items, trendingItems: [], popularItems: [] }); }catch{}
           });
       }
     }catch(e){
