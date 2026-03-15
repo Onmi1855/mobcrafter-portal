@@ -272,9 +272,7 @@ function setEditUi(){
         $desc.value  = item.description || "";
         $tags.value  = Array.isArray(item.tags) ? item.tags.join(", ") : (item.tags || "");
         $mv.value    = item.mod_version || "";
-        if(item.yaw_offset_quarter != null){
-          $yawOffset.value = String(item.yaw_offset_quarter);
-        }
+        // yaw_offset_quarter の逆算は JSON ロード後に実施 (frontYaw が必要なため)
       }
 
       // json (no DL count)
@@ -292,6 +290,24 @@ function setEditUi(){
       parsedJson = parsed;
       parsedBlocks = norm.blocks;
       jsonDirty = false;
+
+      // DB に保存されている drawIso quarter から submit.html の UI offset を逆算して設定
+      if (item && item.yaw_offset_quarter != null) {
+        const drawIsoQ = Number(item.yaw_offset_quarter);
+        const frontYaw = (parsedJson.frontYaw != null) ? parsedJson.frontYaw : null;
+        let uiOffset;
+        if (frontYaw != null) {
+          let deg = Number(frontYaw) % 360;
+          if (deg < 0) deg += 360;
+          const fq = Math.round(deg / 90) % 4;
+          const finalQ = (4 - drawIsoQ) % 4;
+          uiOffset = (finalQ - fq + 4) % 4;
+        } else {
+          uiOffset = 0; // frontYaw=null の場合は UI offset を 0 にリセット
+        }
+        $yawOffset.value = String(uiOffset);
+      }
+
       const info = analyzeBlocks(parsedBlocks);
       $prev.textContent = JSON.stringify({
         mode: "edit",
@@ -825,7 +841,16 @@ if ($screenFile && $screenPreview) {
       description: $desc.value.trim(),
       tags: ($tags.value||"").split(",").map(s=>s.trim()).filter(Boolean),
       mod_version: $mv.value.trim(),
-      yaw_offset_quarter: Number($yawOffset.value || "0"),
+      yaw_offset_quarter: (()=>{
+        const uiOffset = Number($yawOffset.value || "0") % 4;
+        const frontYaw = (parsedJson && parsedJson.frontYaw != null) ? parsedJson.frontYaw : null;
+        if (frontYaw == null) return null; // frontYaw 不明時は null (index.html はデフォルト 270° を使用)
+        let deg = Number(frontYaw) % 360;
+        if (deg < 0) deg += 360;
+        const fq = Math.round(deg / 90) % 4;
+        const finalQ = (fq + uiOffset) % 4;
+        return (4 - finalQ) % 4; // drawIso quarter: 0→0°, 1→90°, 2→180°, 3→270°
+      })(),
     };
 
     let payload = null;
