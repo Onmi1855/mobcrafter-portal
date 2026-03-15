@@ -32,19 +32,19 @@
     /* ===== Phase 1: Hero + discovery sections ===== */
     .mc-hero-copy{
       max-width: 840px;
-      margin: 10px auto 0;
+      margin: 8px auto 0;
       padding: 0 16px;
       color: var(--text);
     }
     .mc-hero-copy .lead{
-      margin: 10px 0 0;
+      margin: 8px 0 0;
       font-size: 16px;
       font-weight: 800;
       letter-spacing: .2px;
       line-height: 1.25;
     }
     .mc-hero-cta{
-      margin: 12px 0 0;
+      margin: 10px 0 0;
       display:flex;
       gap:10px;
       flex-wrap: wrap;
@@ -93,9 +93,36 @@
     .mc-shelf .thumbwrap{ height: 170px; }
     .mc-shelf canvas.thumb,
     .mc-shelf img.thumbimg{ height: 170px; }
+
+    /* ===== Trending: slightly stronger “featured shelf” feel (minimal, scoped) ===== */
+    #secTrending{ margin-top: 18px; }
+    #secTrending .mc-section-head{
+      margin: 20px 2px 12px;
+    }
+    #secTrending .mc-section-head h2{
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: .2px;
+    }
+    #secTrending .mc-section-head::after{
+      content:"";
+      flex:1;
+      height:1px;
+      margin-left: 12px;
+      background: rgba(148,163,184,.45);
+    }
+    #shelfTrending.grid{
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+    #shelfTrending .thumbwrap{ height: 180px; }
+    #shelfTrending canvas.thumb,
+    #shelfTrending img.thumbimg{ height: 180px; }
+    #shelfTrending .card{
+      border-color: rgba(37,99,235,.18);
+    }
     .hero{
   max-width:1060px;
-  margin:0 auto 12px;
+  margin:0 auto 10px;
   padding:0 16px;
 }
 .hero-img{
@@ -107,7 +134,7 @@
   box-shadow: 0 14px 30px rgba(15,23,42,.10);
 }
     header{
-      padding:24px 16px 10px;
+      padding:18px 16px 8px;
       text-align:center;
     }
     header h1{
@@ -116,9 +143,13 @@
       letter-spacing:.4px;
     }
     header p{
-      margin:6px 0 0;
+      margin:4px 0 0;
       color:var(--muted);
-      font-size:12px;
+      font-size:11px;
+      line-height: 1.45;
+      max-width: 980px;
+      margin-left: auto;
+      margin-right: auto;
     }
     main{
       max-width:1060px;
@@ -227,6 +258,11 @@
     }
 
     img.thumbimg.contain{ object-fit:contain; }
+
+    /* Slightly taller thumbs in the main grid (New Units/search results) to reduce “cramped” crops */
+    #grid .thumbwrap{ height: 150px; }
+    #grid canvas.thumb,
+    #grid img.thumbimg{ height: 150px; }
 
     .pill{
       position:absolute;
