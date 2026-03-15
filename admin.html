@@ -225,6 +225,17 @@
     <input id="editDesc" type="text" />
   </div>
 
+  <div style="margin-top:10px;">
+    <div class="mini">Thumbnail yaw (0=0° 1=90° 2=180° 3=270°)</div>
+    <select id="editYawQuarter">
+      <option value="">-- no change --</option>
+      <option value="0">0 – 0°</option>
+      <option value="1">1 – 90°</option>
+      <option value="2">2 – 180°</option>
+      <option value="3">3 – 270°</option>
+    </select>
+  </div>
+
   <div style="margin-top:12px;">
     <div class="mini">Replace JSON (paste)</div>
     <textarea id="editJson" placeholder='{"blocks":[...]} is enough'></textarea>
@@ -412,6 +423,7 @@
   const $editTitle = document.getElementById("editTitle");
   const $editTags  = document.getElementById("editTags");
   const $editDesc  = document.getElementById("editDesc");
+  const $editYawQuarter = document.getElementById("editYawQuarter");
   const $editJson  = document.getElementById("editJson");
   const $btnSaveMeta = document.getElementById("btnSaveMeta");
   const $btnSaveJson = document.getElementById("btnSaveJson");
@@ -977,6 +989,7 @@
     $editTitle.value = item.title || "";
     $editDesc.value  = item.description || "";
     $editTags.value  = parseTags(item.tags).join(" ");
+    $editYawQuarter.value = (item.yaw_offset_quarter != null) ? String(item.yaw_offset_quarter) : "";
     $editJson.value  = "";
     $dlgStatus.textContent = "-";
     $dlg.showModal();
@@ -1058,10 +1071,12 @@
     $btnSaveMeta.disabled = true;
     $dlgStatus.textContent = "saving meta...";
     try {
+      const yawVal = $editYawQuarter.value;
       const body = {
         title: $editTitle.value,
         description: $editDesc.value,
-        tags: $editTags.value
+        tags: $editTags.value,
+        ...(yawVal !== "" ? { yaw_offset_quarter: Number(yawVal) } : {})
       };
       const r = await api(`submissions/${encodeURIComponent(id)}`, "PUT", body);
       $dlgStatus.textContent = "meta saved";

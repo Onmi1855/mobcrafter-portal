@@ -1388,7 +1388,8 @@
           try{
             const j = await fetchUnitJson(id);
             await loadPalette();
-            const yaw = Number(yawUi.value || 270);
+            const yoq = canvas.dataset.yawQuarter;
+            const yaw = (yoq !== undefined && yoq !== "") ? Number(yoq) * 90 : Number(yawUi.value || 270);
             drawIso(canvas, normalizeBlocksForDraw(j), yaw);
           }catch{}
         })();
@@ -1408,7 +1409,8 @@
         try{
           const j = await fetchUnitJson(String(submissionId||""));
           await loadPalette();
-          const yaw = Number(yawUi.value || 270);
+          const yoq = canvas.dataset.yawQuarter;
+          const yaw = (yoq !== undefined && yoq !== "") ? Number(yoq) * 90 : Number(yawUi.value || 270);
           drawIso(canvas, normalizeBlocksForDraw(j), yaw);
         }catch{}
       })();
@@ -1570,7 +1572,8 @@
 
           const j = await fetchUnitJson(it.id);
           await loadPalette();
-          const yaw = Number(yawUi.value || 270);
+          const yoq = canvas.dataset.yawQuarter;
+          const yaw = (yoq !== undefined && yoq !== "") ? Number(yoq) * 90 : Number(yawUi.value || 270);
           drawIso(canvas, normalizeBlocksForDraw(j), yaw);
         } catch {}
       }, { once:false });
@@ -1578,6 +1581,7 @@
 
     const canvas = card.querySelector("canvas.thumb");
     if (canvas) {
+      if (it.yawOffsetQuarter != null) canvas.dataset.yawQuarter = String(it.yawOffsetQuarter);
       lazyRenderCanvasThumb(canvas, it.id);
     }
 
@@ -1731,6 +1735,7 @@
         createdText,
         thumbMode: normalizeThumbMode(thumbModeRaw),
         thumbScreenId: screenId ? String(screenId) : null,
+        yawOffsetQuarter: r.yaw_offset_quarter != null ? (Number(r.yaw_offset_quarter) % 4) : null,
         status
       });
     });
