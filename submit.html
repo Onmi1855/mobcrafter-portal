@@ -416,7 +416,6 @@ function setEditUi(){
       const blocks = obj.blocks;
       const blockCount = blocks.length;
       if (blockCount === 0) return { ok:false, error:"`blocks` is empty" };
-      if (blockCount > 200000) return { ok:false, error:"`blocks` is too large (over 200k)" };
       for (let i = 0; i < Math.min(blockCount, 1000); i++) {
         const b = blocks[i];
         if (!b || typeof b !== "object") return { ok:false, error:`blocks[${i}] is not an object` };
@@ -449,7 +448,6 @@ function setEditUi(){
     if (instances.length % 4 !== 0) return { ok:false, error:"`blocks.instances` length must be a multiple of 4" };
 
     const blockCount = instances.length / 4;
-    if (blockCount > 200000) return { ok:false, error:"`blocks` is too large (over 200k)" };
 
     // Validate palette entries (sample)
     for (let i = 0; i < Math.min(palette.length, 200); i++) {
