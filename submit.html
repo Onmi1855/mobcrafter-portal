@@ -618,6 +618,17 @@ function setEditUi(){
     ctx.beginPath(); ctx.moveTo(sx + s, sy); ctx.lineTo(sx, sy + s*0.5); ctx.lineTo(sx, sy + s*0.5 + s); ctx.lineTo(sx + s, sy + s); ctx.closePath(); ctx.fill();
   }
 
+  function quantileSorted(sorted, t){
+    if(!Array.isArray(sorted) || sorted.length === 0) return 0;
+    if(sorted.length === 1) return sorted[0];
+    const pos = Math.max(0, Math.min(sorted.length - 1, t * (sorted.length - 1)));
+    const lo = Math.floor(pos);
+    const hi = Math.ceil(pos);
+    if(lo === hi) return sorted[lo];
+    const ratio = pos - lo;
+    return sorted[lo] + (sorted[hi] - sorted[lo]) * ratio;
+  }
+
   function binBlocks(blocks, bin){
     if(bin <= 1) return blocks;
     const m = new Map();
@@ -667,6 +678,8 @@ function setEditUi(){
     function computeBBoxUnits(transformed){
       const inf = analyzeBlocks(transformed);
       let minXu = Infinity, maxXu = -Infinity, minYu = Infinity, maxYu = -Infinity;
+      const sxus = [];
+      const syus = [];
       for (const b of transformed){
         const x = (b.dx - inf.minX), y = (b.dy - inf.minY), z = (b.dz - inf.minZ);
         const sxu = (x - z);
@@ -675,12 +688,35 @@ function setEditUi(){
         maxXu = Math.max(maxXu, sxu + 1);
         minYu = Math.min(minYu, syu - 0.5);
         maxYu = Math.max(maxYu, syu + 1.5);
+        sxus.push(sxu);
+        syus.push(syu);
       }
       // if empty, fallback to 1 cube box
       if (!isFinite(minXu)){
         minXu = -1; maxXu = 1; minYu = -0.5; maxYu = 1.5;
       }
-      return {inf, minXu, maxXu, minYu, maxYu, bboxWu:(maxXu-minXu), bboxHu:(maxYu-minYu)};
+
+      const trim = transformed.length >= 180 ? 0.05 : (transformed.length >= 48 ? 0.035 : 0);
+      let focusMinXu = minXu, focusMaxXu = maxXu, focusMinYu = minYu, focusMaxYu = maxYu;
+      if (trim > 0) {
+        sxus.sort((a,b)=> a - b);
+        syus.sort((a,b)=> a - b);
+        const trimY = trim * 0.8;
+        focusMinXu = quantileSorted(sxus, trim) - 1;
+        focusMaxXu = quantileSorted(sxus, 1 - trim) + 1;
+        focusMinYu = quantileSorted(syus, trimY) - 0.5;
+        focusMaxYu = quantileSorted(syus, 1 - trimY) + 1.5;
+      }
+
+      return {
+        inf,
+        minXu, maxXu, minYu, maxYu,
+        focusMinXu, focusMaxXu, focusMinYu, focusMaxYu,
+        bboxWu:(maxXu-minXu),
+        bboxHu:(maxYu-minYu),
+        focusBboxWu:(focusMaxXu-focusMinXu),
+        focusBboxHu:(focusMaxYu-focusMinYu),
+      };
     }
 
     function buildTransformed(turns){
@@ -697,13 +733,21 @@ function setEditUi(){
     // This replaces the previous heuristic (spanX/spanY) that caused clipping on big/wide models.
     function computeFitParams(bbox){
       const margin = 14; // px
-      const sFit = Math.min(
+      const sFull = Math.min(
         (w - margin*2) / Math.max(1e-6, bbox.bboxWu),
         (h - margin*2) / Math.max(1e-6, bbox.bboxHu)
       );
-      const s = Math.max(1.0, sFit); // keep at least 1px-ish
-      const cxu = (bbox.minXu + bbox.maxXu) * 0.5;
-      const cyu = (bbox.minYu + bbox.maxYu) * 0.5;
+      const sFocus = Math.min(
+        (w - margin*2) / Math.max(1e-6, bbox.focusBboxWu || bbox.bboxWu),
+        (h - margin*2) / Math.max(1e-6, bbox.focusBboxHu || bbox.bboxHu)
+      );
+      const s = Math.max(1.0, Math.min(sFocus, sFull * 1.28));
+      const fullCxu = (bbox.minXu + bbox.maxXu) * 0.5;
+      const fullCyu = (bbox.minYu + bbox.maxYu) * 0.5;
+      const focusCxu = ((bbox.focusMinXu ?? bbox.minXu) + (bbox.focusMaxXu ?? bbox.maxXu)) * 0.5;
+      const focusCyu = ((bbox.focusMinYu ?? bbox.minYu) + (bbox.focusMaxYu ?? bbox.maxYu)) * 0.5;
+      const cxu = fullCxu + (focusCxu - fullCxu) * 0.72;
+      const cyu = fullCyu + (focusCyu - fullCyu) * 0.72;
       const ox = w*0.5 - cxu * s;
       const oy = h*0.5 - cyu * s;
       return {s, ox, oy};
@@ -717,8 +761,14 @@ function setEditUi(){
         maxXu: Math.max(a.maxXu,b.maxXu),
         minYu: Math.min(a.minYu,b.minYu),
         maxYu: Math.max(a.maxYu,b.maxYu),
+        focusMinXu: Math.min(a.focusMinXu, b.focusMinXu),
+        focusMaxXu: Math.max(a.focusMaxXu, b.focusMaxXu),
+        focusMinYu: Math.min(a.focusMinYu, b.focusMinYu),
+        focusMaxYu: Math.max(a.focusMaxYu, b.focusMaxYu),
         bboxWu: Math.max(a.maxXu,b.maxXu) - Math.min(a.minXu,b.minXu),
         bboxHu: Math.max(a.maxYu,b.maxYu) - Math.min(a.minYu,b.minYu),
+        focusBboxWu: Math.max(a.focusMaxXu,b.focusMaxXu) - Math.min(a.focusMinXu,b.focusMinXu),
+        focusBboxHu: Math.max(a.focusMaxYu,b.focusMaxYu) - Math.min(a.focusMinYu,b.focusMinYu),
       };
     }
 

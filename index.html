@@ -1262,6 +1262,56 @@
     ctx.fill();
   }
 
+  function quantileSorted(sorted, t){
+    if(!Array.isArray(sorted) || sorted.length === 0) return 0;
+    if(sorted.length === 1) return sorted[0];
+    const pos = Math.max(0, Math.min(sorted.length - 1, t * (sorted.length - 1)));
+    const lo = Math.floor(pos);
+    const hi = Math.ceil(pos);
+    if(lo === hi) return sorted[lo];
+    const ratio = pos - lo;
+    return sorted[lo] + (sorted[hi] - sorted[lo]) * ratio;
+  }
+
+  function computeIsoCameraBounds(pts, cubeMaxY){
+    let minPX=Infinity, maxPX=-Infinity, minPY=Infinity, maxPY=-Infinity;
+    const sxs = new Array(pts.length);
+    const sys = new Array(pts.length);
+
+    for(let i=0;i<pts.length;i++){
+      const p = pts[i];
+      if(p.minX < minPX) minPX = p.minX;
+      if(p.maxX > maxPX) maxPX = p.maxX;
+      if(p.minY < minPY) minPY = p.minY;
+      if(p.maxY > maxPY) maxPY = p.maxY;
+      sxs[i] = p.sx0;
+      sys[i] = p.sy0;
+    }
+
+    const trim = pts.length >= 180 ? 0.05 : (pts.length >= 48 ? 0.035 : 0);
+    if(trim <= 0){
+      return {
+        minPX, maxPX, minPY, maxPY,
+        focusMinPX: minPX,
+        focusMaxPX: maxPX,
+        focusMinPY: minPY,
+        focusMaxPY: maxPY,
+      };
+    }
+
+    sxs.sort((a,b)=> a - b);
+    sys.sort((a,b)=> a - b);
+
+    const trimY = trim * 0.8;
+    return {
+      minPX, maxPX, minPY, maxPY,
+      focusMinPX: quantileSorted(sxs, trim) - 1,
+      focusMaxPX: quantileSorted(sxs, 1 - trim) + 1,
+      focusMinPY: quantileSorted(sys, trimY) - 0.5,
+      focusMaxPY: quantileSorted(sys, 1 - trimY) + cubeMaxY,
+    };
+  }
+
   function drawIso(canvas, blocks, yawDeg){
     const ctx = canvas.getContext("2d");
     const w = canvas.width, h = canvas.height;
@@ -1315,35 +1365,38 @@
       return;
     }
 
-    let minPX=Infinity, maxPX=-Infinity, minPY=Infinity, maxPY=-Infinity;
-    for(const p of pts){
-      if(p.minX < minPX) minPX = p.minX;
-      if(p.maxX > maxPX) maxPX = p.maxX;
-      if(p.minY < minPY) minPY = p.minY;
-      if(p.maxY > maxPY) maxPY = p.maxY;
-    }
+    const bounds = computeIsoCameraBounds(pts, 2.0);
 
-    const rangeX = Math.max(1e-6, (maxPX - minPX));
-    const rangeY = Math.max(1e-6, (maxPY - minPY));
-    const cx = (minPX + maxPX) * 0.5;
-    const cy = (minPY + maxPY) * 0.5;
+    const rangeX = Math.max(1e-6, (bounds.maxPX - bounds.minPX));
+    const rangeY = Math.max(1e-6, (bounds.maxPY - bounds.minPY));
+    const focusRangeX = Math.max(1e-6, (bounds.focusMaxPX - bounds.focusMinPX));
+    const focusRangeY = Math.max(1e-6, (bounds.focusMaxPY - bounds.focusMinPY));
+    const fullCx = (bounds.minPX + bounds.maxPX) * 0.5;
+    const fullCy = (bounds.minPY + bounds.maxPY) * 0.5;
+    const focusCx = (bounds.focusMinPX + bounds.focusMaxPX) * 0.5;
+    const focusCy = (bounds.focusMinPY + bounds.focusMaxPY) * 0.5;
 
     // margin: fixed 20px (canvas is 480x280 so this is ~7%).
     const margin = 20;
 
-    // s: scale so the full bbox fits within (canvas - 2*margin).
-    // Min 0.3 only to handle astronomically large models; do NOT clamp higher
-    // (e.g. 1.8) as that would force oversized renders and clip large units.
+    // Use a lightly trimmed focus box so a few spear/wing blocks do not shrink the whole card.
+    const sFull = Math.min(
+      (w - margin * 2) / rangeX,
+      (h - margin * 2) / rangeY
+    );
+    const sFocus = Math.min(
+      (w - margin * 2) / focusRangeX,
+      (h - margin * 2) / focusRangeY
+    );
     const s = Math.max(
       0.3,
-      Math.min(
-        (w - margin * 2) / rangeX,
-        (h - margin * 2) / rangeY
-      )
+      Math.min(sFocus, sFull * 1.28)
     );
 
     // No bottomBias: any upward shift causes top clipping for scale-clamped
     // large models (wings, dragons, tall monsters).
+    const cx = fullCx + (focusCx - fullCx) * 0.72;
+    const cy = fullCy + (focusCy - fullCy) * 0.72;
     const ox = (w * 0.5) - (cx * s);
     const oy = (h * 0.5) - (cy * s);
 
@@ -1391,7 +1444,9 @@
             const yoq = canvas.dataset.yawQuarter;
             const yaw = (yoq !== undefined && yoq !== "") ? Number(yoq) * 90 : Number(yawUi.value || 270);
             drawIso(canvas, normalizeBlocksForDraw(j), yaw);
-          }catch{}
+          }catch{
+            replaceCanvasWithFallbackImage(canvas);
+          }
         })();
       }
     }, { rootMargin: "220px 0px" });
@@ -1412,11 +1467,33 @@
           const yoq = canvas.dataset.yawQuarter;
           const yaw = (yoq !== undefined && yoq !== "") ? Number(yoq) * 90 : Number(yawUi.value || 270);
           drawIso(canvas, normalizeBlocksForDraw(j), yaw);
-        }catch{}
+        }catch{
+          replaceCanvasWithFallbackImage(canvas);
+        }
       })();
       return;
     }
     try{ obs.observe(canvas); }catch{}
+  }
+
+  function replaceCanvasWithFallbackImage(canvas){
+    if(!canvas) return false;
+    const publicSrc = String(canvas.getAttribute("data-fallback-public-src") || "").trim();
+    const privateSrc = String(canvas.getAttribute("data-fallback-private-src") || "").trim();
+    const src = (meEmail && privateSrc) ? privateSrc : (publicSrc || privateSrc);
+    if(!src) return false;
+
+    const wrap = canvas.closest(".thumbwrap");
+    if(!wrap) return false;
+
+    const img = document.createElement("img");
+    img.className = "thumbimg contain";
+    img.alt = "";
+    img.src = src;
+
+    canvas.remove();
+    wrap.prepend(img);
+    return true;
   }
 
   function renderCard(it){
@@ -1427,9 +1504,9 @@
     const canEdit = isMine;
 
     const hasScreen = Boolean(it.thumbScreenId);
-    // Prefer static image whenever thumbScreenId exists (screen or static 3D).
-    const useScreenThumb = hasScreen;
-    const imgFitClass = (String(it.thumbMode || "").toLowerCase() === "3d") ? " contain" : "";
+    const is3DThumb = (String(it.thumbMode || "").toLowerCase() === "3d");
+    const useScreenThumb = hasScreen && !is3DThumb;
+    const imgFitClass = is3DThumb ? " contain" : "";
 
     const st = String(it.status || "approved").toLowerCase();
     const statusBadge = (st && st !== "approved")
@@ -1457,7 +1534,10 @@
                   data-private-src="${escapeHtml(privateSrc)}"
                   data-tried-private="${initialIsPrivate ? "1" : "0"}"
                 />`
-          : `<canvas class="thumb" width="480" height="280"></canvas>`
+          : `<canvas class="thumb" width="480" height="280"
+                    data-fallback-public-src="${escapeHtml(publicSrc)}"
+                    data-fallback-private-src="${escapeHtml(privateSrc)}"
+                  ></canvas>`
         }
         <div class="pill">
           <span class="badge">${escapeHtml(it.mod || "Forge")}</span>

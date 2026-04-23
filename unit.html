@@ -1502,6 +1502,17 @@
       return;
     }
 
+    function quantileSorted(sorted, t){
+      if(!Array.isArray(sorted) || sorted.length === 0) return 0;
+      if(sorted.length === 1) return sorted[0];
+      const pos = Math.max(0, Math.min(sorted.length - 1, t * (sorted.length - 1)));
+      const lo = Math.floor(pos);
+      const hi = Math.ceil(pos);
+      if(lo === hi) return sorted[lo];
+      const ratio = pos - lo;
+      return sorted[lo] + (sorted[hi] - sorted[lo]) * ratio;
+    }
+
     const yaw = (Number(yawDeg||0) % 360) * Math.PI/180;
     const cos = Math.cos(yaw), sin = Math.sin(yaw);
 
@@ -1527,7 +1538,7 @@
       const minY = sy0 - 0.5;
       const maxY = sy0 + 1.5;
 
-      pts.push({x,y,z,bid,minX,maxX,minY,maxY});
+      pts.push({x,y,z,bid,minX,maxX,minY,maxY,sx0,sy0});
     }
 
     if(pts.length === 0){
@@ -1538,27 +1549,55 @@
     }
 
     let minPX=Infinity, maxPX=-Infinity, minPY=Infinity, maxPY=-Infinity;
-    for(const p of pts){
+    const sxs = new Array(pts.length);
+    const sys = new Array(pts.length);
+    for(let i=0;i<pts.length;i++){
+      const p = pts[i];
       if(p.minX < minPX) minPX = p.minX;
       if(p.maxX > maxPX) maxPX = p.maxX;
       if(p.minY < minPY) minPY = p.minY;
       if(p.maxY > maxPY) maxPY = p.maxY;
+      sxs[i] = p.sx0;
+      sys[i] = p.sy0;
     }
 
     const rangeX = Math.max(1e-6, (maxPX - minPX));
     const rangeY = Math.max(1e-6, (maxPY - minPY));
-    const cx = (minPX + maxPX) * 0.5;
-    const cy = (minPY + maxPY) * 0.5;
+    const trim = pts.length >= 180 ? 0.05 : (pts.length >= 48 ? 0.035 : 0);
+    let focusMinPX = minPX, focusMaxPX = maxPX, focusMinPY = minPY, focusMaxPY = maxPY;
+    if(trim > 0){
+      sxs.sort((a,b)=> a - b);
+      sys.sort((a,b)=> a - b);
+      const trimY = trim * 0.8;
+      focusMinPX = quantileSorted(sxs, trim) - 1;
+      focusMaxPX = quantileSorted(sxs, 1 - trim) + 1;
+      focusMinPY = quantileSorted(sys, trimY) - 0.5;
+      focusMaxPY = quantileSorted(sys, 1 - trimY) + 1.5;
+    }
+
+    const focusRangeX = Math.max(1e-6, (focusMaxPX - focusMinPX));
+    const focusRangeY = Math.max(1e-6, (focusMaxPY - focusMinPY));
+    const fullCx = (minPX + maxPX) * 0.5;
+    const fullCy = (minPY + maxPY) * 0.5;
+    const focusCx = (focusMinPX + focusMaxPX) * 0.5;
+    const focusCy = (focusMinPY + focusMaxPY) * 0.5;
 
     const margin = 18;
+    const sFull = Math.min(
+      (w - margin*2) / rangeX,
+      (h - margin*2) / rangeY
+    );
+    const sFocus = Math.min(
+      (w - margin*2) / focusRangeX,
+      (h - margin*2) / focusRangeY
+    );
     const s = Math.max(
       2.0,
-      Math.min(
-        (w - margin*2) / rangeX,
-        (h - margin*2) / rangeY
-      )
+      Math.min(sFocus, sFull * 1.28)
     );
 
+    const cx = fullCx + (focusCx - fullCx) * 0.72;
+    const cy = fullCy + (focusCy - fullCy) * 0.72;
     const ox = (w * 0.5) - (cx * s);
     const oy = (h * 0.5) - (cy * s);
 
