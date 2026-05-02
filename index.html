@@ -317,10 +317,18 @@
       justify-content:center;
       position:relative;
     }
+    .thumb-link{
+      display:block;
+      width:100%;
+      height:100%;
+      color:inherit;
+      text-decoration:none;
+    }
     canvas.thumb{
       width:100%;
       height:140px;
       image-rendering:pixelated;
+      display:block;
     }
 
     img.thumbimg{
@@ -403,6 +411,14 @@
       font-size:15px;
       font-weight:700;
       line-height:1.25;
+    }
+    .title a{
+      color:inherit;
+      text-decoration:none;
+    }
+    .title a:hover{
+      text-decoration:underline;
+      text-underline-offset:2px;
     }
     .meta{
       margin-top:8px;
@@ -1436,9 +1452,25 @@
     ctx.restore();
   }
 
+  function getUnitHref(it){
+    if (it && it.no) return `/unit.html?id=${encodeURIComponent(String(it.no))}`;
+    return `/unit.html?id=${encodeURIComponent(String(it?.id || ""))}`;
+  }
+
   function goUnit(it){
-    if (it.no) location.href = `/unit.html?id=${encodeURIComponent(String(it.no))}`;
-    else location.href = `/unit.html?id=${encodeURIComponent(String(it.id))}`;
+    location.href = getUnitHref(it);
+  }
+
+  function buildThumbAlt(it){
+    const title = String(it?.name || "Untitled").trim();
+    const author = String(it?.author || "unknown").trim();
+    const tags = Array.isArray(it?.tags)
+      ? it.tags.map(t => String(t || "").trim()).filter(Boolean)
+      : [];
+
+    const bits = [title, `MobCrafter unit by ${author}`];
+    if(tags.length) bits.push(tags.join(", "));
+    return bits.join(" - ");
   }
 
   // ===== Lazy 3D canvas thumbs (Phase 1 perf) =====
@@ -1447,6 +1479,7 @@
   const THUMB_OBSERVER_MARGIN = "120px 0px";
   const THUMB_RENDER_CONCURRENCY = 2;
   const THUMB_AUTO_UPGRADE_LIMIT = 8;
+  const THUMB_PRIORITY_UPGRADE_LIMIT = 6;
   const AUTO_3D_THUMB_UPGRADES = (() => {
     const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     if(conn && conn.saveData) return false;
@@ -1478,19 +1511,21 @@
 
   function pumpThumbRenderQueue(){
     while(_thumbRenderActive < THUMB_RENDER_CONCURRENCY && _thumbRenderQueue.length){
-      const job = _thumbRenderQueue.shift();
+      const item = _thumbRenderQueue.shift();
       _thumbRenderActive++;
 
       const run = async () => {
         try{
-          await job();
+          await item.job();
         }finally{
           _thumbRenderActive = Math.max(0, _thumbRenderActive - 1);
           pumpThumbRenderQueue();
         }
       };
 
-      if(typeof requestIdleCallback === "function"){
+      if(item.highPriority){
+        setTimeout(() => { void run(); }, 0);
+      }else if(typeof requestIdleCallback === "function"){
         requestIdleCallback(() => { void run(); }, { timeout: 700 });
       }else{
         setTimeout(() => { void run(); }, 16);
@@ -1498,8 +1533,10 @@
     }
   }
 
-  function enqueueThumbRender(job){
-    _thumbRenderQueue.push(job);
+  function enqueueThumbRender(job, { highPriority=false } = {}){
+    const item = { job, highPriority: !!highPriority };
+    if(item.highPriority) _thumbRenderQueue.unshift(item);
+    else _thumbRenderQueue.push(item);
     pumpThumbRenderQueue();
   }
 
@@ -1522,7 +1559,7 @@
     });
   }
 
-  function queueImageThumbUpgrade(img, submissionId, { force=false } = {}){
+  function queueImageThumbUpgrade(img, submissionId, { force=false, highPriority=false } = {}){
     if(!img || !img.isConnected) return;
     if(img.dataset.upgraded === "1") return;
     if(img.dataset.upgrading === "1") return;
@@ -1545,6 +1582,9 @@
         if(yawQuarter != null && yawQuarter !== "") canvas.dataset.yawQuarter = yawQuarter;
         canvas.setAttribute("data-fallback-public-src", img.getAttribute("data-public-src") || "");
         canvas.setAttribute("data-fallback-private-src", img.getAttribute("data-private-src") || "");
+        canvas.setAttribute("data-thumb-alt", img.alt || "");
+        canvas.setAttribute("role", "img");
+        if(img.alt) canvas.setAttribute("aria-label", img.alt);
 
         await renderSubmissionThumb(canvas, submissionId);
 
@@ -1556,7 +1596,7 @@
       }finally{
         if(img.isConnected) delete img.dataset.upgrading;
       }
-    });
+    }, { highPriority: highPriority || force });
   }
 
   function getThumbObserver(){
@@ -1602,7 +1642,7 @@
     img.setAttribute("data-submission-id", String(submissionId || ""));
     img.setAttribute("data-live-3d", "1");
 
-    const forceUpgrade = () => queueImageThumbUpgrade(img, submissionId, { force:true });
+    const forceUpgrade = () => queueImageThumbUpgrade(img, submissionId, { force:true, highPriority:true });
     img.addEventListener("mouseenter", forceUpgrade, { once:true, passive:true });
     img.addEventListener("touchstart", forceUpgrade, { once:true, passive:true });
 
@@ -1623,7 +1663,7 @@
 
     const img = document.createElement("img");
     img.className = "thumbimg contain";
-    img.alt = "";
+    img.alt = String(canvas.getAttribute("data-thumb-alt") || "");
     img.src = src;
     img.loading = "lazy";
     img.decoding = "async";
@@ -1631,6 +1671,20 @@
     canvas.remove();
     wrap.prepend(img);
     return true;
+  }
+
+  function prioritizeInitial3DThumbs(root, limit=THUMB_PRIORITY_UPGRADE_LIMIT){
+    const scope = (root && typeof root.querySelectorAll === "function") ? root : document;
+    const imgs = scope.querySelectorAll('img.thumbimg[data-live-3d="1"][data-submission-id]');
+    let remaining = Math.max(0, Number(limit) || 0);
+    for(const img of imgs){
+      if(remaining <= 0) break;
+      const id = String(img.getAttribute("data-submission-id") || "").trim();
+      if(!id) continue;
+      if(img.dataset.upgraded === "1" || img.dataset.upgrading === "1") continue;
+      remaining--;
+      queueImageThumbUpgrade(img, id, { force:true, highPriority:true });
+    }
   }
 
   function renderCard(it){
@@ -1644,6 +1698,9 @@
     const is3DThumb = (String(it.thumbMode || "").toLowerCase() === "3d");
     const useScreenThumb = hasScreen;
     const imgFitClass = is3DThumb ? " contain" : "";
+    const unitHref = getUnitHref(it);
+    const thumbAlt = buildThumbAlt(it);
+    const openLabel = `Open ${String(it.name || "Unit")}`;
 
     const st = String(it.status || "approved").toLowerCase();
     const statusBadge = (st && st !== "approved")
@@ -1663,21 +1720,26 @@
 
     card.innerHTML = `
       <div class="thumbwrap">
-        ${useScreenThumb
-          ? `<img class="thumbimg${imgFitClass}"
-                  src="${escapeHtml(initialSrc)}"
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  data-public-src="${escapeHtml(publicSrc)}"
-                  data-private-src="${escapeHtml(privateSrc)}"
-                  data-tried-private="${initialIsPrivate ? "1" : "0"}"
-                />`
-          : `<canvas class="thumb" width="${THUMB_CANVAS_WIDTH}" height="${THUMB_CANVAS_HEIGHT}"
-                    data-fallback-public-src="${escapeHtml(publicSrc)}"
-                    data-fallback-private-src="${escapeHtml(privateSrc)}"
-                  ></canvas>`
-        }
+        <a class="thumb-link" href="${escapeHtml(unitHref)}" aria-label="${escapeHtml(openLabel)}">
+          ${useScreenThumb
+            ? `<img class="thumbimg${imgFitClass}"
+                    src="${escapeHtml(initialSrc)}"
+                    alt="${escapeHtml(thumbAlt)}"
+                    loading="lazy"
+                    decoding="async"
+                    data-public-src="${escapeHtml(publicSrc)}"
+                    data-private-src="${escapeHtml(privateSrc)}"
+                    data-tried-private="${initialIsPrivate ? "1" : "0"}"
+                  />`
+            : `<canvas class="thumb" width="${THUMB_CANVAS_WIDTH}" height="${THUMB_CANVAS_HEIGHT}"
+                      role="img"
+                      aria-label="${escapeHtml(thumbAlt)}"
+                      data-thumb-alt="${escapeHtml(thumbAlt)}"
+                      data-fallback-public-src="${escapeHtml(publicSrc)}"
+                      data-fallback-private-src="${escapeHtml(privateSrc)}"
+                    ></canvas>`
+          }
+        </a>
         <div class="pill">
           <span class="badge">${escapeHtml(it.mod || "Forge")}</span>
           ${statusBadge}
@@ -1687,7 +1749,7 @@
       </div>
 
       <div class="card-body">
-        <p class="title">${escapeHtml(it.name)}</p>
+        <p class="title"><a href="${escapeHtml(unitHref)}">${escapeHtml(it.name)}</a></p>
         <div class="meta">
           <div class="left">
             <div class="author">👤 <span>${escapeHtml(it.author || "unknown")}</span></div>
@@ -1786,6 +1848,9 @@
           const canvas = createThumbCanvas();
           const yawQuarter = img.dataset.yawQuarter;
           if (yawQuarter != null && yawQuarter !== "") canvas.dataset.yawQuarter = yawQuarter;
+          canvas.setAttribute("data-thumb-alt", img.alt || "");
+          canvas.setAttribute("role", "img");
+          if (img.alt) canvas.setAttribute("aria-label", img.alt);
           canvas.setAttribute("data-fallback-public-src", img.getAttribute("data-public-src") || "");
           canvas.setAttribute("data-fallback-private-src", img.getAttribute("data-private-src") || "");
 
@@ -1810,11 +1875,12 @@
     return card;
   }
 
-  function renderGrid(arr){
+  function renderGrid(arr, { prioritize=true } = {}){
     grid.innerHTML = "";
     for(const it of arr){
       grid.appendChild(renderCard(it));
     }
+    if(prioritize) prioritizeInitial3DThumbs(grid, THUMB_PRIORITY_UPGRADE_LIMIT);
   }
 
   // ===== pager render =====
@@ -2093,6 +2159,7 @@
     renderShelf(shelfVanilla,  vanilla);
     renderShelf(shelfTrending, trending);
     renderShelf(shelfPopular,  popular);
+    prioritizeInitial3DThumbs(document, THUMB_PRIORITY_UPGRADE_LIMIT);
 
     // likes hydrate: best-effort, limited to 50 ids.
     const ids = uniqById(featured.concat(vanilla).concat(trending).concat(popular).concat(baseNew)).map(x=>x.id);
@@ -2142,7 +2209,7 @@
 
       items = mapItems(arr);
 
-      renderGrid(items);
+      renderGrid(items, { prioritize: !wantDiscover });
       if (!wantDiscover) {
         hydrateLikesForGrid(items.map(x=>x.id));
       }
