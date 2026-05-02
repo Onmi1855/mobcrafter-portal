@@ -1091,10 +1091,25 @@
     return API_PUBLIC_LIST + "?" + sp.toString();
   }
 
+  const _UNIT_JSON_CACHE = new Map();
   async function fetchUnitJson(id){
-    const r = await fetch(API_JSON(id), { cache: "no-store" });
-    if(!r.ok) throw new Error("json HTTP " + r.status);
-    return await r.json();
+    const key = String(id || "").trim();
+    if(!key) throw new Error("missing submission id");
+    const cached = _UNIT_JSON_CACHE.get(key);
+    if(cached) return cached;
+
+    const req = fetch(API_JSON(key), { cache: "no-store" })
+      .then((r) => {
+        if(!r.ok) throw new Error("json HTTP " + r.status);
+        return r.json();
+      })
+      .catch((err) => {
+        _UNIT_JSON_CACHE.delete(key);
+        throw err;
+      });
+
+    _UNIT_JSON_CACHE.set(key, req);
+    return req;
   }
 
   // --- palette (submit と同じ色味に揃える) ---
@@ -1102,6 +1117,7 @@
   const PALETTE_VER = "v1";
   const PALETTE_LS_KEY = `mcPalette:${PALETTE_VER}`;
   let PALETTE_MAP = null;
+  let _PALETTE_PROMISE = null;
 
   function parseColorString(s){
     if(!s) return null;
@@ -1124,29 +1140,37 @@
 
   async function loadPalette(){
     if(PALETTE_MAP) return PALETTE_MAP;
-    try{
-      const cached = localStorage.getItem(PALETTE_LS_KEY);
-      if(cached){
-        const obj = JSON.parse(cached);
-        if(obj && typeof obj === "object"){
-          PALETTE_MAP = obj;
-          return PALETTE_MAP;
+    if(_PALETTE_PROMISE) return _PALETTE_PROMISE;
+
+    _PALETTE_PROMISE = (async () => {
+      try{
+        const cached = localStorage.getItem(PALETTE_LS_KEY);
+        if(cached){
+          const obj = JSON.parse(cached);
+          if(obj && typeof obj === "object"){
+            PALETTE_MAP = obj;
+            return PALETTE_MAP;
+          }
         }
-      }
-    }catch(e){}
-    try{
-      const r = await fetch(`${PALETTE_URL}?v=${encodeURIComponent(PALETTE_VER)}`, { cache:"no-store" });
-      if(r.ok){
-        const obj = await r.json();
-        if(obj && typeof obj === "object"){
-          PALETTE_MAP = obj;
-          try{ localStorage.setItem(PALETTE_LS_KEY, JSON.stringify(obj)); }catch(e){}
-          return PALETTE_MAP;
+      }catch(e){}
+
+      try{
+        const r = await fetch(`${PALETTE_URL}?v=${encodeURIComponent(PALETTE_VER)}`, { cache:"no-store" });
+        if(r.ok){
+          const obj = await r.json();
+          if(obj && typeof obj === "object"){
+            PALETTE_MAP = obj;
+            try{ localStorage.setItem(PALETTE_LS_KEY, JSON.stringify(obj)); }catch(e){}
+            return PALETTE_MAP;
+          }
         }
-      }
-    }catch(e){}
-    PALETTE_MAP = {};
-    return PALETTE_MAP;
+      }catch(e){}
+
+      PALETTE_MAP = {};
+      return PALETTE_MAP;
+    })();
+
+    return _PALETTE_PROMISE;
   }
 
   function paletteLookup(blockId){
@@ -1418,62 +1442,173 @@
   }
 
   // ===== Lazy 3D canvas thumbs (Phase 1 perf) =====
+  const THUMB_CANVAS_WIDTH = 336;
+  const THUMB_CANVAS_HEIGHT = 196;
+  const THUMB_OBSERVER_MARGIN = "120px 0px";
+  const THUMB_RENDER_CONCURRENCY = 2;
+  const THUMB_AUTO_UPGRADE_LIMIT = 8;
+  const AUTO_3D_THUMB_UPGRADES = (() => {
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if(conn && conn.saveData) return false;
+    const mem = Number(navigator.deviceMemory || 0);
+    if(mem && mem <= 4) return false;
+    return true;
+  })();
+
   let _thumbObserver = null;
+  let _thumbRenderQueue = [];
+  let _thumbRenderActive = 0;
+  let _thumbAutoUpgradeCount = 0;
+
+  function createThumbCanvas(){
+    const canvas = document.createElement("canvas");
+    canvas.className = "thumb";
+    canvas.width = THUMB_CANVAS_WIDTH;
+    canvas.height = THUMB_CANVAS_HEIGHT;
+    return canvas;
+  }
+
+  async function renderSubmissionThumb(canvas, submissionId){
+    const j = await fetchUnitJson(String(submissionId || ""));
+    await loadPalette();
+    const yoq = canvas.dataset.yawQuarter;
+    const yaw = (yoq !== undefined && yoq !== "") ? Number(yoq) * 90 : Number(yawUi.value || 270);
+    drawIso(canvas, normalizeBlocksForDraw(j), yaw);
+  }
+
+  function pumpThumbRenderQueue(){
+    while(_thumbRenderActive < THUMB_RENDER_CONCURRENCY && _thumbRenderQueue.length){
+      const job = _thumbRenderQueue.shift();
+      _thumbRenderActive++;
+
+      const run = async () => {
+        try{
+          await job();
+        }finally{
+          _thumbRenderActive = Math.max(0, _thumbRenderActive - 1);
+          pumpThumbRenderQueue();
+        }
+      };
+
+      if(typeof requestIdleCallback === "function"){
+        requestIdleCallback(() => { void run(); }, { timeout: 700 });
+      }else{
+        setTimeout(() => { void run(); }, 16);
+      }
+    }
+  }
+
+  function enqueueThumbRender(job){
+    _thumbRenderQueue.push(job);
+    pumpThumbRenderQueue();
+  }
+
+  function queueCanvasThumbRender(canvas, submissionId){
+    if(!canvas) return;
+    if(canvas.getAttribute("data-done") === "1") return;
+    if(canvas.getAttribute("data-queued") === "1") return;
+
+    canvas.setAttribute("data-queued", "1");
+    enqueueThumbRender(async () => {
+      try{
+        if(!canvas.isConnected) return;
+        await renderSubmissionThumb(canvas, submissionId);
+        if(canvas.isConnected) canvas.setAttribute("data-done", "1");
+      }catch{
+        if(canvas.isConnected) replaceCanvasWithFallbackImage(canvas);
+      }finally{
+        if(canvas.isConnected) canvas.removeAttribute("data-queued");
+      }
+    });
+  }
+
+  function queueImageThumbUpgrade(img, submissionId, { force=false } = {}){
+    if(!img || !img.isConnected) return;
+    if(img.dataset.upgraded === "1") return;
+    if(img.dataset.upgrading === "1") return;
+
+    if(!force){
+      if(!AUTO_3D_THUMB_UPGRADES) return;
+      if(_thumbAutoUpgradeCount >= THUMB_AUTO_UPGRADE_LIMIT) return;
+      _thumbAutoUpgradeCount++;
+    }
+
+    img.dataset.upgrading = "1";
+    enqueueThumbRender(async () => {
+      try{
+        if(!img.isConnected) return;
+        const wrap = img.closest(".thumbwrap");
+        if(!wrap) return;
+
+        const canvas = createThumbCanvas();
+        const yawQuarter = img.dataset.yawQuarter;
+        if(yawQuarter != null && yawQuarter !== "") canvas.dataset.yawQuarter = yawQuarter;
+        canvas.setAttribute("data-fallback-public-src", img.getAttribute("data-public-src") || "");
+        canvas.setAttribute("data-fallback-private-src", img.getAttribute("data-private-src") || "");
+
+        await renderSubmissionThumb(canvas, submissionId);
+
+        if(!img.isConnected || !wrap.isConnected) return;
+        img.dataset.upgraded = "1";
+        canvas.setAttribute("data-done", "1");
+        img.replaceWith(canvas);
+      }catch{
+      }finally{
+        if(img.isConnected) delete img.dataset.upgrading;
+      }
+    });
+  }
+
   function getThumbObserver(){
     if (typeof IntersectionObserver === "undefined") return null;
     if(_thumbObserver) return _thumbObserver;
     _thumbObserver = new IntersectionObserver((entries) => {
       for(const ent of entries){
         if(!ent.isIntersecting) continue;
-        const canvas = ent.target;
-        if(!canvas) continue;
-        if(canvas.getAttribute("data-done") === "1"){
-          try{ _thumbObserver.unobserve(canvas); }catch{}
-          continue;
-        }
-        canvas.setAttribute("data-done", "1");
-        try{ _thumbObserver.unobserve(canvas); }catch{}
+        const target = ent.target;
+        if(!target) continue;
+        try{ _thumbObserver.unobserve(target); }catch{}
 
-        const id = String(canvas.getAttribute("data-submission-id") || "").trim();
+        const id = String(target.getAttribute("data-submission-id") || "").trim();
         if(!id) continue;
 
-        (async () => {
-          try{
-            const j = await fetchUnitJson(id);
-            await loadPalette();
-            const yoq = canvas.dataset.yawQuarter;
-            const yaw = (yoq !== undefined && yoq !== "") ? Number(yoq) * 90 : Number(yawUi.value || 270);
-            drawIso(canvas, normalizeBlocksForDraw(j), yaw);
-          }catch{
-            replaceCanvasWithFallbackImage(canvas);
-          }
-        })();
+        if(target instanceof HTMLCanvasElement){
+          queueCanvasThumbRender(target, id);
+          continue;
+        }
+
+        if(target instanceof HTMLImageElement && target.getAttribute("data-live-3d") === "1"){
+          queueImageThumbUpgrade(target, id, { force:false });
+        }
       }
-    }, { rootMargin: "220px 0px" });
+    }, { rootMargin: THUMB_OBSERVER_MARGIN });
     return _thumbObserver;
   }
 
   function lazyRenderCanvasThumb(canvas, submissionId){
     if(!canvas) return;
     canvas.setAttribute("data-submission-id", String(submissionId || ""));
-    canvas.setAttribute("data-done", "0");
+    if(canvas.getAttribute("data-done") !== "1") canvas.setAttribute("data-done", "0");
     const obs = getThumbObserver();
     if(!obs){
-      // Fallback (no IntersectionObserver support)
-      (async () => {
-        try{
-          const j = await fetchUnitJson(String(submissionId||""));
-          await loadPalette();
-          const yoq = canvas.dataset.yawQuarter;
-          const yaw = (yoq !== undefined && yoq !== "") ? Number(yoq) * 90 : Number(yawUi.value || 270);
-          drawIso(canvas, normalizeBlocksForDraw(j), yaw);
-        }catch{
-          replaceCanvasWithFallbackImage(canvas);
-        }
-      })();
+      queueCanvasThumbRender(canvas, submissionId);
       return;
     }
     try{ obs.observe(canvas); }catch{}
+  }
+
+  function lazyUpgradeImageThumb(img, submissionId){
+    if(!img) return;
+    img.setAttribute("data-submission-id", String(submissionId || ""));
+    img.setAttribute("data-live-3d", "1");
+
+    const forceUpgrade = () => queueImageThumbUpgrade(img, submissionId, { force:true });
+    img.addEventListener("mouseenter", forceUpgrade, { once:true, passive:true });
+    img.addEventListener("touchstart", forceUpgrade, { once:true, passive:true });
+
+    const obs = getThumbObserver();
+    if(!obs) return;
+    try{ obs.observe(img); }catch{}
   }
 
   function replaceCanvasWithFallbackImage(canvas){
@@ -1490,6 +1625,8 @@
     img.className = "thumbimg contain";
     img.alt = "";
     img.src = src;
+    img.loading = "lazy";
+    img.decoding = "async";
 
     canvas.remove();
     wrap.prepend(img);
@@ -1505,7 +1642,7 @@
 
     const hasScreen = Boolean(it.thumbScreenId);
     const is3DThumb = (String(it.thumbMode || "").toLowerCase() === "3d");
-    const useScreenThumb = hasScreen && !is3DThumb;
+    const useScreenThumb = hasScreen;
     const imgFitClass = is3DThumb ? " contain" : "";
 
     const st = String(it.status || "approved").toLowerCase();
@@ -1530,11 +1667,13 @@
           ? `<img class="thumbimg${imgFitClass}"
                   src="${escapeHtml(initialSrc)}"
                   alt=""
+                  loading="lazy"
+                  decoding="async"
                   data-public-src="${escapeHtml(publicSrc)}"
                   data-private-src="${escapeHtml(privateSrc)}"
                   data-tried-private="${initialIsPrivate ? "1" : "0"}"
                 />`
-          : `<canvas class="thumb" width="480" height="280"
+          : `<canvas class="thumb" width="${THUMB_CANVAS_WIDTH}" height="${THUMB_CANVAS_HEIGHT}"
                     data-fallback-public-src="${escapeHtml(publicSrc)}"
                     data-fallback-private-src="${escapeHtml(privateSrc)}"
                   ></canvas>`
@@ -1628,6 +1767,8 @@
 
     const img = card.querySelector("img.thumbimg");
     if (img) {
+      if (it.yawOffsetQuarter != null) img.dataset.yawQuarter = String(it.yawOffsetQuarter);
+
       img.addEventListener("error", async () => {
         const tried = img.getAttribute("data-tried-private");
         const ps = img.getAttribute("data-private-src");
@@ -1642,21 +1783,22 @@
           const wrap = img.closest(".thumbwrap");
           if (!wrap) return;
 
-          const canvas = document.createElement("canvas");
-          canvas.className = "thumb";
-          canvas.width = 480;
-          canvas.height = 280;
+          const canvas = createThumbCanvas();
+          const yawQuarter = img.dataset.yawQuarter;
+          if (yawQuarter != null && yawQuarter !== "") canvas.dataset.yawQuarter = yawQuarter;
+          canvas.setAttribute("data-fallback-public-src", img.getAttribute("data-public-src") || "");
+          canvas.setAttribute("data-fallback-private-src", img.getAttribute("data-private-src") || "");
 
           img.remove();
           wrap.prepend(canvas);
 
-          const j = await fetchUnitJson(it.id);
-          await loadPalette();
-          const yoq = canvas.dataset.yawQuarter;
-          const yaw = (yoq !== undefined && yoq !== "") ? Number(yoq) * 90 : Number(yawUi.value || 270);
-          drawIso(canvas, normalizeBlocksForDraw(j), yaw);
+          lazyRenderCanvasThumb(canvas, it.id);
         } catch {}
       }, { once:false });
+
+      if (is3DThumb) {
+        lazyUpgradeImageThumb(img, it.id);
+      }
     }
 
     const canvas = card.querySelector("canvas.thumb");
