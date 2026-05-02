@@ -1473,25 +1473,15 @@
     return bits.join(" - ");
   }
 
-  // ===== Lazy 3D canvas thumbs (Phase 1 perf) =====
+  // ===== Lazy canvas thumbs (fallback only) =====
   const THUMB_CANVAS_WIDTH = 336;
   const THUMB_CANVAS_HEIGHT = 196;
   const THUMB_OBSERVER_MARGIN = "120px 0px";
   const THUMB_RENDER_CONCURRENCY = 2;
-  const THUMB_AUTO_UPGRADE_LIMIT = 8;
-  const THUMB_PRIORITY_UPGRADE_LIMIT = 6;
-  const AUTO_3D_THUMB_UPGRADES = (() => {
-    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    if(conn && conn.saveData) return false;
-    const mem = Number(navigator.deviceMemory || 0);
-    if(mem && mem <= 4) return false;
-    return true;
-  })();
 
   let _thumbObserver = null;
   let _thumbRenderQueue = [];
   let _thumbRenderActive = 0;
-  let _thumbAutoUpgradeCount = 0;
 
   function createThumbCanvas(){
     const canvas = document.createElement("canvas");
@@ -1559,46 +1549,6 @@
     });
   }
 
-  function queueImageThumbUpgrade(img, submissionId, { force=false, highPriority=false } = {}){
-    if(!img || !img.isConnected) return;
-    if(img.dataset.upgraded === "1") return;
-    if(img.dataset.upgrading === "1") return;
-
-    if(!force){
-      if(!AUTO_3D_THUMB_UPGRADES) return;
-      if(_thumbAutoUpgradeCount >= THUMB_AUTO_UPGRADE_LIMIT) return;
-      _thumbAutoUpgradeCount++;
-    }
-
-    img.dataset.upgrading = "1";
-    enqueueThumbRender(async () => {
-      try{
-        if(!img.isConnected) return;
-        const wrap = img.closest(".thumbwrap");
-        if(!wrap) return;
-
-        const canvas = createThumbCanvas();
-        const yawQuarter = img.dataset.yawQuarter;
-        if(yawQuarter != null && yawQuarter !== "") canvas.dataset.yawQuarter = yawQuarter;
-        canvas.setAttribute("data-fallback-public-src", img.getAttribute("data-public-src") || "");
-        canvas.setAttribute("data-fallback-private-src", img.getAttribute("data-private-src") || "");
-        canvas.setAttribute("data-thumb-alt", img.alt || "");
-        canvas.setAttribute("role", "img");
-        if(img.alt) canvas.setAttribute("aria-label", img.alt);
-
-        await renderSubmissionThumb(canvas, submissionId);
-
-        if(!img.isConnected || !wrap.isConnected) return;
-        img.dataset.upgraded = "1";
-        canvas.setAttribute("data-done", "1");
-        img.replaceWith(canvas);
-      }catch{
-      }finally{
-        if(img.isConnected) delete img.dataset.upgrading;
-      }
-    }, { highPriority: highPriority || force });
-  }
-
   function getThumbObserver(){
     if (typeof IntersectionObserver === "undefined") return null;
     if(_thumbObserver) return _thumbObserver;
@@ -1614,11 +1564,6 @@
 
         if(target instanceof HTMLCanvasElement){
           queueCanvasThumbRender(target, id);
-          continue;
-        }
-
-        if(target instanceof HTMLImageElement && target.getAttribute("data-live-3d") === "1"){
-          queueImageThumbUpgrade(target, id, { force:false });
         }
       }
     }, { rootMargin: THUMB_OBSERVER_MARGIN });
@@ -1635,20 +1580,6 @@
       return;
     }
     try{ obs.observe(canvas); }catch{}
-  }
-
-  function lazyUpgradeImageThumb(img, submissionId){
-    if(!img) return;
-    img.setAttribute("data-submission-id", String(submissionId || ""));
-    img.setAttribute("data-live-3d", "1");
-
-    const forceUpgrade = () => queueImageThumbUpgrade(img, submissionId, { force:true, highPriority:true });
-    img.addEventListener("mouseenter", forceUpgrade, { once:true, passive:true });
-    img.addEventListener("touchstart", forceUpgrade, { once:true, passive:true });
-
-    const obs = getThumbObserver();
-    if(!obs) return;
-    try{ obs.observe(img); }catch{}
   }
 
   function replaceCanvasWithFallbackImage(canvas){
@@ -1671,20 +1602,6 @@
     canvas.remove();
     wrap.prepend(img);
     return true;
-  }
-
-  function prioritizeInitial3DThumbs(root, limit=THUMB_PRIORITY_UPGRADE_LIMIT){
-    const scope = (root && typeof root.querySelectorAll === "function") ? root : document;
-    const imgs = scope.querySelectorAll('img.thumbimg[data-live-3d="1"][data-submission-id]');
-    let remaining = Math.max(0, Number(limit) || 0);
-    for(const img of imgs){
-      if(remaining <= 0) break;
-      const id = String(img.getAttribute("data-submission-id") || "").trim();
-      if(!id) continue;
-      if(img.dataset.upgraded === "1" || img.dataset.upgrading === "1") continue;
-      remaining--;
-      queueImageThumbUpgrade(img, id, { force:true, highPriority:true });
-    }
   }
 
   function renderCard(it){
@@ -1861,9 +1778,6 @@
         } catch {}
       }, { once:false });
 
-      if (is3DThumb) {
-        lazyUpgradeImageThumb(img, it.id);
-      }
     }
 
     const canvas = card.querySelector("canvas.thumb");
@@ -1875,12 +1789,11 @@
     return card;
   }
 
-  function renderGrid(arr, { prioritize=true } = {}){
+  function renderGrid(arr){
     grid.innerHTML = "";
     for(const it of arr){
       grid.appendChild(renderCard(it));
     }
-    if(prioritize) prioritizeInitial3DThumbs(grid, THUMB_PRIORITY_UPGRADE_LIMIT);
   }
 
   // ===== pager render =====
@@ -2159,7 +2072,6 @@
     renderShelf(shelfVanilla,  vanilla);
     renderShelf(shelfTrending, trending);
     renderShelf(shelfPopular,  popular);
-    prioritizeInitial3DThumbs(document, THUMB_PRIORITY_UPGRADE_LIMIT);
 
     // likes hydrate: best-effort, limited to 50 ids.
     const ids = uniqById(featured.concat(vanilla).concat(trending).concat(popular).concat(baseNew)).map(x=>x.id);
@@ -2209,7 +2121,7 @@
 
       items = mapItems(arr);
 
-      renderGrid(items, { prioritize: !wantDiscover });
+      renderGrid(items);
       if (!wantDiscover) {
         hydrateLikesForGrid(items.map(x=>x.id));
       }
