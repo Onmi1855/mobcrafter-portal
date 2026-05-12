@@ -303,7 +303,7 @@ function setEditUi(){
           const finalQ = (4 - drawIsoQ) % 4;
           uiOffset = (finalQ - fq + 4) % 4;
         } else {
-          uiOffset = 0; // frontYaw=null の場合は UI offset を 0 にリセット
+          uiOffset = (drawIsoQ - 3 + 4) % 4;
         }
         $yawOffset.value = String(uiOffset);
       }
@@ -495,6 +495,12 @@ function setEditUi(){
     return r.ok ? null : r.error;
   }
 
+  function normalizeQuarterTurn(value, fallback = 0){
+    const n = Number(value);
+    if(!Number.isFinite(n)) return fallback;
+    return ((Math.round(n) % 4) + 4) % 4;
+  }
+
   function yawToQuarterTurns(frontYaw, extraOffsetQuarter){
     if(frontYaw == null) return null;
     const y = Number(frontYaw);
@@ -502,16 +508,17 @@ function setEditUi(){
     let deg = y % 360;
     if(deg < 0) deg += 360;
     let q = (Math.round(deg / 90) % 4);
-    q = (q + (extraOffsetQuarter ?? 0)) % 4;
+    q = (q + normalizeQuarterTurn(extraOffsetQuarter)) % 4;
     return q;
   }
-  function rotateXZ(x, z, q){
-    switch(q){
-      case 1: return {x: z,  z: -x};
-      case 2: return {x: -x, z: -z};
-      case 3: return {x: -z, z: x};
-      default:return {x, z};
+
+  function resolveDrawIsoYawQuarter(frontYaw, extraOffsetQuarter){
+    const uiOffset = normalizeQuarterTurn(extraOffsetQuarter);
+    const finalQ = yawToQuarterTurns(frontYaw, uiOffset);
+    if(finalQ == null){
+      return (3 + uiOffset) % 4;
     }
+    return (4 - finalQ) % 4;
   }
 
   const PALETTE_URL = "/assets/palette.v1.json";
@@ -592,6 +599,11 @@ function setEditUi(){
     return { r:120 + (h & 70), g:120 + ((h>>8)&70), b:120 + ((h>>16)&70), a:0.98 };
   }
 
+  function isAirBlock(blockId){
+    const s = String(blockId || "").trim().toLowerCase();
+    return s === "minecraft:air" || s.endsWith(":air");
+  }
+
   function analyzeBlocks(blocks){
     let minX=Infinity,minY=Infinity,minZ=Infinity;
     let maxX=-Infinity,maxY=-Infinity,maxZ=-Infinity;
@@ -629,180 +641,137 @@ function setEditUi(){
     return sorted[lo] + (sorted[hi] - sorted[lo]) * ratio;
   }
 
-  function binBlocks(blocks, bin){
-    if(bin <= 1) return blocks;
-    const m = new Map();
-    for(const b of blocks){
-      const bx = Math.floor(b.dx / bin);
-      const by = Math.floor(b.dy / bin);
-      const bz = Math.floor(b.dz / bin);
-      const k = bx + "," + by + "," + bz;
-      const cur = m.get(k);
-      if(!cur || b.dy > cur.dy){ m.set(k, b); }
+  function computeIsoCameraBounds(pts, cubeMaxY){
+    let minPX=Infinity, maxPX=-Infinity, minPY=Infinity, maxPY=-Infinity;
+    const sxs = new Array(pts.length);
+    const sys = new Array(pts.length);
+
+    for(let i=0;i<pts.length;i++){
+      const p = pts[i];
+      if(p.minX < minPX) minPX = p.minX;
+      if(p.maxX > maxPX) maxPX = p.maxX;
+      if(p.minY < minPY) minPY = p.minY;
+      if(p.maxY > maxPY) maxPY = p.maxY;
+      sxs[i] = p.sx0;
+      sys[i] = p.sy0;
     }
-    return Array.from(m.values());
-  }
-  function chooseBinSize(blockCount){
-    const target = 16000;
-    if(blockCount <= target) return 1;
-    const ratio = blockCount / target;
-    let bin = Math.ceil(Math.cbrt(ratio));
-    return Math.min(6, Math.max(2, bin));
+
+    const trim = pts.length >= 180 ? 0.05 : (pts.length >= 48 ? 0.035 : 0);
+    if(trim <= 0){
+      return {
+        minPX, maxPX, minPY, maxPY,
+        focusMinPX: minPX,
+        focusMaxPX: maxPX,
+        focusMinPY: minPY,
+        focusMaxPY: maxPY,
+      };
+    }
+
+    sxs.sort((a,b)=> a - b);
+    sys.sort((a,b)=> a - b);
+
+    const trimY = trim * 0.8;
+    return {
+      minPX, maxPX, minPY, maxPY,
+      focusMinPX: quantileSorted(sxs, trim) - 1,
+      focusMaxPX: quantileSorted(sxs, 1 - trim) + 1,
+      focusMinPY: quantileSorted(sys, trimY) - 0.5,
+      focusMaxPY: quantileSorted(sys, 1 - trimY) + cubeMaxY,
+    };
   }
 
-  function renderThumbToCanvas(canvas, unitJson, blocks0, extraOffsetQuarter){
+  function drawIso(canvas, blocks, yawDeg){
     const ctx = canvas.getContext("2d");
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0,0,w,h);
 
-    // background (keep)
+    if(!Array.isArray(blocks) || blocks.length === 0){
+      ctx.fillStyle = "rgba(15,23,42,.35)";
+      ctx.font = "12px sans-serif";
+      ctx.fillText("No blocks", 10, 20);
+      return;
+    }
+
     const g = ctx.createLinearGradient(0,0,0,h);
     g.addColorStop(0,"rgba(37,99,235,.10)");
     g.addColorStop(1,"rgba(22,163,74,.08)");
-    ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,w,h);
 
-    const blocksSrc = Array.isArray(blocks0) ? blocks0 : [];
-    const qTurns = yawToQuarterTurns(unitJson.frontYaw, extraOffsetQuarter);
+    const yaw = (Number(yawDeg || 0) % 360) * Math.PI / 180;
+    const cos = Math.cos(yaw), sin = Math.sin(yaw);
 
-    // binning for speed (keep)
-    const bin = chooseBinSize(blocksSrc.length);
-    const blocks = binBlocks(blocksSrc, bin);
+    const pts = [];
+    for(const b of blocks){
+      const bid = String(b.blockId || "");
+      if(isAirBlock(bid)) continue;
 
-    // Projected bounding box of ONE iso cube in "s-units"
-    // drawIsoCube uses:
-    //   sx = (x - z) * s
-    //   sy = (x + z) * s * 0.5 - y * s
-    // and the cube spans:
-    //   x: [sx - s, sx + s]
-    //   y: [sy - 0.5s, sy + 1.5s]
-    function computeBBoxUnits(transformed){
-      const inf = analyzeBlocks(transformed);
-      let minXu = Infinity, maxXu = -Infinity, minYu = Infinity, maxYu = -Infinity;
-      const sxus = [];
-      const syus = [];
-      for (const b of transformed){
-        const x = (b.dx - inf.minX), y = (b.dy - inf.minY), z = (b.dz - inf.minZ);
-        const sxu = (x - z);
-        const syu = (x + z)*0.5 - y;
-        minXu = Math.min(minXu, sxu - 1);
-        maxXu = Math.max(maxXu, sxu + 1);
-        minYu = Math.min(minYu, syu - 0.5);
-        maxYu = Math.max(maxYu, syu + 1.5);
-        sxus.push(sxu);
-        syus.push(syu);
-      }
-      // if empty, fallback to 1 cube box
-      if (!isFinite(minXu)){
-        minXu = -1; maxXu = 1; minYu = -0.5; maxYu = 1.5;
-      }
+      const x0 = Number(b.dx || 0), y0 = Number(b.dy || 0), z0 = Number(b.dz || 0);
+      const rx = x0 * cos - z0 * sin;
+      const rz = x0 * sin + z0 * cos;
 
-      const trim = transformed.length >= 180 ? 0.05 : (transformed.length >= 48 ? 0.035 : 0);
-      let focusMinXu = minXu, focusMaxXu = maxXu, focusMinYu = minYu, focusMaxYu = maxYu;
-      if (trim > 0) {
-        sxus.sort((a,b)=> a - b);
-        syus.sort((a,b)=> a - b);
-        const trimY = trim * 0.8;
-        focusMinXu = quantileSorted(sxus, trim) - 1;
-        focusMaxXu = quantileSorted(sxus, 1 - trim) + 1;
-        focusMinYu = quantileSorted(syus, trimY) - 0.5;
-        focusMaxYu = quantileSorted(syus, 1 - trimY) + 1.5;
-      }
+      const x = Math.round(rx);
+      const z = Math.round(rz);
+      const y = y0;
+      const sx0 = (x - z);
+      const sy0 = (x + z) * 0.5 - y;
 
-      return {
-        inf,
-        minXu, maxXu, minYu, maxYu,
-        focusMinXu, focusMaxXu, focusMinYu, focusMaxYu,
-        bboxWu:(maxXu-minXu),
-        bboxHu:(maxYu-minYu),
-        focusBboxWu:(focusMaxXu-focusMinXu),
-        focusBboxHu:(focusMaxYu-focusMinYu),
-      };
-    }
-
-    function buildTransformed(turns){
-      const transformed = blocks.map(b=>{
-        const r = rotateXZ(b.dx, b.dz, turns);
-        return {dx:r.x, dy:b.dy, dz:r.z, blockId:b.blockId};
+      pts.push({
+        x, y, z, bid, sx0, sy0,
+        minX: sx0 - 1,
+        maxX: sx0 + 1,
+        minY: sy0 - 0.5,
+        maxY: sy0 + 2.0,
       });
-      // painter's order (keep)
-      transformed.sort((a,b)=> (a.dx+a.dz) - (b.dx+b.dz) || (a.dy - b.dy));
-      return transformed;
     }
 
-    // Decide camera(scale/offset) so that the full projected bbox fits in canvas
-    // This replaces the previous heuristic (spanX/spanY) that caused clipping on big/wide models.
-    function computeFitParams(bbox){
-      const margin = 14; // px
-      const sFull = Math.min(
-        (w - margin*2) / Math.max(1e-6, bbox.bboxWu),
-        (h - margin*2) / Math.max(1e-6, bbox.bboxHu)
-      );
-      const sFocus = Math.min(
-        (w - margin*2) / Math.max(1e-6, bbox.focusBboxWu || bbox.bboxWu),
-        (h - margin*2) / Math.max(1e-6, bbox.focusBboxHu || bbox.bboxHu)
-      );
-      const s = Math.max(1.0, Math.min(sFocus, sFull * 1.28));
-      const fullCxu = (bbox.minXu + bbox.maxXu) * 0.5;
-      const fullCyu = (bbox.minYu + bbox.maxYu) * 0.5;
-      const focusCxu = ((bbox.focusMinXu ?? bbox.minXu) + (bbox.focusMaxXu ?? bbox.maxXu)) * 0.5;
-      const focusCyu = ((bbox.focusMinYu ?? bbox.minYu) + (bbox.focusMaxYu ?? bbox.maxYu)) * 0.5;
-      const cxu = fullCxu + (focusCxu - fullCxu) * 0.72;
-      const cyu = fullCyu + (focusCyu - fullCyu) * 0.72;
-      const ox = w*0.5 - cxu * s;
-      const oy = h*0.5 - cyu * s;
-      return {s, ox, oy};
+    if(pts.length === 0){
+      ctx.fillStyle = "rgba(15,23,42,.35)";
+      ctx.font = "12px sans-serif";
+      ctx.fillText("No visible blocks", 10, 20);
+      return;
     }
 
-    // When yaw is unknown, we draw 2 passes (front/back). Use UNION bbox so both always fit.
-    function unionBBox(a,b){
-      return {
-        inf: a.inf, // not used by union fit (each pass uses its own inf for shifting)
-        minXu: Math.min(a.minXu,b.minXu),
-        maxXu: Math.max(a.maxXu,b.maxXu),
-        minYu: Math.min(a.minYu,b.minYu),
-        maxYu: Math.max(a.maxYu,b.maxYu),
-        focusMinXu: Math.min(a.focusMinXu, b.focusMinXu),
-        focusMaxXu: Math.max(a.focusMaxXu, b.focusMaxXu),
-        focusMinYu: Math.min(a.focusMinYu, b.focusMinYu),
-        focusMaxYu: Math.max(a.focusMaxYu, b.focusMaxYu),
-        bboxWu: Math.max(a.maxXu,b.maxXu) - Math.min(a.minXu,b.minXu),
-        bboxHu: Math.max(a.maxYu,b.maxYu) - Math.min(a.minYu,b.minYu),
-        focusBboxWu: Math.max(a.focusMaxXu,b.focusMaxXu) - Math.min(a.focusMinXu,b.focusMinXu),
-        focusBboxHu: Math.max(a.focusMaxYu,b.focusMaxYu) - Math.min(a.focusMinYu,b.focusMinYu),
-      };
+    const bounds = computeIsoCameraBounds(pts, 2.0);
+    const rangeX = Math.max(1e-6, (bounds.maxPX - bounds.minPX));
+    const rangeY = Math.max(1e-6, (bounds.maxPY - bounds.minPY));
+    const focusRangeX = Math.max(1e-6, (bounds.focusMaxPX - bounds.focusMinPX));
+    const focusRangeY = Math.max(1e-6, (bounds.focusMaxPY - bounds.focusMinPY));
+    const fullCx = (bounds.minPX + bounds.maxPX) * 0.5;
+    const fullCy = (bounds.minPY + bounds.maxPY) * 0.5;
+    const focusCx = (bounds.focusMinPX + bounds.focusMaxPX) * 0.5;
+    const focusCy = (bounds.focusMinPY + bounds.focusMaxPY) * 0.5;
+    const margin = 20;
+
+    const sFull = Math.min(
+      (w - margin * 2) / rangeX,
+      (h - margin * 2) / rangeY
+    );
+    const sFocus = Math.min(
+      (w - margin * 2) / focusRangeX,
+      (h - margin * 2) / focusRangeY
+    );
+    const s = Math.max(0.3, Math.min(sFocus, sFull * 1.28));
+
+    const cx = fullCx + (focusCx - fullCx) * 0.72;
+    const cy = fullCy + (focusCy - fullCy) * 0.72;
+    const ox = (w * 0.5) - (cx * s);
+    const oy = (h * 0.5) - (cy * s);
+
+    pts.sort((a,b)=> (a.x + a.z) - (b.x + b.z) || (a.y - b.y));
+    const stroke = (s >= 3);
+
+    ctx.save();
+    ctx.translate(ox, oy);
+    for(const p of pts){
+      drawIsoCube(ctx, p.x, p.y, p.z, s, pickBaseColor(p.bid), stroke);
     }
+    ctx.restore();
+  }
 
-    function drawPass(turns, alpha, fit){
-      const transformed = buildTransformed(turns);
-      const bb = computeBBoxUnits(transformed);
-      const s = fit.s, ox = fit.ox, oy = fit.oy;
-
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.translate(ox, oy);
-
-      const stroke = (s >= 3);
-      for(const b of transformed){
-        const x = (b.dx - bb.inf.minX), y = (b.dy - bb.inf.minY), z = (b.dz - bb.inf.minZ);
-        drawIsoCube(ctx, x, y, z, s, pickBaseColor(b.blockId), stroke);
-      }
-      ctx.restore();
-    }
-
-    if(qTurns == null){
-      const t0 = buildTransformed(0);
-      const t2 = buildTransformed(2);
-      const bb0 = computeBBoxUnits(t0);
-      const bb2 = computeBBoxUnits(t2);
-      const fit = computeFitParams(unionBBox(bb0, bb2));
-      drawPass(0, 1.0, fit);
-      drawPass(2, 0.33, fit);
-    } else {
-      const t = buildTransformed(qTurns);
-      const bb = computeBBoxUnits(t);
-      const fit = computeFitParams(bb);
-      drawPass(qTurns, 1.0, fit);
-    }
+  function renderThumbToCanvas(canvas, unitJson, blocks0, extraOffsetQuarter){
+    const drawIsoQuarter = resolveDrawIsoYawQuarter(unitJson && unitJson.frontYaw, extraOffsetQuarter);
+    drawIso(canvas, Array.isArray(blocks0) ? blocks0 : [], normalizeQuarterTurn(drawIsoQuarter) * 90);
   }
 
   function rerender(){
@@ -889,16 +858,7 @@ if ($screenFile && $screenPreview) {
       description: $desc.value.trim(),
       tags: ($tags.value||"").split(",").map(s=>s.trim()).filter(Boolean),
       mod_version: $mv.value.trim(),
-      yaw_offset_quarter: (()=>{
-        const uiOffset = Number($yawOffset.value || "0") % 4;
-        const frontYaw = (parsedJson && parsedJson.frontYaw != null) ? parsedJson.frontYaw : null;
-        if (frontYaw == null) return null; // frontYaw 不明時は null (index.html はデフォルト 270° を使用)
-        let deg = Number(frontYaw) % 360;
-        if (deg < 0) deg += 360;
-        const fq = Math.round(deg / 90) % 4;
-        const finalQ = (fq + uiOffset) % 4;
-        return (4 - finalQ) % 4; // drawIso quarter: 0→0°, 1→90°, 2→180°, 3→270°
-      })(),
+      yaw_offset_quarter: resolveDrawIsoYawQuarter(parsedJson && parsedJson.frontYaw, Number($yawOffset.value || "0")),
     };
 
     let payload = null;
