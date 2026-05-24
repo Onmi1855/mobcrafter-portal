@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MobCrafter</title>
+  <meta name="description" content="Quick explanation of the MobCrafter mod workflow and how Hub releases fit into it." />
+  <meta property="og:image" content="https://mobcrafter.net/assets/top_banner_new.png" />
+  <link rel="stylesheet" href="/assets/site-pages.v1.css" />
+</head>
+<body>
+  <header class="page-shell">
+    <a class="homeLink" href="/">Back to Hub</a>
+    <section class="hero">
+      <p class="eyebrow">MobCrafter</p>
+      <h1>What the mod does</h1>
+      <p class="lead">MobCrafter lets you turn Minecraft block builds into summonable units. Hub releases package those units and related creator files so they can be shared publicly.</p>
+      <div class="heroActions">
+        <a class="primary" href="/how-to-use.html">How to use releases</a>
+        <a href="/submit.html">Publish a release</a>
+      </div>
+    </section>
+  </header>
+  <main class="page-shell">
+    <article class="contentCard">
+      <h2>Basic in-game flow</h2>
+      <ol>
+        <li>Build a structure with blocks.</li>
+        <li>Attach a Bone Block as the core or pivot.</li>
+        <li>Use the Capture Tool on the Bone Block to save the structure as a unit.</li>
+        <li>Summon the unit in-game.</li>
+      </ol>
+
+      <h2>Where JSON releases go</h2>
+      <p>Downloaded unit JSON files are loaded from config/mob_crafter/units/. In multiplayer, server-side JSON is the source of truth and is synced to clients.</p>
+
+      <h2>What Hub adds</h2>
+      <p>The Hub keeps JSON compatible while also letting creators publish schematics, ZIP bundles, worlds, creator assets, and external release links around the same creation.</p>
+    </article>
+  </main>
+  <footer class="page-shell footerLinks">
+    <a href="/about.html">About</a>
+    <a href="/how-to-use.html">How to Use</a>
+    <a href="/upload-guide.html">Upload Guide</a>
+    <a href="/creator-support.html">Creator Support</a>
+    <a href="/guidelines.html">Guidelines</a>
+  </footer>
+</body>
+</html>

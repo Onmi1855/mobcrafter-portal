@@ -8,6 +8,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>MobCrafter Admin - Submissions</title>
+  <link rel="stylesheet" href="/assets/ui-icons.v1.css?v=20260524a" />
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 24px; background:#f6f8fb; color:#0f172a; }
     .wrap { max-width: 1100px; margin: 0 auto; }
@@ -18,12 +19,18 @@
     .row > * { flex: 0 0 auto; }
     select, button, input, textarea { padding: 10px; border-radius: 10px; border: 1px solid #cbd5e1; background:#fff; }
     textarea { width: 100%; min-height: 200px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-    button { cursor: pointer; }
+    button { cursor: pointer; display:inline-flex; align-items:center; gap:6px; }
     button.primary { background:#111827; color:#fff; border: 0; }
     button.danger { background:#b91c1c; color:#fff; border: 0; }
     button:disabled { opacity:.5; cursor:not-allowed; }
     pre { background:#f8fafc; padding: 12px; border-radius: 10px; white-space: pre-wrap; word-break: break-word; border:1px solid #e5e7eb; }
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .tableScroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tableScroll > table { min-width: 720px; }
+    @media (max-width: 640px) {
+      body { margin: 12px; }
+      .card { padding: 12px; }
+    }
     th, td { border-bottom: 1px solid #eee; padding: 12px 10px; vertical-align: top; }
     th { text-align: left; color:#475569; font-size: 13px; }
     .muted { color:#64748b; font-size: 13px; }
@@ -40,6 +47,7 @@
     .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
     .mini { font-size: 12px; color:#64748b; }
+    .checkrow{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:10px; }
 
     /* ===== Thumbs (スクショ + 3D) ===== */
     .thumbs{
@@ -147,14 +155,13 @@
 
         <div class="authbar" id="authbar">
           <div class="authleft">
-            <span>Login:</span>
-            <code id="authState">checking...</code>
-            <span id="authEmailWrap" style="display:none;">Email: <code id="authEmail"></code></span>
-            <span id="authAdminWrap" style="display:none;">Admin: <code id="authAdmin"></code></span>
-            <span class="mini">build: <code id="buildId"></code></span>
+            <span>Access</span>
+            <span id="authState"></span>
+            <span id="authEmailWrap" style="display:none;">Signed in as <span id="authEmail"></span></span>
+            <span id="authAdminWrap" style="display:none;">Role <span id="authAdmin"></span></span>
           </div>
           <div class="authright">
-            <a id="authActionLink" href="/api/login?next=%2Fadmin.html">Log in</a>
+            <a id="authActionLink" href="/api/login?next=%2Fadmin.html"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#login"></use></svg></span><span>Log in</span></a>
           </div>
         </div>
       </div>
@@ -177,7 +184,7 @@
         Include deleted
       </label>
 
-      <button id="reload" class="primary">Reload</button>
+      <button id="reload" class="primary"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#refresh"></use></svg></span><span>Reload</span></button>
 
       <label>
         Search (server): <input id="q" type="text" placeholder="e.g. ff7 / Sephiroth" />
@@ -225,6 +232,77 @@
     <input id="editDesc" type="text" />
   </div>
 
+  <div class="grid2" style="margin-top:10px;">
+    <div>
+      <div class="mini">Content type</div>
+      <select id="editContentType">
+        <option value="mobcrafter_unit_json">MobCrafter unit JSON</option>
+        <option value="schematic">Schematic</option>
+        <option value="schematic_unit_set">Schematic + unit set</option>
+        <option value="unit_pack">Unit pack</option>
+        <option value="world_map">World / map</option>
+        <option value="creator_asset">Creator asset</option>
+        <option value="guide_workflow">Guide / workflow</option>
+        <option value="external_release">External release</option>
+      </select>
+    </div>
+    <div>
+      <div class="mini">File availability</div>
+      <select id="editFileAvailability">
+        <option value="json">JSON</option>
+        <option value="schem">SCHEM</option>
+        <option value="both">JSON + SCHEM</option>
+        <option value="zip">ZIP</option>
+        <option value="external">External</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top:10px;">
+    <div>
+      <div class="mini">Access type</div>
+      <select id="editAccessType">
+        <option value="free">Free</option>
+        <option value="creator_supported">Creator supported</option>
+        <option value="patreon_linked">Patreon-linked</option>
+        <option value="external">External access</option>
+        <option value="free_sample_supported">Free sample + support</option>
+      </select>
+    </div>
+    <div>
+      <div class="mini">Creation method</div>
+      <select id="editCreationMethod">
+        <option value="hand_built">Hand built</option>
+        <option value="ai_assisted">AI assisted</option>
+        <option value="imported">Imported</option>
+        <option value="remixed">Remixed</option>
+        <option value="starter_variant">Official starter variant</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top:10px;">
+    <div>
+      <div class="mini">Creation method note</div>
+      <input id="editCreationMethodSource" type="text" />
+    </div>
+    <div>
+      <div class="mini">Support URL</div>
+      <input id="editSupportUrl" type="text" />
+    </div>
+  </div>
+
+  <div style="margin-top:10px;">
+    <div class="mini">External release URL</div>
+    <input id="editExternalUrl" type="text" />
+  </div>
+
+  <div class="checkrow">
+    <label><input id="editOfficialStarter" type="checkbox" /> Official starter</label>
+    <label><input id="editFeatured" type="checkbox" /> Featured</label>
+    <label><input id="editPublished" type="checkbox" /> Published</label>
+  </div>
+
   <div style="margin-top:10px;">
     <div class="mini">Thumbnail yaw (0=0° 1=90° 2=180° 3=270°)</div>
     <select id="editYawQuarter">
@@ -249,6 +327,7 @@
   </div>
 </dialog>
 
+<script src="/assets/ui-icons.v1.js?v=20260524a"></script>
 <script>
 (() => {
   const BUILD_ID = "2026-01-17.c166e54";
@@ -277,6 +356,15 @@
   const buildIdEl = document.getElementById("buildId");
   if (buildIdEl) buildIdEl.textContent = BUILD_ID;
 
+  function setIconText(node, iconName, text){
+    if(!node) return;
+    if(window.MobUi && typeof window.MobUi.set === "function"){
+      window.MobUi.set(node, iconName, text, { wrapperClass: "ui-label", iconClass: "ui-ico" });
+      return;
+    }
+    node.textContent = text;
+  }
+
   function serializeError(e){
     try{
       if (e == null) return null;
@@ -301,10 +389,10 @@
 
   async function loadWhoami(){
     try{
-      authState.textContent = "checking...";
+      authState.textContent = "";
       authEmailWrap.style.display = "none";
       authAdminWrap.style.display = "none";
-      authActionLink.textContent = "Log in";
+      setIconText(authActionLink, "login", "Log in");
       authActionLink.className = "";
       // Use admin-scoped whoami so Access app for /api/admin* is established.
       authActionLink.href = apiUrl("/api/admin/whoami?next=" + encodeURIComponent(RETURN_PATH));
@@ -318,17 +406,17 @@
 
       // When Cloudflare Access blocks the request, we may get 401/403 (often non-JSON).
       if (r.status === 401 || r.status === 403) {
-        authState.textContent = "logged out";
+        authState.textContent = "signed out";
         authEmailWrap.style.display = "none";
         authAdminWrap.style.display = "none";
-        authActionLink.textContent = "Log in";
+        setIconText(authActionLink, "login", "Log in");
         authActionLink.className = "";
         authActionLink.href = apiUrl("/api/admin/whoami?next=" + encodeURIComponent(RETURN_PATH));
         return null;
       }
 
       if(!r.ok || !data){
-        authState.textContent = "unknown";
+        authState.textContent = "status unavailable";
         return null;
       }
 
@@ -336,25 +424,27 @@
       const isAdmin = Boolean(data.is_admin);
 
       if(!email){
-        authState.textContent = "logged out";
+        authState.textContent = "signed out";
         return null;
       }
 
-      authState.textContent = "logged in";
+      authState.textContent = "signed in";
       authEmailWrap.style.display = "inline";
       authEmail.textContent = email;
 
       authAdminWrap.style.display = "inline";
       authAdmin.textContent = isAdmin ? "true" : "false";
 
-      authActionLink.textContent = "Log out";
+      setIconText(authActionLink, "logout", "Log out");
       authActionLink.className = "danger";
       authActionLink.href = apiUrl("/cdn-cgi/access/logout") + "?returnTo=" + encodeURIComponent(location.href);
 
       return { email, isAdmin };
     }catch{
-      authState.textContent = "unknown";
-      authActionLink.textContent = "Log in";
+      authState.textContent = "signed out";
+      authEmailWrap.style.display = "none";
+      authAdminWrap.style.display = "none";
+      setIconText(authActionLink, "login", "Log in");
       authActionLink.className = "";
       authActionLink.href = apiUrl("/api/admin/whoami?next=" + encodeURIComponent(RETURN_PATH));
       return null;
@@ -423,6 +513,16 @@
   const $editTitle = document.getElementById("editTitle");
   const $editTags  = document.getElementById("editTags");
   const $editDesc  = document.getElementById("editDesc");
+  const $editContentType = document.getElementById("editContentType");
+  const $editFileAvailability = document.getElementById("editFileAvailability");
+  const $editAccessType = document.getElementById("editAccessType");
+  const $editCreationMethod = document.getElementById("editCreationMethod");
+  const $editCreationMethodSource = document.getElementById("editCreationMethodSource");
+  const $editSupportUrl = document.getElementById("editSupportUrl");
+  const $editExternalUrl = document.getElementById("editExternalUrl");
+  const $editOfficialStarter = document.getElementById("editOfficialStarter");
+  const $editFeatured = document.getElementById("editFeatured");
+  const $editPublished = document.getElementById("editPublished");
   const $editYawQuarter = document.getElementById("editYawQuarter");
   const $editJson  = document.getElementById("editJson");
   const $btnSaveMeta = document.getElementById("btnSaveMeta");
@@ -461,6 +561,20 @@
       }
     } catch {}
     return [];
+  }
+
+  function toBool(v, fallback = false){
+    if (v === null || v === undefined || v === "") return fallback;
+    if (typeof v === "boolean") return v;
+    if (typeof v === "number") return v !== 0;
+    const s = String(v).trim().toLowerCase();
+    if (["1","true","yes","on"].includes(s)) return true;
+    if (["0","false","no","off"].includes(s)) return false;
+    return fallback;
+  }
+
+  function hubPill(text){
+    return `<span class="tag">${esc(text)}</span>`;
   }
 
   function buildListQuery() {
@@ -914,6 +1028,7 @@
     const canModerate = (status === "pending");
 
     $list.innerHTML = `
+      <div class="tableScroll">
       <table>
         <thead>
           <tr>
@@ -933,6 +1048,15 @@
             const id = esc(it.id || "");
             const no = it.submission_no != null ? String(it.submission_no) : "";
             const deleted = it.deleted_at ? true : false;
+            const hubMetaHtml = [
+              it.content_type ? hubPill(it.content_type) : "",
+              it.file_availability ? hubPill(it.file_availability) : "",
+              it.access_type ? hubPill(it.access_type) : "",
+              it.creation_method ? hubPill(it.creation_method) : "",
+              toBool(it.is_official_starter) ? hubPill("official_starter") : "",
+              toBool(it.is_featured) ? hubPill("featured") : "",
+              toBool(it.is_published, true) ? hubPill("published") : hubPill("draft"),
+            ].filter(Boolean).join("");
 
             const tagHtml = tags.length
               ? `<div class="tags">${tags.slice(0, 14).map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>`
@@ -994,6 +1118,7 @@
                       ${mv ? `<div class="muted">mod_version: ${mv}</div>` : ""}
                       ${desc ? `<div style="margin-top:8px;">${desc}</div>` : `<div class="muted" style="margin-top:8px;">No description</div>`}
                       <div style="margin-top:10px;">${tagHtml}</div>
+                      ${hubMetaHtml ? `<div class="tags" style="margin-top:8px;">${hubMetaHtml}</div>` : ``}
                     </div>
                   </div>
                 </td>
@@ -1016,6 +1141,7 @@
           }).join("")}
         </tbody>
       </table>
+      </div>
     `;
 
     enhanceThumbs().catch(()=>{});
@@ -1044,6 +1170,16 @@
     $editTitle.value = item.title || "";
     $editDesc.value  = item.description || "";
     $editTags.value  = parseTags(item.tags).join(" ");
+    $editContentType.value = item.content_type || "mobcrafter_unit_json";
+    $editFileAvailability.value = item.file_availability || "json";
+    $editAccessType.value = item.access_type || "free";
+    $editCreationMethod.value = item.creation_method || "hand_built";
+    $editCreationMethodSource.value = item.creation_method_source || "";
+    $editSupportUrl.value = item.support_url || "";
+    $editExternalUrl.value = item.external_url || "";
+    $editOfficialStarter.checked = toBool(item.is_official_starter);
+    $editFeatured.checked = toBool(item.is_featured);
+    $editPublished.checked = toBool(item.is_published, true);
     $editYawQuarter.value = (item.yaw_offset_quarter != null) ? String(item.yaw_offset_quarter) : "";
     $editJson.value  = "";
     $dlgStatus.textContent = "-";
@@ -1131,6 +1267,16 @@
         title: $editTitle.value,
         description: $editDesc.value,
         tags: $editTags.value,
+        content_type: $editContentType.value,
+        file_availability: $editFileAvailability.value,
+        access_type: $editAccessType.value,
+        creation_method: $editCreationMethod.value,
+        creation_method_source: $editCreationMethodSource.value,
+        support_url: $editSupportUrl.value,
+        external_url: $editExternalUrl.value,
+        is_official_starter: $editOfficialStarter.checked,
+        is_featured: $editFeatured.checked,
+        is_published: $editPublished.checked,
         ...(yawVal !== "" ? { yaw_offset_quarter: Number(yawVal) } : {})
       };
       const r = await api(`submissions/${encodeURIComponent(id)}`, "PUT", body);

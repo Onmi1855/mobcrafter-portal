@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MobCrafter - Unit</title>
-  <meta name="description" content="Download a MobCrafter unit JSON." />
+  <title>MobCrafter Hub - Legacy Viewer</title>
+  <meta name="description" content="Legacy MobCrafter Hub detail viewer with 3D preview, screenshots, and downloads." />
   <link rel="canonical" href="" id="canonicalLink" />
   <meta property="og:url" content="" id="ogUrl" />
   <meta property="og:type" content="article" />
@@ -13,6 +13,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="" />
   <link rel="image_src" href="" />
+  <link rel="stylesheet" href="/assets/ui-icons.v1.css?v=20260524a" />
   <script type="application/ld+json" id="ldJson">
   {"@context":"https://schema.org","@type":"CreativeWork","name":"","image":""}
   </script>
@@ -45,10 +46,13 @@
       gap:12px;
       flex-wrap:wrap;
     }
-    header h1{
+    header .brand{
       margin:0;
       font-size:22px;
+      font-weight:900;
       letter-spacing:.2px;
+      color:inherit;
+      text-decoration:none;
     }
     header .sub{
       margin-top:6px;
@@ -426,7 +430,7 @@
       font-size:12px;
     }
 
-    /* comments (MVP) */
+    /* comments */
     .commentsBox{
       margin-top:14px;
       border:1px solid var(--line);
@@ -519,7 +523,7 @@
   <!-- Ads (default OFF): enable via /assets/ads-config.v1.js after approval -->
   <script src="/assets/ads-config.v1.js" defer></script>
   <script src="/assets/ads.v1.js" defer></script>
-    <h1>Captured Unit</h1>
+      <a class="brand" href="/">MobCrafter Hub</a>
     <div class="sub" id="subtitle">Loading…</div>
   </div>
 
@@ -553,8 +557,8 @@
         <img id="heroImg" alt="" loading="eager" decoding="async" />
       </div>
       <div>
-        <h2 class="heroTitle" id="heroTitle">Loading…</h2>
-        <div class="heroSub" id="heroDesc">Download this unit JSON and install it in seconds.</div>
+        <h1 class="heroTitle" id="heroTitle">Loading…</h1>
+        <div class="heroSub" id="heroDesc">Preview the build, browse screenshots, and jump to the main Hub page for download notes.</div>
 
         <div class="pillRow">
           <span class="pill muted">By <span id="author">(unknown)</span></span>
@@ -568,21 +572,25 @@
         </div>
 
         <div class="tagRow" id="tagRow" aria-label="tags"></div>
+  <div class="pillRow" id="hubMetaRow" style="margin-top:8px;"></div>
         <div class="installHint" id="depsLine"></div>
 
         <div class="heroActions actions" id="actions">
-          <a class="btn primary" id="dlBtn" href="#" style="display:none;" download>Download JSON</a>
+          <a class="btn primary" id="dlBtn" href="#" style="display:none;" download><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#download"></use></svg></span><span>Download JSON</span></a>
+          <a class="btn" href="https://www.curseforge.com/minecraft/mc-mods/mobcrafter" target="_blank" rel="noopener noreferrer"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#external"></use></svg></span><span>Get MobCrafter</span></a>
+          <a class="btn" id="supportBtn" href="#" style="display:none;" target="_blank" rel="noopener noreferrer"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#support"></use></svg></span><span>Support creator</span></a>
+          <a class="btn" id="canonicalBtn" href="#" style="display:none;"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#preview"></use></svg></span><span>Open full creator page</span></a>
           <span class="likeWrap" title="Likes">
             <button class="btn likeBtn" id="likeBtn" type="button" aria-pressed="false" title="Like">♥</button>
             <span id="likesCount">0</span>
           </span>
-          <a class="btn" id="editBtn" href="#" style="display:none;">Edit (owner only)</a>
-          <a class="btn" id="submitBtn" href="#" style="display:none;">Open submit page (edit)</a>
+          <a class="btn" id="editBtn" href="#" style="display:none;"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#edit"></use></svg></span><span>Edit (owner only)</span></a>
+          <a class="btn" id="submitBtn" href="#" style="display:none;"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#upload"></use></svg></span><span>Open submit page (edit)</span></a>
           <span class="mutedNote" id="ownerHint" style="display:none;">Note: editing/resubmitting is done on the submit page</span>
         </div>
 
         <div class="installBox" aria-label="install">
-          <div class="ttl">Install (quick)</div>
+          <div class="ttl">Install in MobCrafter</div>
           <ol>
             <li>Click <b>Download JSON</b>.</li>
             <li>Put the file into <code>config/mob_crafter/units/</code>.</li>
@@ -598,7 +606,7 @@
     <div class="bannerErr" id="warn"></div>
 
     <details style="margin-top:12px;">
-      <summary>Details</summary>
+      <summary>Technical details</summary>
       <div class="panelBody" style="padding:12px 0 0; min-height:auto;">
         <div class="metaGrid">
           <div class="k">Query id</div><div class="v" id="qId">(unknown)</div>
@@ -611,7 +619,7 @@
     <div class="viewerRow">
       <div class="panel">
         <div class="panelHead">
-          <span>3D (lightweight preview)</span>
+          <span>3D preview</span>
           <div class="controls">
             <span style="color:var(--muted);font-size:12px;">Yaw correction:</span>
             <select id="yawFix">
@@ -643,14 +651,14 @@
         </div>
         <div class="panelBody">
           <div class="screensGrid" id="screens"></div>
-          <div class="mutedNote" id="screensHint">Loading…</div>
+          <div class="mutedNote" id="screensHint">Loading screenshots...</div>
         </div>
       </div>
     </div>
 
     <details id="jsonDetails" style="display:none;">
       <summary>
-        <span>Unit JSON (only when needed)</span>
+        <span>Unit JSON</span>
         <span class="mutedNote" id="jsonMeta"></span>
       </summary>
       <div class="jsonBox">
@@ -675,7 +683,7 @@
 
       <section class="relatedBox" id="relatedBox" style="display:none;">
         <div class="relatedHead">
-          <span>Related units</span>
+          <span>Related creations</span>
           <span class="mutedNote" id="relatedState">Loading…</span>
         </div>
         <div class="relatedBody">
@@ -684,7 +692,7 @@
       </section>
     </div>
 
-    <!-- comments (MVP) -->
+    <!-- comments -->
     <section class="commentsBox" aria-label="comments">
       <div class="commentsHead">
         <div class="ttl">Comments</div>
@@ -712,7 +720,7 @@
     </section>
 
     <div class="bottomCta">
-      <a class="btn primary" id="dlBtnBottom" href="#" style="display:none;" download>Download JSON</a>
+      <a class="btn primary" id="dlBtnBottom" href="#" style="display:none;" download><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#download"></use></svg></span><span>Download JSON</span></a>
       <a class="back" href="/">← Back to list</a>
     </div>
   </section>
@@ -730,6 +738,7 @@
   </aside>
 </main>
 
+<script src="/assets/ui-icons.v1.js?v=20260524a"></script>
 <script>
 (() => {
   // Optional: ?api=http://127.0.0.1:8788 to point API calls to a different origin (local dev)
@@ -801,6 +810,7 @@
   const heroDescEl = document.getElementById("heroDesc");
   const heroImgEl = document.getElementById("heroImg");
   const tagRowEl = document.getElementById("tagRow");
+  const hubMetaRowEl = document.getElementById("hubMetaRow");
   const depsLineEl = document.getElementById("depsLine");
   const dlBtnBottom = document.getElementById("dlBtnBottom");
   const canonicalLinkEl = document.getElementById("canonicalLink");
@@ -834,9 +844,43 @@
   });
 
   const dlBtn = document.getElementById("dlBtn");
+  const canonicalBtn = document.getElementById("canonicalBtn");
+  const supportBtn = document.getElementById("supportBtn");
   const editBtn = document.getElementById("editBtn");
   const submitBtn = document.getElementById("submitBtn");
   const ownerHint = document.getElementById("ownerHint");
+
+  const HUB_FILE_AVAILABILITY_LABELS = {
+    json: "JSON",
+    schem: "SCHEM",
+    both: "JSON + SCHEM",
+    zip: "ZIP",
+    external: "External",
+  };
+  const HUB_ACCESS_TYPE_LABELS = {
+    free: "Free",
+    creator_supported: "Creator Supported",
+    patreon_linked: "Patreon-linked",
+    external: "External Access",
+    free_sample_supported: "Free Sample",
+  };
+  const HUB_CREATION_METHOD_LABELS = {
+    hand_built: "Hand Built",
+    ai_assisted: "AI Assisted",
+    imported: "Imported",
+    remixed: "Remixed",
+    starter_variant: "Starter Variant",
+  };
+  const HUB_CONTENT_TYPE_LABELS = {
+    mobcrafter_unit_json: "MobCrafter Unit",
+    schematic: "Schematic",
+    schematic_unit_set: "Schematic + Unit Set",
+    unit_pack: "Unit Pack",
+    world_map: "World / Map",
+    creator_asset: "Creator Asset",
+    guide_workflow: "Guide / Workflow",
+    external_release: "External Release",
+  };
 
   const yawFix = document.getElementById("yawFix");
   const yawLeft = document.getElementById("yawLeft");
@@ -877,6 +921,20 @@
   function hideWarn(){
     warnEl.style.display = "none";
     warnEl.textContent = "";
+  }
+
+  function iconLabel(iconName, text, { wrapperClass="ui-label", iconClass="ui-ico ui-ico-sm" } = {}){
+    if(!iconName || !window.MobUi || typeof window.MobUi.label !== "function") return String(text ?? "");
+    return window.MobUi.label(iconName, text, { wrapperClass, iconClass });
+  }
+
+  function setActionText(node, iconName, text){
+    if(!node) return;
+    if(window.MobUi && typeof window.MobUi.set === "function"){
+      window.MobUi.set(node, iconName, text, { wrapperClass: "ui-label", iconClass: "ui-ico ui-ico-sm" });
+      return;
+    }
+    node.textContent = text;
   }
 
   function setCanonical(path){
@@ -936,7 +994,7 @@
   }
 
   // =========================
-  // comments (MVP)
+  // comments
   // =========================
   const COMMENTS_API = api("/api/comments");
   const COMMENTS_API_PUBLIC = api("/api/public/comments");
@@ -1650,6 +1708,35 @@
     drawIso(canvas, Array.isArray(UNIT_BLOCKS) ? UNIT_BLOCKS : [], computeYaw());
   }
 
+  function hubLabel(map, value, fallback){
+    const key = String(value || "").trim().toLowerCase();
+    return map[key] || fallback;
+  }
+
+  function renderHubMetaPills(meta){
+    if(!hubMetaRowEl) return;
+    hubMetaRowEl.innerHTML = "";
+
+    const append = (text, { muted=false, iconName="" } = {}) => {
+      if(!text) return;
+      const span = document.createElement("span");
+      span.className = `pill${muted ? " muted" : ""}`;
+      if(iconName){
+        span.innerHTML = iconLabel(iconName, String(text), { wrapperClass: "ui-pill-label", iconClass: "ui-ico ui-ico-xs" });
+      }else{
+        span.textContent = String(text);
+      }
+      hubMetaRowEl.appendChild(span);
+    };
+
+    if((meta.content_type ?? meta.contentType) != null) append(hubLabel(HUB_CONTENT_TYPE_LABELS, meta.content_type ?? meta.contentType, "MobCrafter Unit"), { iconName: "grid" });
+    if((meta.file_availability ?? meta.fileAvailability) != null) append(hubLabel(HUB_FILE_AVAILABILITY_LABELS, meta.file_availability ?? meta.fileAvailability, "JSON"), { iconName: "file" });
+    if((meta.access_type ?? meta.accessType) != null) append(hubLabel(HUB_ACCESS_TYPE_LABELS, meta.access_type ?? meta.accessType, "Free"), { iconName: String(meta.access_type ?? meta.accessType ?? "").trim().toLowerCase() === "external" ? "external" : (String(meta.access_type ?? meta.accessType ?? "").trim().toLowerCase() && String(meta.access_type ?? meta.accessType ?? "").trim().toLowerCase() !== "free" ? "support" : "") });
+    if((meta.creation_method ?? meta.creationMethod) != null) append(hubLabel(HUB_CREATION_METHOD_LABELS, meta.creation_method ?? meta.creationMethod, "Hand Built"));
+    if(Boolean(meta.is_official_starter ?? meta.isOfficialStarter)) append("Official Starter", { iconName: "official" });
+    hubMetaRowEl.style.display = hubMetaRowEl.childNodes.length ? "flex" : "none";
+  }
+
   function setMetaFallbackFromJson(id, j){
     const name = (j && (j.displayName || j.name)) ? (j.displayName || j.name) : "(unknown)";
     const blocks = getBlockCountFromUnitJson(j);
@@ -1666,13 +1753,20 @@
 
     subtitle.textContent = name + `  — blocks:${blocks} / size:${size}`;
     if (heroTitleEl) heroTitleEl.textContent = name;
-    if (heroDescEl) heroDescEl.textContent = "Download this unit JSON and install it in seconds.";
-    document.title = `MobCrafter | ${name}`;
-    setPageDescription(`Download this MobCrafter unit JSON: ${name}`);
+    if (heroDescEl) heroDescEl.textContent = "Preview the build here, then open the main Hub page for download notes, creator links, and release details.";
+    document.title = `MobCrafter Hub | ${name}`;
+    setPageDescription(`Preview this MobCrafter Hub release: ${name}`);
 
     // Prefer canonical to /u/<id> if we don't know the number.
     setCanonical(`/u/${encodeURIComponent(String(id || ""))}`);
     setOgUrl(`/u/${encodeURIComponent(String(id || ""))}`);
+
+    if(canonicalBtn){
+      canonicalBtn.style.display = "inline-flex";
+      canonicalBtn.href = `/u/${encodeURIComponent(String(id || ""))}`;
+    }
+    if(supportBtn) supportBtn.style.display = "none";
+    renderHubMetaPills({});
 
     const ogUrl = setOgImageById(id);
     setStructuredData({ name, imageUrl: ogUrl });
@@ -1701,8 +1795,9 @@
     if(title) subtitle.textContent = title;
     if (heroTitleEl) heroTitleEl.textContent = title || "(untitled)";
     if (heroDescEl) {
-      heroDescEl.textContent = desc ? desc : "Download this unit JSON and install it in seconds.";
+      heroDescEl.textContent = desc ? desc : "Preview the build here, then open the main Hub page for download notes, creator links, and release details.";
     }
+    renderHubMetaPills(meta);
 
     // tags
     try{
@@ -1724,17 +1819,34 @@
       : `/u/${encodeURIComponent(String(id || ""))}`;
     setCanonical(canonicalPath);
     setOgUrl(canonicalPath);
-    document.title = `MobCrafter | ${title || "Unit"}` + (no != null ? ` (#${no})` : "");
-    setPageDescription(desc ? desc : `Download this MobCrafter unit JSON: ${title || "Unit"}`);
+    document.title = `MobCrafter Hub | ${title || "Creation"}` + (no != null ? ` (#${no})` : "");
+    setPageDescription(desc ? desc : `Preview this MobCrafter Hub release: ${title || "Creation"}`);
+
+    if(canonicalBtn){
+      canonicalBtn.style.display = "inline-flex";
+      canonicalBtn.href = canonicalPath;
+    }
+    if(supportBtn){
+      const supportUrl = String(meta.support_url ?? meta.supportUrl ?? meta.external_url ?? meta.externalUrl ?? "").trim();
+      if(supportUrl){
+        supportBtn.style.display = "inline-flex";
+        supportBtn.href = supportUrl;
+        setActionText(supportBtn, String(meta.access_type ?? meta.accessType ?? "") === "patreon_linked" ? "external" : "support", String(meta.access_type ?? meta.accessType ?? "") === "patreon_linked" ? "Open Patreon" : "Support creator");
+      }else{
+        supportBtn.style.display = "none";
+      }
+    }
 
     const ogUrl = setOgImageById(id);
     setStructuredData({ name: title || "", imageUrl: ogUrl });
 
     // DLボタン（public優先・ダメならprivate）
     dlBtn.style.display = "inline-flex";
+    setActionText(dlBtn, "download", "Download JSON");
     dlBtn.href = API_DL_PUBLIC(id);
     if (dlBtnBottom) {
       dlBtnBottom.style.display = "inline-flex";
+      setActionText(dlBtnBottom, "download", "Download JSON");
       dlBtnBottom.href = dlBtn.href;
     }
     dlBtn.onclick = async (e) => {
@@ -2401,7 +2513,7 @@
       renderScreens([]);
     }
 
-    // Comments (MVP)
+    // Comments
     try{
       const submissionIdForComments = await resolveSubmissionIdForComments(EFFECTIVE_ID, metaRes.meta);
       if(submissionIdForComments){

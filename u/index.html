@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MobCrafter Portal | Unit</title>
-  <meta name="description" content="MobCrafter unit JSON details page. Download, JSON preview, and usage instructions." />
+  <title>MobCrafter Hub | Creation</title>
+  <meta name="description" content="MobCrafter Hub creation details, downloads, included files, creator links, and usage instructions." />
   <link rel="canonical" href="" id="canonicalLink" />
   <meta property="og:url" content="" id="ogUrl" />
   <meta property="og:type" content="article" />
@@ -19,6 +19,7 @@
   <!-- Ads (default OFF): enable via /assets/ads-config.v1.js after approval -->
   <script src="/assets/ads-config.v1.js" defer></script>
   <script src="/assets/ads.v1.js" defer></script>
+  <link rel="stylesheet" href="/assets/ui-icons.v1.css?v=20260524a" />
   <style>
     :root{
       --bg:#f6f8fb;
@@ -43,7 +44,7 @@
       text-align:center;
     }
     header a{ color:inherit; text-decoration:none; }
-    header h1{ margin:0; font-size:18px; letter-spacing:.4px; }
+    header .brand{ display:inline-block; font-size:18px; font-weight:800; letter-spacing:.4px; }
     header p{ margin:6px 0 0; color:var(--muted); font-size:12px; }
     main{ max-width:1060px; margin:0 auto; padding:10px 16px 40px; }
     .wrap{ display:grid; grid-template-columns: 1.15fr .85fr; gap:14px; }
@@ -65,8 +66,64 @@
       border:1px solid rgba(148,163,184,.35);
       background:rgba(255,255,255,.8);
     }
+    .tag.heroBadge{ display:inline-flex; align-items:center; gap:5px; background:rgba(239,246,255,.95); border-color:rgba(37,99,235,.22); }
+    .tag.heroBadge.official{ background:rgba(209,250,229,.98); border-color:rgba(5,150,105,.25); }
     .kv{ margin-top:12px; display:grid; grid-template-columns: 160px 1fr; gap:8px 10px; font-size:13px; }
     .kv .k{ color:var(--muted); }
+    .techBox{ margin-top:14px; }
+    .summaryGrid{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+    }
+    .infoBox{
+      border:1px solid rgba(148,163,184,.22);
+      border-radius:14px;
+      padding:12px;
+      background:linear-gradient(180deg, rgba(248,250,252,.96), rgba(255,255,255,.98));
+    }
+    .infoBox h3,
+    .sideSection h3{
+      margin:0 0 8px;
+      font-size:14px;
+      line-height:1.4;
+    }
+    .infoList,
+    .orderedList{
+      margin:0;
+      padding-left:18px;
+      color:#334155;
+      font-size:13px;
+      line-height:1.7;
+    }
+    .infoList li + li,
+    .orderedList li + li{ margin-top:4px; }
+    .sideSection + .sideSection,
+    .sideSection + .divider{ margin-top:14px; }
+    .sideStats{ margin-top:10px; display:flex; flex-wrap:wrap; gap:6px; }
+    .sideActions{ margin-top:12px; display:flex; flex-wrap:wrap; gap:8px; }
+    .miniList{ display:flex; flex-direction:column; gap:10px; }
+    .miniCard{
+      display:block;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(148,163,184,.25);
+      background:#fff;
+      color:inherit;
+      text-decoration:none;
+    }
+    .miniCardTitle{
+      font-size:13px;
+      font-weight:700;
+      line-height:1.4;
+    }
+    .miniCardMeta{
+      margin-top:4px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
     .actions{ margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .btn{
       border:1px solid var(--line);
@@ -145,7 +202,7 @@
       margin-top:10px;
     }
 
-    /* comments (MVP) */
+    /* comments */
     .commentsBox{
       margin-top:12px;
       border:1px solid var(--line);
@@ -207,8 +264,8 @@
 </head>
 <body>
 <header>
-  <a href="/"><h1>MobCrafter Portal</h1></a>
-  <p>Unit JSON details</p>
+  <a href="/" class="brand">MobCrafter Hub</a>
+  <p>Public creation page</p>
 </header>
 
 <img id="ogImageHidden" alt="" style="display:none;" />
@@ -219,27 +276,50 @@
       <!-- Ad slot (unit_top) - renders only when ads are enabled -->
       <div data-ad-slot-key="unit_top"></div>
 
-      <h2 class="title" id="title">Loading...</h2>
+      <h1 class="title" id="title">Loading...</h1>
       <div class="muted" id="sub"></div>
+      <div class="tags" id="heroBadges"></div>
 
       <div style="margin-top:12px; border:1px solid rgba(148,163,184,.25); border-radius:14px; overflow:hidden; background:#fff;">
         <img id="heroImg" alt="" style="width:100%; height:auto; display:block; aspect-ratio:1200/630; object-fit:contain; background:#fff;" loading="eager" decoding="async" />
       </div>
 
       <div class="tags" id="tags"></div>
-      <div class="kv" id="kv"></div>
 
       <div class="actions">
-        <a id="downloadBtn" class="btn primary" href="#" download>Download JSON</a>
-        <button id="copyBtn" class="btn" type="button">Copy instructions</button>
+        <a id="downloadBtn" class="btn primary" href="#" download><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#download"></use></svg></span><span>Download JSON</span></a>
+        <a class="btn" href="https://www.curseforge.com/minecraft/mc-mods/mobcrafter" target="_blank" rel="noopener noreferrer"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#external"></use></svg></span><span>Get MobCrafter</span></a>
+        <a id="supportBtn" class="btn" href="#" target="_blank" rel="noopener noreferrer" style="display:none;"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#support"></use></svg></span><span>Support creator</span></a>
+        <a id="legacyBtn" class="btn" href="#"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#preview"></use></svg></span><span>Open legacy preview</span></a>
+        <button id="copyBtn" class="btn" type="button"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#copy"></use></svg></span><span>Copy instructions</span></button>
       </div>
 
+      <div class="summaryGrid">
+        <section class="infoBox">
+          <h3>What’s included</h3>
+          <ul class="infoList" id="includedList"></ul>
+        </section>
+        <section class="infoBox">
+          <h3>How to use</h3>
+          <ol class="orderedList" id="useList"></ol>
+        </section>
+        <section class="infoBox">
+          <h3>Requirements</h3>
+          <ul class="infoList" id="requirementsList"></ul>
+        </section>
+      </div>
+
+      <details class="techBox">
+        <summary>Technical details</summary>
+        <div class="kv" id="kv"></div>
+      </details>
+
       <details id="jsonDetails">
-        <summary>JSON preview (collapsed)</summary>
+        <summary>JSON preview</summary>
         <pre id="jsonPreview">...</pre>
       </details>
 
-      <!-- comments (MVP) -->
+      <!-- comments -->
       <section class="commentsBox" aria-label="comments">
         <div class="commentsHead">
           <div class="ttl">Comments</div>
@@ -323,17 +403,38 @@
     </section>
 
     <aside class="card">
-      <h3 style="margin:0 0 8px;">Quick help</h3>
-      <div class="muted" style="font-size:13px; line-height:1.6;">
-        Downloaded unit JSON files are loaded from <code>config/mob_crafter/units/</code>.
-        If a unit uses blocks from other mods, those mods must be installed as required dependencies.
-        <br /><br />
-        Note: Units shown in mod screenshots are personal examples and are not bundled with the mod.
-      </div>
+      <section class="sideSection">
+        <h3>Creator</h3>
+        <div class="muted" id="creatorSummary" style="font-size:13px; line-height:1.7;">Loading creator snapshot...</div>
+        <div class="sideStats" id="creatorStats"></div>
+        <div class="sideActions" id="creatorActions"></div>
+      </section>
+
+      <div class="divider"></div>
+
+      <section class="sideSection">
+        <h3>More by this creator</h3>
+        <div class="miniList" id="moreByList"></div>
+      </section>
+
+      <section class="sideSection">
+        <h3>Related creations</h3>
+        <div class="miniList" id="relatedList"></div>
+      </section>
+
+      <section class="sideSection">
+        <h3>Quick help</h3>
+        <div class="muted" style="font-size:13px; line-height:1.6;">
+          Downloaded JSON files are loaded from <code>config/mob_crafter/units/</code>. If a release uses blocks from other mods, those mods must be installed as required dependencies.
+          <br /><br />
+          Note: images shown here are previews, not bundled content.
+        </div>
+      </section>
     </aside>
   </div>
 </main>
 
+<script src="/assets/ui-icons.v1.js?v=20260524a"></script>
 <script>
 (() => {
   // Optional: ?api=http://127.0.0.1:8788 to point API calls to a different origin (local dev)
@@ -352,6 +453,8 @@
   const API_LIST   = api("/api/public/submissions"); // approved list
   const API_JSON   = (id) => api(`/api/public/submissions/${id}/json`);      // no DL count
   const API_DL     = (id) => api(`/api/public/submissions/${id}/download`);  // increments DL count
+  const API_PUBLIC_FILES = (id) => api(`/api/public/submissions/${encodeURIComponent(id)}/files`);
+  const API_PUBLIC_CREATORS = api("/api/public/creators");
   const API_WHOAMI = api("/api/whoami");
   const API_OWNER_META = (id) => api(`/api/submissions/${id}`);          // PUT, DELETE
   const API_OWNER_JSON = (id) => api(`/api/submissions/${id}/json`);     // PUT
@@ -381,6 +484,132 @@
 
   const canonicalLinkEl = el("canonicalLink");
   const ogUrlEl = el("ogUrl");
+  const HUB_FILE_AVAILABILITY_LABELS = {
+    json: "JSON",
+    schem: "SCHEM",
+    both: "JSON + SCHEM",
+    zip: "ZIP",
+    external: "External",
+  };
+  const HUB_ACCESS_TYPE_LABELS = {
+    free: "Free",
+    creator_supported: "Creator Supported",
+    patreon_linked: "Patreon-linked",
+    external: "External Access",
+    free_sample_supported: "Free Sample",
+  };
+  const HUB_CREATION_METHOD_LABELS = {
+    hand_built: "Hand Built",
+    ai_assisted: "AI Assisted",
+    imported: "Imported",
+    remixed: "Remixed",
+    starter_variant: "Starter Variant",
+  };
+  const HUB_CONTENT_TYPE_LABELS = {
+    mobcrafter_unit_json: "MobCrafter Unit",
+    schematic: "Schematic",
+    schematic_unit_set: "Schematic + Unit Set",
+    unit_pack: "Unit Pack",
+    world_map: "World / Map",
+    creator_asset: "Creator Asset",
+    guide_workflow: "Guide / Workflow",
+    external_release: "External Release",
+  };
+  let jsonCache = { id: null, text: "", obj: null, promise: null };
+
+  function normEmail(v){
+    const s = String(v || "").trim().toLowerCase();
+    return (s && s.includes("@")) ? s : "";
+  }
+
+  function hubLabel(map, value, fallback){
+    const key = String(value || "").trim().toLowerCase();
+    return map[key] || fallback;
+  }
+
+  function fileAvailabilityLabel(value){
+    return hubLabel(HUB_FILE_AVAILABILITY_LABELS, value, "JSON");
+  }
+
+  function accessTypeLabel(value){
+    return hubLabel(HUB_ACCESS_TYPE_LABELS, value, "Free");
+  }
+
+  function creationMethodLabel(value){
+    return hubLabel(HUB_CREATION_METHOD_LABELS, value, "Hand Built");
+  }
+
+  function contentTypeLabel(value){
+    return hubLabel(HUB_CONTENT_TYPE_LABELS, value, "MobCrafter Unit");
+  }
+
+  function trimText(value, maxLen){
+    const text = String(value || "").trim();
+    if(!text) return "";
+    if(text.length <= maxLen) return text;
+    return text.slice(0, Math.max(0, maxLen - 1)).trimEnd() + "…";
+  }
+
+  function buildCanonicalPath(item){
+    const no = item?.submission_no ?? item?.submissionNo ?? null;
+    if(no != null && String(no).trim() !== "") return `/u/${encodeURIComponent(String(no))}`;
+    return `/u/${encodeURIComponent(String(item?.id || ""))}`;
+  }
+
+  function buildLegacyPath(item){
+    const no = item?.submission_no ?? item?.submissionNo ?? null;
+    if(no != null && String(no).trim() !== "") return `/unit.html?id=${encodeURIComponent(String(no))}`;
+    return `/unit.html?id=${encodeURIComponent(String(item?.id || ""))}`;
+  }
+
+  function renderTextList(targetId, items, { ordered=false } = {}){
+    const node = el(targetId);
+    if(!node) return;
+    clearChildren(node);
+    const arr = Array.isArray(items) ? items.filter(Boolean) : [];
+    if(!arr.length){
+      const li = document.createElement("li");
+      li.textContent = "No details available yet.";
+      node.appendChild(li);
+      return;
+    }
+    for(const text of arr){
+      const li = document.createElement("li");
+      li.textContent = String(text);
+      node.appendChild(li);
+    }
+  }
+
+  function renderMiniList(targetId, items, { emptyText="Nothing to show yet.", metaBuilder=null } = {}){
+    const node = el(targetId);
+    if(!node) return;
+    clearChildren(node);
+    const arr = Array.isArray(items) ? items : [];
+    if(!arr.length){
+      const hint = document.createElement("div");
+      hint.className = "muted";
+      hint.style.fontSize = "13px";
+      hint.textContent = emptyText;
+      node.appendChild(hint);
+      return;
+    }
+    for(const item of arr){
+      const a = document.createElement("a");
+      a.className = "miniCard";
+      a.href = buildCanonicalPath(item);
+      const title = document.createElement("div");
+      title.className = "miniCardTitle";
+      title.textContent = String(item.title || item.name || item.unit_id || "Untitled");
+      const meta = document.createElement("div");
+      meta.className = "miniCardMeta";
+      meta.textContent = typeof metaBuilder === "function"
+        ? String(metaBuilder(item) || "")
+        : `${contentTypeLabel(item.content_type || item.contentType)} • DL ${Number(item.download_count || item.downloadCount || 0) || 0}`;
+      a.appendChild(title);
+      a.appendChild(meta);
+      node.appendChild(a);
+    }
+  }
 
   function setCommentsState(msg){
     if(!commentsStateEl) return;
@@ -690,6 +919,20 @@
       .replaceAll("'","&#39;");
   }
 
+  function iconLabel(iconName, text, { wrapperClass="ui-label", iconClass="ui-ico ui-ico-sm" } = {}){
+    if(!iconName || !window.MobUi || typeof window.MobUi.label !== "function") return escapeHtml(text);
+    return window.MobUi.label(iconName, text, { wrapperClass, iconClass });
+  }
+
+  function setActionText(node, iconName, text){
+    if(!node) return;
+    if(window.MobUi && typeof window.MobUi.set === "function"){
+      window.MobUi.set(node, iconName, text, { wrapperClass: "ui-label", iconClass: "ui-ico ui-ico-sm" });
+      return;
+    }
+    node.textContent = text;
+  }
+
   function normalizeTags(t){
     if(!t) return [];
     if(Array.isArray(t)) return t.map(x=>String(x).trim()).filter(Boolean);
@@ -700,29 +943,371 @@
     return `<div class="k">${escapeHtml(k)}</div><div>${escapeHtml(v ?? "")}</div>`;
   }
 
-  function buildHowTo(unitId){
-    const id = String(unitId || "").trim();
+  function appendStatChip(target, text, { official=false, iconName="" } = {}){
+    if(!target || !text) return;
+    const span = document.createElement("span");
+    span.className = `tag heroBadge${official ? " official" : ""}`;
+    if(official || iconName){
+      span.innerHTML = iconLabel(iconName || "official", String(text), { wrapperClass: "ui-badge-label", iconClass: "ui-ico ui-ico-xs" });
+    }else{
+      span.textContent = String(text);
+    }
+    target.appendChild(span);
+  }
+
+  function fillHeroBadges(item){
+    const node = el("heroBadges");
+    if(!node) return;
+    clearChildren(node);
+    appendStatChip(node, contentTypeLabel(item.content_type || item.contentType), { iconName: "grid" });
+    appendStatChip(node, fileAvailabilityLabel(item.file_availability || item.fileAvailability), { iconName: "file" });
+    const accessRaw = String(item.access_type || item.accessType || "").trim().toLowerCase();
+    appendStatChip(node, accessTypeLabel(item.access_type || item.accessType), { iconName: accessRaw && accessRaw !== "free" ? (accessRaw === "external" ? "external" : "support") : "" });
+    appendStatChip(node, creationMethodLabel(item.creation_method || item.creationMethod));
+    if(Boolean(item.is_official_starter || item.isOfficialStarter)) appendStatChip(node, "Official Starter", { official: true });
+  }
+
+  function getRequiredModsFromJson(j){
+    try{
+      if(!j || typeof j !== "object") return [];
+      const mods = new Set();
+      const add = (bid) => {
+        const s = String(bid || "").trim();
+        if(!s) return;
+        const idx = s.indexOf(":");
+        if(idx <= 0) return;
+        const ns = s.slice(0, idx).trim().toLowerCase();
+        if(!ns || ns === "minecraft" || ns === "mobcrafter") return;
+        mods.add(ns);
+      };
+
+      const blocks = j.blocks;
+      if(Array.isArray(blocks)){
+        for(const b of blocks) add(b && (b.blockId || b.block_id || b.id || b.block));
+      }else if(blocks && typeof blocks === "object"){
+        const pal = blocks.palette;
+        if(Array.isArray(pal)){
+          for(const bid of pal) add(bid);
+        }
+      }
+      return Array.from(mods).sort();
+    }catch{
+      return [];
+    }
+  }
+
+  function buildHowToLines(item, files = []){
+    const fileAvailability = String(item.file_availability || item.fileAvailability || "json").trim().toLowerCase() || "json";
+    const accessType = String(item.access_type || item.accessType || "free").trim().toLowerCase() || "free";
+    const unitId = String(item.unit_id || item.unitId || item.id || "").trim();
+    const lines = [];
+
+    if(fileAvailability === "external"){
+      lines.push("Open the external release link to access the creator-provided files.");
+    }else if(fileAvailability === "schem"){
+      lines.push("Download the schematic from the included files list.");
+      lines.push("Import it with your preferred schematic workflow or use it as a build reference.");
+    }else if(fileAvailability === "zip"){
+      lines.push("Download the included ZIP or pack from the files list.");
+      lines.push("Unpack it and follow the creator notes for any world, asset, or extra-file instructions.");
+    }else{
+      lines.push("Download the MobCrafter JSON file.");
+      lines.push(`The filename and JSON id/unitId should match. Example: ${unitId || "your-unit"}.json`);
+      lines.push("Place the JSON into: config/mob_crafter/units/");
+      lines.push("Load or summon the unit in-game.");
+    }
+
+    if(fileAvailability === "both" || files.some((file) => String(file.file_kind || "").trim().toLowerCase() === "schem")){
+      lines.push("Use the included schematic if you want to rebuild or inspect the structure outside the summon workflow.");
+    }
+
+    if(files.some((file) => ["zip", "world", "asset"].includes(String(file.file_kind || "").trim().toLowerCase()))){
+      lines.push("Check the included files list for packs, worlds, or creator assets that accompany this release.");
+    }
+
+    if(accessType !== "free"){
+      lines.push("Review the creator support links before downloading any off-site or supporter-only extras.");
+    }
+
+    return lines;
+  }
+
+  function buildRequirementLines(item, requiredMods = []){
+    const fileAvailability = String(item.file_availability || item.fileAvailability || "json").trim().toLowerCase() || "json";
+    const lines = ["Minecraft Forge 1.20.1 with MobCrafter installed."];
+
+    if(requiredMods.length){
+      lines.push(`Additional block mods detected from the JSON: ${requiredMods.join(", ")}.`);
+    }else{
+      lines.push("Install any dependency mods mentioned by the creator before loading the release.");
+    }
+
+    if(fileAvailability === "schem" || fileAvailability === "both"){
+      lines.push("A schematic-compatible workflow is required if you want to rebuild the design from the included files.");
+    }
+
+    if(fileAvailability === "external"){
+      lines.push("Some files are hosted off-site, so availability and install steps depend on the creator’s external page.");
+    }
+
+    return lines;
+  }
+
+  function buildHowTo(item, files = []){
     return [
-      "[How to use MobCrafter units]",
-      "1) Click Download JSON to get the file",
-      "2) The filename and JSON id/unitId match",
-      "   Example: " + id + ".json",
-      "3) Put the JSON into: config/mob_crafter/units/",
-      "4) Load/summon the unit in-game",
+      "[How to use this MobCrafter Hub release]",
+      ...buildHowToLines(item, files).map((line, index) => `${index + 1}) ${line}`),
       "",
-      "Note: This portal enforces unitId/id consistency on the server for compatibility."
+      "Note: Hub keeps the legacy JSON compatibility behavior, including server-enforced unitId/id consistency when JSON is resaved."
     ].join("\n");
+  }
+
+  async function fetchPublicJsonOnce(id){
+    const key = String(id || "").trim();
+    if(!key) return { text: "", obj: null };
+    if(jsonCache.id === key && jsonCache.promise) return jsonCache.promise;
+
+    jsonCache.id = key;
+    jsonCache.promise = fetch(API_JSON(key), { cache:"no-store" })
+      .then(async (r) => {
+        if(!r.ok) throw new Error("json HTTP " + r.status);
+        const text = await r.text();
+        let obj = null;
+        try{ obj = JSON.parse(text); }catch{ obj = null; }
+        jsonCache.text = text;
+        jsonCache.obj = obj;
+        return { text, obj };
+      })
+      .catch((error) => {
+        jsonCache.text = "";
+        jsonCache.obj = null;
+        jsonCache.promise = null;
+        throw error;
+      });
+
+    return jsonCache.promise;
+  }
+
+  async function fetchPublicFiles(id){
+    const r = await fetch(API_PUBLIC_FILES(id), { cache:"no-store" });
+    const t = await r.text();
+    let d = null;
+    try{ d = JSON.parse(t); }catch{ d = null; }
+    if(!r.ok || !d || d.ok !== true) return [];
+    return Array.isArray(d.items) ? d.items : [];
+  }
+
+  async function fetchCreatorProfile(item){
+    const email = normEmail(item.author_email || item.authorEmail || "");
+    const author = String(item.author_name || item.authorName || item.author || "").trim();
+    if(!email && !author) return null;
+
+    const sp = new URLSearchParams();
+    if(email) sp.set("email", email);
+    else sp.set("author", author);
+
+    const r = await fetch(API_PUBLIC_CREATORS + "?" + sp.toString(), { cache:"no-store" });
+    const t = await r.text();
+    let d = null;
+    try{ d = JSON.parse(t); }catch{ d = null; }
+    if(!r.ok || !d || d.ok !== true) return null;
+    return d;
+  }
+
+  function buildCreatorPageHref(item, profile = null){
+    const email = normEmail(profile?.author_email || item.author_email || item.authorEmail || "");
+    const author = String(profile?.author_name || item.author_name || item.authorName || item.author || "").trim();
+    if(email) return `/creators/?email=${encodeURIComponent(email)}`;
+    if(author) return `/creators/?author=${encodeURIComponent(author)}`;
+    return "/creators/";
+  }
+
+  async function fetchRelatedItems(item){
+    const tags = normalizeTags(item.tags).filter((tag) => !["featured", "starter", "vanilla", "beginner"].includes(String(tag || "").trim().toLowerCase()));
+    const titleWord = String(item.title || item.name || "")
+      .split(/\s+/)
+      .map((part) => String(part || "").trim())
+      .find((part) => part.length >= 4);
+    const query = tags[0] || titleWord || String(item.author_name || item.authorName || "").trim();
+    if(!query) return [];
+
+    const sp = new URLSearchParams();
+    sp.set("q", query);
+    sp.set("page", "1");
+    sp.set("page_size", "8");
+    sp.set("sort", "dl");
+
+    const r = await fetch(API_LIST + "?" + sp.toString(), { cache:"no-store" });
+    const t = await r.text();
+    let d = null;
+    try{ d = JSON.parse(t); }catch{ d = null; }
+    if(!r.ok || !d) return [];
+    return (Array.isArray(d.items) ? d.items : []).filter((other) => String(other.id || "") !== String(item.id || "")).slice(0, 5);
+  }
+
+  function renderIncludedList(item, files = []){
+    const node = el("includedList");
+    if(!node) return;
+    clearChildren(node);
+
+    const addEntry = (text, href) => {
+      const li = document.createElement("li");
+      if(href){
+        const a = document.createElement("a");
+        a.href = href;
+        if(/^https?:\/\//i.test(href)){
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+        }
+        a.textContent = text;
+        li.appendChild(a);
+      }else{
+        li.textContent = text;
+      }
+      node.appendChild(li);
+    };
+
+    const fileAvailability = String(item.file_availability || item.fileAvailability || "json").trim().toLowerCase() || "json";
+    if(fileAvailability === "json" || fileAvailability === "both"){
+      addEntry("MobCrafter JSON unit file", API_DL(item.id));
+    }
+    if(fileAvailability === "external" && item.external_url){
+      addEntry("External release page", String(item.external_url));
+    }
+
+    for(const file of (files || []).slice(0, 8)){
+      const kind = String(file.file_kind || file.fileKind || "file").trim().toUpperCase();
+      const label = String(file.label || file.original_name || file.name || kind).trim();
+      const href = String(file.download_path || file.external_url || "").trim();
+      addEntry(`${kind}: ${label}`, href || null);
+    }
+
+    if(!node.childNodes.length) addEntry("No included files listed yet.");
+  }
+
+  function renderCreatorProfile(data, item){
+    const summaryEl = el("creatorSummary");
+    const statsEl = el("creatorStats");
+    const actionsEl = el("creatorActions");
+    if(statsEl) clearChildren(statsEl);
+    if(actionsEl) clearChildren(actionsEl);
+
+    if(!data || !data.profile){
+      if(summaryEl) summaryEl.textContent = `Public creator snapshot is not available yet.`;
+      if(actionsEl){
+        const a = document.createElement("a");
+        a.className = "btn";
+        a.href = buildCreatorPageHref(item);
+        a.innerHTML = iconLabel("users", "View creator page");
+        actionsEl.appendChild(a);
+      }
+      renderMiniList("moreByList", [], { emptyText: "No other public creations from this creator yet." });
+      return;
+    }
+
+    const profile = data.profile || {};
+    if(summaryEl){
+      summaryEl.textContent = `${profile.author_name || "unknown"} has ${Number(profile.creations_count || 0) || 0} public release(s), ${Number(profile.downloads_total || 0) || 0} download(s), and ${Number(profile.likes_total || 0) || 0} like(s) across Hub.`;
+    }
+    appendStatChip(statsEl, `${Number(profile.creations_count || 0) || 0} creations`, { iconName: "grid" });
+    appendStatChip(statsEl, `${Number(profile.downloads_total || 0) || 0} downloads`, { iconName: "download" });
+    appendStatChip(statsEl, `${Number(profile.likes_total || 0) || 0} likes`);
+    if(Boolean(profile.is_official_starter)) appendStatChip(statsEl, "Official Starter", { official: true });
+
+    if(actionsEl){
+      const pageLink = document.createElement("a");
+      pageLink.className = "btn";
+      pageLink.href = buildCreatorPageHref(item, profile);
+      pageLink.innerHTML = iconLabel("users", "View creator page");
+      actionsEl.appendChild(pageLink);
+    }
+
+    const links = Array.isArray(data.links) ? data.links : [];
+    const unique = [];
+    const seen = new Set();
+    for(const link of links){
+      const href = String(link?.url || "").trim();
+      if(!href || seen.has(href)) continue;
+      seen.add(href);
+      unique.push({ href, label: link?.kind === "support" ? "Support creator" : "Open external link" });
+    }
+    if(item.support_url && !seen.has(item.support_url)) unique.unshift({ href: String(item.support_url), label: "Support creator" });
+
+    for(const link of unique.slice(0, 4)){
+      const a = document.createElement("a");
+      a.className = "btn";
+      a.href = link.href;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.innerHTML = iconLabel(link.label === "Support creator" ? "support" : "external", link.label);
+      actionsEl.appendChild(a);
+    }
+
+    const moreBy = (Array.isArray(data.items) ? data.items : []).filter((other) => String(other.id || "") !== String(item.id || "")).slice(0, 5);
+    renderMiniList("moreByList", moreBy, { emptyText: "No other public creations from this creator yet." });
+  }
+
+  function setPrimaryAction(item, files = []){
+    const btn = el("downloadBtn");
+    if(!btn) return;
+
+    const fileAvailability = String(item.file_availability || item.fileAvailability || "json").trim().toLowerCase() || "json";
+    const reset = () => {
+      btn.removeAttribute("download");
+      btn.removeAttribute("target");
+      btn.removeAttribute("rel");
+    };
+
+    reset();
+
+    if(fileAvailability === "external" && item.external_url){
+      setActionText(btn, "external", "Open External Release");
+      btn.href = String(item.external_url);
+      btn.target = "_blank";
+      btn.rel = "noopener noreferrer";
+      return;
+    }
+
+    if(fileAvailability === "json" || fileAvailability === "both"){
+      setActionText(btn, "download", "Download JSON");
+      btn.href = API_DL(item.id);
+      btn.setAttribute("download", "");
+      return;
+    }
+
+    const preferred = (files || []).find((file) => {
+      const kind = String(file.file_kind || file.fileKind || "").trim().toLowerCase();
+      return kind === "schem" || kind === "zip" || kind === "world" || kind === "asset";
+    }) || (files || [])[0];
+
+    if(preferred && preferred.download_path){
+      const kind = String(preferred.file_kind || preferred.fileKind || "file").trim().toUpperCase();
+      setActionText(btn, /^https?:\/\//i.test(String(preferred.download_path)) ? "external" : "download", `Download ${kind}`);
+      btn.href = String(preferred.download_path);
+      if(/^https?:\/\//i.test(btn.href)){
+        btn.target = "_blank";
+        btn.rel = "noopener noreferrer";
+      }
+      return;
+    }
+
+    setActionText(btn, "file", "See Included Files");
+    btn.href = "#includedList";
   }
 
   function getKeyFromUrl(){
     // 正規: /u/13 または /u/<uuid>
     let m = location.pathname.match(/^\/u\/([^\/?#]+)/);
-    if (m) return decodeURIComponent(m[1]);
+    if (m) {
+      const pathKey = decodeURIComponent(m[1]);
+      if(pathKey && pathKey.toLowerCase() !== "index.html") return pathKey;
+    }
 
     // 404ルーティング: /u/index.html?p=/u/13
-    const p = new URLSearchParams(location.search).get("p") || "";
+    const p = decodeURIComponent(new URLSearchParams(location.search).get("p") || "").trim();
     m = p.match(/^\/u\/([^\/?#]+)/);
     if (m) return decodeURIComponent(m[1]);
+    if(p && p !== "/u/" && p.toLowerCase() !== "/u/index.html") return p;
 
     return null;
   }
@@ -801,13 +1386,11 @@
 
     // canonical/seo
     const no = item.submission_no ?? item.submissionNo ?? null;
-    const canonicalPath = (no != null && String(no).trim() !== "")
-      ? `/u/${encodeURIComponent(String(no))}`
-      : `/u/${encodeURIComponent(String(item.id || key))}`;
+    const canonicalPath = buildCanonicalPath(item);
     setCanonical(canonicalPath);
     setOgUrl(canonicalPath);
-    document.title = `MobCrafter | ${String(item.title || item.name || "Unit").trim()}` + (no != null ? ` (#${no})` : "");
-    setPageDescription(String(item.description || "").trim() || `Download this MobCrafter unit JSON: ${String(item.title || item.name || "Unit").trim()}`);
+    document.title = `MobCrafter Hub | ${String(item.title || item.name || "Creation").trim()}` + (no != null ? ` (#${no})` : "");
+    setPageDescription(trimText(String(item.description || "").trim(), 160) || `View this MobCrafter Hub release: ${String(item.title || item.name || "Creation").trim()}`);
 
     // --- whoami (used for editor + comment posting permission) ---
     let who = { ok:true, email:null, is_admin:false };
@@ -817,7 +1400,7 @@
       who = { ok:false, email:null, is_admin:false };
     }
 
-    // comments (MVP) - use submission UUID
+    // comments - use submission UUID
     try{
       initComments(String(item.id), { canPost: Boolean(who && who.email), canAdminDelete: Boolean(who && who.is_admin) });
     }catch{
@@ -827,27 +1410,51 @@
     // 表示
     el("title").textContent = item.title || item.name || "Untitled";
     setStructuredData({ name: (item.title || item.name || "Untitled"), imageUrl: ogUrl });
-    el("sub").textContent = `#${item.submission_no ?? "?"} / ${item.unit_id ?? ""}`;
+    el("sub").textContent = `${contentTypeLabel(item.content_type || item.contentType)} • ${fileAvailabilityLabel(item.file_availability || item.fileAvailability)} • by ${item.author_name || item.authorName || "unknown"}`;
+    fillHeroBadges(item);
 
     const tags = normalizeTags(item.tags);
     el("tags").innerHTML = tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join("");
 
     el("kv").innerHTML = [
       kvRow("Created", item.created_at || ""),
+      kvRow("Updated", item.updated_at || item.created_at || ""),
       kvRow("Downloads", item.download_count ?? 0),
+      kvRow("Views", item.view_count ?? item.viewCount ?? 0),
+      kvRow("Format", fileAvailabilityLabel(item.file_availability || item.fileAvailability)),
+      kvRow("Content type", contentTypeLabel(item.content_type || item.contentType)),
+      kvRow("Access", accessTypeLabel(item.access_type || item.accessType)),
+      kvRow("Creation method", creationMethodLabel(item.creation_method || item.creationMethod)),
       kvRow("mod_version", item.mod_version || "Forge"),
       kvRow("submission_no", item.submission_no ?? ""),
       kvRow("unit_id", item.unit_id ?? ""),
       kvRow("Author", item.author_name || "unknown")
     ].join("");
 
-    // DLリンク（ここだけがDLカウント増える）
-    el("downloadBtn").href = API_DL(item.id);
+    if(el("legacyBtn")) el("legacyBtn").href = buildLegacyPath(item);
+    if(el("supportBtn")){
+      const supportUrl = String(item.support_url || item.supportUrl || "").trim();
+      if(supportUrl){
+        el("supportBtn").style.display = "inline-flex";
+        el("supportBtn").href = supportUrl;
+        setActionText(el("supportBtn"), String(item.access_type || item.accessType || "") === "patreon_linked" ? "external" : "support", String(item.access_type || item.accessType || "") === "patreon_linked" ? "Open Patreon" : "Support creator");
+      }else{
+        el("supportBtn").style.display = "none";
+      }
+    }
 
-    // howto
-    el("howto").textContent = buildHowTo(item.unit_id);
+    let publicFiles = [];
+    setPrimaryAction(item, publicFiles);
+    renderIncludedList(item, publicFiles);
+    renderTextList("useList", buildHowToLines(item, publicFiles), { ordered: true });
+    renderTextList("requirementsList", buildRequirementLines(item, []));
+    el("howto").textContent = buildHowTo(item, publicFiles);
 
-    // JSONプレビュー（開いた時だけ取得、DLカウントしない）
+    if(el("creatorSummary")) el("creatorSummary").textContent = "Loading creator snapshot...";
+    renderMiniList("moreByList", [], { emptyText: "Loading creator releases…" });
+    renderMiniList("relatedList", [], { emptyText: "Looking for related creations..." });
+
+    // JSONプレビュー（開いた時だけ描画、取得はキャッシュ）
     let jsonLoaded = false;
     const jsonDetails = el("jsonDetails");
     jsonDetails.addEventListener("toggle", async () => {
@@ -855,10 +1462,8 @@
       if(jsonLoaded) return;
       jsonLoaded = true;
       try{
-        const r = await fetch(API_JSON(item.id), { cache:"no-store" });
-        if(!r.ok) throw new Error("json HTTP " + r.status);
-        const text = await r.text();
-        el("jsonPreview").textContent = text;
+        const data = await fetchPublicJsonOnce(item.id);
+        el("jsonPreview").textContent = data.text;
       }catch(e){
         el("jsonPreview").textContent = "Failed to fetch: " + String(e.message || e);
       }
@@ -867,13 +1472,41 @@
     // copy howto
     el("copyBtn").onclick = async () => {
       try{
-        await navigator.clipboard.writeText(buildHowTo(item.unit_id));
+        await navigator.clipboard.writeText(buildHowTo(item, publicFiles));
         setMsg(`<div class="muted" style="margin-top:12px;">Copied.</div>`);
         setTimeout(()=> setMsg(""), 1500);
       }catch{
         setMsg(`<div class="err">Copy failed.</div>`);
       }
     };
+
+    void fetchPublicFiles(item.id)
+      .then((files) => {
+        publicFiles = Array.isArray(files) ? files : [];
+        setPrimaryAction(item, publicFiles);
+        renderIncludedList(item, publicFiles);
+        renderTextList("useList", buildHowToLines(item, publicFiles), { ordered: true });
+        el("howto").textContent = buildHowTo(item, publicFiles);
+      })
+      .catch(() => {});
+
+    void fetchPublicJsonOnce(item.id)
+      .then((data) => {
+        const requiredMods = getRequiredModsFromJson(data.obj);
+        renderTextList("requirementsList", buildRequirementLines(item, requiredMods));
+      })
+      .catch(() => {});
+
+    void fetchCreatorProfile(item)
+      .then((data) => renderCreatorProfile(data, item))
+      .catch(() => {
+        if(el("creatorSummary")) el("creatorSummary").textContent = `Public creator snapshot is not available yet.`;
+        renderMiniList("moreByList", [], { emptyText: "No other public creations from this creator yet." });
+      });
+
+    void fetchRelatedItems(item)
+      .then((items) => renderMiniList("relatedList", items, { emptyText: "No related creations yet." }))
+      .catch(() => renderMiniList("relatedList", [], { emptyText: "No related creations yet." }));
 
     if(who && who.email){
       el("editor").style.display = "block";

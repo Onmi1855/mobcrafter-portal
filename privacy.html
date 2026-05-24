@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MobCrafter Hub Privacy</title>
+  <meta name="description" content="Privacy summary for browsing, login, uploads, and creator metadata on MobCrafter Hub." />
+  <meta property="og:image" content="https://mobcrafter.net/assets/top_banner_new.png" />
+  <link rel="stylesheet" href="/assets/site-pages.v1.css" />
+</head>
+<body>
+  <header class="page-shell">
+    <a class="homeLink" href="/">Back to Hub</a>
+    <section class="hero">
+      <p class="eyebrow">Privacy</p>
+      <h1>Privacy summary</h1>
+      <p class="lead">Most Hub pages are readable without a login. Authenticated upload and moderation flows use Cloudflare Access, while Hub data is stored in the existing Worker, D1, and R2 stack.</p>
+    </section>
+  </header>
+  <main class="page-shell">
+    <article class="contentCard">
+      <h2>What visitors can do without logging in</h2>
+      <p>Public users can browse lists, open detail pages, download public files, and view creator pages without creating a Hub-specific account.</p>
+
+      <h2>What is processed when you log in</h2>
+      <p>When you use upload, edit, or admin flows, Cloudflare Access provides authentication context such as email and user identifier information needed to decide ownership and permissions.</p>
+
+      <h2>What is stored</h2>
+      <ul>
+        <li>D1 stores release metadata, comments, likes, and related Hub fields.</li>
+        <li>R2 stores uploaded release files and screenshots.</li>
+        <li>Public pages may display author name, creator links, support URLs, descriptions, tags, and download counts that you choose to publish.</li>
+      </ul>
+
+      <h2>Ads and infrastructure</h2>
+      <p>Pages that support advertising may load the existing ad scripts configured in this site. Standard request logs may also be processed by hosting and CDN infrastructure.</p>
+
+      <div class="note">If you do not want author information or links shown publicly, do not publish them in release metadata. Moderation or removal decisions may still retain internal records needed to operate the service.</div>
+    </article>
+  </main>
+  <footer class="page-shell footerLinks">
+    <a href="/terms.html">Terms</a>
+    <a href="/contact.html">Contact</a>
+    <a href="/guidelines.html">Guidelines</a>
+  </footer>
+</body>
+</html>

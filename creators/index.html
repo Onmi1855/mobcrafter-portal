@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MobCrafter Hub - Creators</title>
+  <meta name="description" content="Browse MobCrafter Hub creators and their public releases." />
+  <link rel="stylesheet" href="/assets/ui-icons.v1.css?v=20260524a" />
+  <style>
+    :root{
+      --bg:#f3f7fb;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line:#e5e7eb;
+      --brand:#0f172a;
+      --accent:#2563eb;
+      --accent-soft:#eff6ff;
+      --glow:#dcfce7;
+      --shadow:0 16px 34px rgba(15,23,42,.08);
+      --radius:20px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(191,219,254,.42), transparent 28%),
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 30%, #eef4f8 100%);
+      color:var(--text);
+    }
+    header, main{ max-width:1100px; margin:0 auto; padding:24px 16px; }
+    header{ padding-bottom:10px; }
+    .topbar{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+    .topbar a{ text-decoration:none; color:var(--accent); border:1px solid rgba(37,99,235,.22); background:rgba(255,255,255,.9); padding:8px 12px; border-radius:999px; font-weight:700; display:inline-flex; align-items:center; gap:6px; }
+    .topbar a.primary{ background:var(--brand); color:#fff; border-color:var(--brand); }
+    h1{ margin:0 0 8px; font-size:42px; line-height:1.02; letter-spacing:-.05em; }
+    .lead{ color:#334155; font-size:15px; line-height:1.8; max-width:760px; }
+    .hero{ margin-top:16px; padding:24px; border-radius:28px; border:1px solid rgba(15,23,42,.08); background:linear-gradient(145deg, rgba(255,255,255,.97), rgba(239,246,255,.96) 58%, rgba(240,253,244,.93)); box-shadow:var(--shadow); position:relative; overflow:hidden; }
+    .hero::after{ content:""; position:absolute; right:-40px; top:-40px; width:180px; height:180px; border-radius:50%; background:radial-gradient(circle, rgba(134,239,172,.38), transparent 65%); pointer-events:none; }
+    .eyebrow{ display:inline-flex; align-items:center; gap:8px; margin-bottom:10px; font-size:12px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#166534; }
+    .heroTitle{ margin:0; font-size:30px; line-height:1.12; letter-spacing:-.03em; }
+    .heroSub{ margin-top:8px; color:#334155; font-size:14px; line-height:1.75; max-width:46rem; }
+    .stats, .actions, .filters, .heroMeta{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .stats{ margin-top:12px; }
+    .heroMeta{ margin-top:14px; }
+    .chip{ display:inline-flex; align-items:center; gap:6px; padding:7px 10px; border-radius:999px; border:1px solid rgba(148,163,184,.25); background:#fff; font-size:12px; color:#0f172a; }
+    .chip.soft{ background:rgba(255,255,255,.78); }
+    .actions{ margin-top:16px; }
+    .actions a{ display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:40px; padding:8px 13px; border-radius:999px; text-decoration:none; border:1px solid rgba(15,23,42,.08); background:#fff; color:#0f172a; font-weight:700; }
+    .actions a.primary{ background:var(--brand); color:#fff; border-color:var(--brand); }
+    .section{ margin-top:22px; }
+    .section h2{ margin:0 0 8px; font-size:22px; letter-spacing:-.02em; }
+    .muted{ color:var(--muted); }
+    .grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:16px; }
+    .card{ display:block; text-decoration:none; color:inherit; background:var(--card); border:1px solid var(--line); border-radius:24px; box-shadow:var(--shadow); padding:20px; transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease; }
+    .card:hover{ transform: translateY(-2px); border-color: rgba(37,99,235,.18); box-shadow:0 20px 38px rgba(15,23,42,.12); }
+    .card h3{ margin:0; font-size:24px; line-height:1.1; letter-spacing:-.03em; }
+    .card p{ margin:10px 0 0; color:#334155; font-size:14px; line-height:1.75; }
+    .cardEyebrow{ margin-bottom:10px; font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#2563eb; }
+    .mini{ margin-top:12px; display:flex; flex-wrap:wrap; gap:6px; }
+    .mini span{ display:inline-flex; padding:5px 9px; border-radius:999px; border:1px solid rgba(148,163,184,.25); background:#fff; font-size:12px; color:#334155; }
+    .releaseList{ display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:16px; }
+    .releaseCard{ background:#fff; border:1px solid var(--line); border-radius:20px; padding:16px; box-shadow:var(--shadow); }
+    .releaseCard a{ color:inherit; text-decoration:none; }
+    .releaseCard .title{ font-size:17px; font-weight:800; line-height:1.35; }
+    .releaseCard .desc{ margin-top:8px; color:#334155; font-size:13px; line-height:1.7; min-height:46px; }
+    .releaseCard .meta{ margin-top:10px; color:var(--muted); font-size:12px; line-height:1.6; }
+    .empty{ padding:18px; border-radius:18px; border:1px dashed rgba(148,163,184,.35); background:#fff; color:#475569; }
+    .loadingLabel{ color:#64748b; font-size:13px; line-height:1.7; }
+    .skeletonGrid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:16px; }
+    .skeletonCard{ min-height:182px; border-radius:24px; border:1px solid rgba(148,163,184,.18); background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(248,250,252,.96)); box-shadow:var(--shadow); padding:20px; }
+    .skeletonLine{ height:12px; border-radius:999px; background:linear-gradient(90deg, rgba(226,232,240,.9), rgba(241,245,249,.98), rgba(226,232,240,.9)); background-size:200% 100%; animation:pulse 1.4s ease-in-out infinite; }
+    .skeletonLine + .skeletonLine{ margin-top:10px; }
+    .skeletonLine.title{ height:18px; width:62%; }
+    .skeletonLine.short{ width:34%; }
+    .skeletonLine.medium{ width:78%; }
+    .skeletonLine.long{ width:92%; }
+    input{ width:100%; padding:12px 14px; border-radius:14px; border:1px solid #cbd5e1; background:rgba(255,255,255,.95); }
+    @keyframes pulse{ 0%{ background-position:200% 0; } 100%{ background-position:-200% 0; } }
+    @media (max-width: 720px){ h1{ font-size:32px; } .heroTitle{ font-size:24px; } .hero{ padding:20px; } }
+  </style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <a href="/"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#home"></use></svg></span><span>Back to Hub</span></a>
+    <div class="actions" style="margin-top:0;">
+      <a href="/submit.html"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#upload"></use></svg></span><span>Quick Upload</span></a>
+      <a class="primary" href="/dashboard.html"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#dashboard"></use></svg></span><span>Creator Dashboard</span></a>
+    </div>
+  </div>
+  <div class="hero">
+    <div class="eyebrow">Creator Directory</div>
+    <h1>Real creators. Real releases.</h1>
+    <div class="lead">Browse creator pages built from the live Hub catalog. Release history, creator links, and starter labels stay visible without fake bios or made-up follower counts.</div>
+    <div class="heroMeta">
+      <span class="chip soft"><span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#grid"></use></svg></span><span>Live Hub catalog</span></span>
+      <span class="chip soft"><span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#official"></use></svg></span><span>Official Starter labels</span></span>
+      <span class="chip soft"><span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#users"></use></svg></span><span>Creator links</span></span>
+    </div>
+    <div class="filters" style="margin-top:14px;">
+      <input id="creatorSearch" type="text" placeholder="Filter creators by name or email" />
+    </div>
+  </div>
+</header>
+
+<main>
+  <section id="profileSection" class="section" style="display:none;">
+    <div class="hero">
+      <h2 class="heroTitle" id="profileTitle">Creator</h2>
+      <div class="heroSub" id="profileSummary">Loading creator profile...</div>
+      <div class="stats" id="profileStats"></div>
+      <div class="actions" id="profileActions"></div>
+    </div>
+  </section>
+
+  <section class="section" id="creatorsSection">
+    <h2 id="sectionTitle">Creators</h2>
+    <div class="loadingLabel" id="sectionHint">Loading creator catalog...</div>
+    <div id="creatorsGrid" class="grid" style="margin-top:12px;"></div>
+  </section>
+
+  <section class="section" id="releasesSection" style="display:none;">
+    <h2>Public releases</h2>
+    <div class="loadingLabel" id="releasesHint">Loading public releases...</div>
+    <div id="releasesGrid" class="releaseList" style="margin-top:12px;"></div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const API_ORIGIN = (() => {
+    const v = String(new URLSearchParams(location.search).get("api") || "").trim();
+    if (!v) return "";
+    try { return new URL(v, location.href).origin; } catch { return ""; }
+  })();
+  const api = (path) => (API_ORIGIN ? (API_ORIGIN + path) : path);
+  const API_CREATORS = api("/api/public/creators");
+
+  const $search = document.getElementById("creatorSearch");
+  const $profileSection = document.getElementById("profileSection");
+  const $profileTitle = document.getElementById("profileTitle");
+  const $profileSummary = document.getElementById("profileSummary");
+  const $profileStats = document.getElementById("profileStats");
+  const $profileActions = document.getElementById("profileActions");
+  const $creatorsSection = document.getElementById("creatorsSection");
+  const $sectionTitle = document.getElementById("sectionTitle");
+  const $sectionHint = document.getElementById("sectionHint");
+  const $creatorsGrid = document.getElementById("creatorsGrid");
+  const $releasesSection = document.getElementById("releasesSection");
+  const $releasesHint = document.getElementById("releasesHint");
+  const $releasesGrid = document.getElementById("releasesGrid");
+
+  function esc(s){
+    return String(s ?? "").replace(/[&<>"']/g, (m) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
+  }
+
+  function icon(name, className = "ui-ico ui-ico-sm"){
+    return `<span class="${esc(className)}" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#${esc(name)}"></use></svg></span>`;
+  }
+
+  function trimText(value, maxLen){
+    const text = String(value || "").trim();
+    if (!text) return "";
+    if (text.length <= maxLen) return text;
+    return text.slice(0, Math.max(0, maxLen - 1)).trimEnd() + "…";
+  }
+
+  function renderCreatorSkeleton(count = 6){
+    $creatorsGrid.innerHTML = Array.from({ length: count }, () => `
+      <article class="skeletonCard" aria-hidden="true">
+        <div class="skeletonLine short"></div>
+        <div class="skeletonLine title"></div>
+        <div class="skeletonLine medium"></div>
+        <div class="skeletonLine long"></div>
+        <div class="skeletonLine medium"></div>
+      </article>
+    `).join("");
+  }
+
+  function renderReleaseSkeleton(count = 3){
+    $releasesGrid.innerHTML = Array.from({ length: count }, () => `
+      <article class="skeletonCard" aria-hidden="true">
+        <div class="skeletonLine short"></div>
+        <div class="skeletonLine title"></div>
+        <div class="skeletonLine long"></div>
+        <div class="skeletonLine medium"></div>
+      </article>
+    `).join("");
+  }
+
+  function buildDetailHref(item){
+    const no = item.submission_no ?? item.submissionNo ?? null;
+    if (no != null && String(no).trim() !== "") return `/u/${encodeURIComponent(String(no))}`;
+    return `/u/${encodeURIComponent(String(item.id || ""))}`;
+  }
+
+  function creatorQueryFromItem(item){
+    const email = String(item.author_email || item.authorEmail || "").trim();
+    const author = String(item.author_name || item.authorName || "").trim();
+    if (email) return `?email=${encodeURIComponent(email)}`;
+    if (author) return `?author=${encodeURIComponent(author)}`;
+    return "";
+  }
+
+  async function fetchJson(url){
+    const r = await fetch(url, { cache:"no-store" });
+    const t = await r.text();
+    let d = null;
+    try { d = JSON.parse(t); } catch { d = null; }
+    if (!r.ok || !d) throw new Error(`HTTP ${r.status}`);
+    return d;
+  }
+
+  function renderCreatorCards(items){
+    const filter = String($search.value || "").trim().toLowerCase();
+    const list = (items || []).filter((item) => {
+      if (!filter) return true;
+      const name = String(item.author_name || "").toLowerCase();
+      const email = String(item.author_email || "").toLowerCase();
+      return name.includes(filter) || email.includes(filter);
+    });
+
+    if (!list.length) {
+      $creatorsGrid.innerHTML = `<div class="empty">No creators matched the current filter.</div>`;
+      return;
+    }
+
+    $creatorsGrid.innerHTML = list.map((item) => `
+      <a class="card" href="/creators/${creatorQueryFromItem(item)}">
+        <div class="cardEyebrow">${item.is_official_starter ? "Official Starter creator" : "Creator profile"}</div>
+        <h3>${esc(item.author_name || item.author_email || "unknown")}</h3>
+        <p>${esc(trimText(`${Number(item.creations_count || 0) || 0} public release(s), ${Number(item.downloads_total || 0) || 0} download(s), and ${Number(item.likes_total || 0) || 0} like(s) pulled from the live catalog.`, 150))}</p>
+        <div class="mini">
+          <span>${esc(String(item.creations_count || 0))} releases</span>
+          <span>${esc(String(item.downloads_total || 0))} downloads</span>
+          <span>${esc(String(item.likes_total || 0))} likes</span>
+          ${item.is_official_starter ? `<span>Official starter</span>` : ``}
+        </div>
+      </a>
+    `).join("");
+  }
+
+  function renderProfile(data){
+    const profile = data.profile || {};
+    $profileSection.style.display = "block";
+    $releasesSection.style.display = "block";
+    $profileTitle.textContent = profile.author_name || profile.author_email || "Creator";
+    $profileSummary.textContent = `${profile.author_name || profile.author_email || "This creator"} has ${Number(profile.creations_count || 0) || 0} public release(s), ${Number(profile.downloads_total || 0) || 0} total download(s), and ${Number(profile.likes_total || 0) || 0} like(s) across MobCrafter Hub.`;
+    $profileStats.innerHTML = [
+      `<span class="chip">${icon("grid")}<span>${esc(String(profile.creations_count || 0))} releases</span></span>`,
+      `<span class="chip">${icon("download")}<span>${esc(String(profile.downloads_total || 0))} downloads</span></span>`,
+      `<span class="chip">${icon("heart")}<span>${esc(String(profile.likes_total || 0))} likes</span></span>`,
+      profile.is_official_starter ? `<span class="chip">${icon("official")}<span>Official starter</span></span>` : ""
+    ].filter(Boolean).join("");
+
+    const links = Array.isArray(data.links) ? data.links : [];
+    $profileActions.innerHTML = links.length
+      ? links.slice(0, 4).map((link, index) => `<a ${index === 0 ? 'class="primary"' : ""} href="${esc(link.url)}" target="_blank" rel="noopener noreferrer">${icon(link.kind === "support" ? "support" : "external")}<span>${esc(link.kind === "support" ? "Support creator" : "Open external link")}</span></a>`).join("")
+      : `<a class="primary" href="/submit.html">${icon("upload")}<span>Open Quick Upload</span></a>`;
+
+    const items = Array.isArray(data.items) ? data.items : [];
+    $releasesHint.textContent = items.length ? `${items.length} public release(s)` : "No public releases yet.";
+    $releasesGrid.innerHTML = items.length
+      ? items.map((item) => `
+          <div class="releaseCard">
+            <a href="${esc(buildDetailHref(item))}">
+              <div class="title">${esc(item.title || item.unit_id || "Untitled")}</div>
+              <div class="desc">${esc(trimText(item.description || `${item.content_type || "Creation"} • ${item.file_availability || "JSON"}`, 140))}</div>
+              <div class="meta">${esc(item.content_type || "")}${item.file_availability ? ` • ${esc(item.file_availability)}` : ``}${item.access_type ? ` • ${esc(item.access_type)}` : ``}</div>
+            </a>
+          </div>
+        `).join("")
+      : `<div class="empty">This creator does not have any public releases yet.</div>`;
+  }
+
+  async function load(){
+    const sp = new URLSearchParams(location.search);
+    const email = String(sp.get("email") || "").trim();
+    const author = String(sp.get("author") || "").trim();
+
+    renderCreatorSkeleton(email || author ? 4 : 6);
+
+    if (email || author) {
+      $sectionTitle.textContent = "Other creators";
+      $sectionHint.textContent = "Loading creator profile...";
+      renderReleaseSkeleton(3);
+      try {
+        const url = new URL(API_CREATORS, location.href);
+        if (email) url.searchParams.set("email", email);
+        if (author) url.searchParams.set("author", author);
+        const data = await fetchJson(url.toString());
+        renderProfile(data);
+        $sectionHint.textContent = "Browse other creators";
+        const listData = await fetchJson(`${API_CREATORS}?limit=48`);
+        renderCreatorCards(Array.isArray(listData.items) ? listData.items : []);
+      } catch (e) {
+        $profileSection.style.display = "block";
+        $profileTitle.textContent = "Creator not found";
+        $profileSummary.textContent = "No public creator data was found for this query.";
+        $profileStats.innerHTML = "";
+        $profileActions.innerHTML = `<a class="primary" href="/submit.html">${icon("upload")}<span>Open Quick Upload</span></a>`;
+        $sectionHint.textContent = "Creator lookup failed.";
+        $releasesGrid.innerHTML = `<div class="empty">Creator release data is unavailable right now.</div>`;
+      }
+      return;
+    }
+
+    try {
+      const data = await fetchJson(`${API_CREATORS}?limit=48`);
+      const items = Array.isArray(data.items) ? data.items : [];
+      $sectionHint.textContent = items.length ? `${items.length} creator(s)` : "No public creators yet.";
+      renderCreatorCards(items);
+    } catch (e) {
+      $sectionHint.textContent = "Failed to load creators.";
+      $creatorsGrid.innerHTML = `<div class="empty">Creator data is unavailable right now.</div>`;
+    }
+  }
+
+  let searchTimer = null;
+  $search.addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(async () => {
+      renderCreatorSkeleton(4);
+      try {
+        const data = await fetchJson(`${API_CREATORS}?limit=48`);
+        renderCreatorCards(Array.isArray(data.items) ? data.items : []);
+      } catch {
+        $creatorsGrid.innerHTML = `<div class="empty">Creator data is unavailable right now.</div>`;
+      }
+    }, 120);
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>

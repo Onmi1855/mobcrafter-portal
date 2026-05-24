@@ -1,2 +1,14 @@
 reports/
 .DS_Store
+
+# Python helpers (kept under ../tools/, not deployed)
+__pycache__/
+*.pyc
+*.pyo
+
+# Editor / OS
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+

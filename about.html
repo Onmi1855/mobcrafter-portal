@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>About MobCrafter Hub</title>
+  <meta name="description" content="What MobCrafter Hub is, what it publishes, and how it fits the MobCrafter mod workflow." />
+  <meta property="og:image" content="https://mobcrafter.net/assets/top_banner_new.png" />
+  <link rel="stylesheet" href="/assets/site-pages.v1.css" />
+</head>
+<body>
+  <header class="page-shell">
+    <a class="homeLink" href="/">Back to Hub</a>
+    <section class="hero">
+      <p class="eyebrow">About</p>
+      <h1>MobCrafter Hub</h1>
+      <p class="lead">MobCrafter Hub is the public release catalog for MobCrafter units, schematics, unit packs, creator assets, and linked creator-supported downloads. It keeps the existing static site plus Cloudflare Worker, D1, R2, and Access setup intact while exposing a cleaner public catalog.</p>
+      <div class="heroMedia"><img src="/assets/top_banner_new.png" alt="MobCrafter Hub banner" /></div>
+      <div class="heroActions">
+        <a class="primary" href="/">Browse Hub</a>
+        <a href="/submit.html">Quick Upload</a>
+        <a href="/creators/">Creators</a>
+      </div>
+    </section>
+  </header>
+  <main class="page-shell">
+    <article class="contentCard">
+      <h2>What lives here</h2>
+      <p>The Hub can publish classic MobCrafter JSON releases, schematic-only downloads, mixed schematic plus unit sets, ZIP bundles, worlds, and external release links. Legacy JSON support remains first-class so existing content and older workflows keep working.</p>
+
+      <h2>What the site does not invent</h2>
+      <p>Creator pages and release cards are built from real submission data. The site shows titles, descriptions, tags, creator names, download counts, support links, and related metadata that creators or moderators actually saved.</p>
+
+      <h2>How the stack stays the same</h2>
+      <p>The public pages are still static HTML. The same-origin Worker continues to handle metadata, uploads, moderation, and public APIs. D1 stores release metadata, comments, and likes. R2 stores uploaded files and screenshots. Cloudflare Access remains the login gate for authenticated flows.</p>
+
+      <div class="note">MobCrafter Hub is intentionally additive: existing public pages, existing APIs, and existing release data remain valid while new Hub metadata and creator surfaces sit on top.</div>
+    </article>
+  </main>
+  <footer class="page-shell footerLinks">
+    <a href="/mobcrafter.html">MobCrafter</a>
+    <a href="/how-to-use.html">How to Use</a>
+    <a href="/upload-guide.html">Upload Guide</a>
+    <a href="/guidelines.html">Guidelines</a>
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+    <a href="/contact.html">Contact</a>
+  </footer>
+</body>
+</html>

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="robots" content="noindex" />
-  <title>MobCrafter - Unit Submit</title>
+  <title>MobCrafter Hub - Quick Upload</title>
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 24px; background:#f6f8fb; color:#0f172a; }
     .card { max-width: 880px; background:#fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px; box-shadow: 0 10px 25px rgba(15,23,42,.08); }
@@ -16,7 +16,7 @@
     .row { display:flex; gap: 12px; }
     .row > div { flex: 1; }
     .actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    button { margin-top: 14px; padding: 10px 14px; border: 0; border-radius: 12px; cursor:pointer; }
+    button { margin-top: 14px; padding: 10px 14px; border: 0; border-radius: 12px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
     button.primary { background:#111; color:#fff; }
     button.secondary { background:#e5e7eb; }
     button:disabled { opacity:.5; cursor:not-allowed; }
@@ -25,14 +25,19 @@
     .mini { color:#666; font-size: 12px; margin-top: 6px; }
     .divider { height:1px; background:#e5e7eb; margin:14px 0; }
     .toplinks{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
-    .toplinks a{ color:#2563eb; text-decoration:none; border:1px solid rgba(37,99,235,.25); padding:6px 10px; border-radius:999px; background:#fff; }
+    .toplinks a{ color:#2563eb; text-decoration:none; border:1px solid rgba(37,99,235,.25); padding:6px 10px; border-radius:999px; background:#fff; display:inline-flex; align-items:center; gap:6px; }
     .pill{ display:inline-flex; align-items:center; gap:8px; font-size:12px; color:#64748b; }
     .pill code{ background:rgba(148,163,184,.15); border:1px solid rgba(148,163,184,.25); padding:2px 6px; border-radius:999px; color:#0f172a; }
+    .hubBox{ margin-top:14px; padding:14px; border:1px solid rgba(37,99,235,.16); border-radius:14px; background:linear-gradient(145deg, rgba(239,246,255,.96), rgba(240,253,244,.96)); }
+    .hubBox h2{ margin:0 0 8px; font-size:16px; }
+    .hubGrid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; }
+    .callout{ margin-top:8px; color:#334155; font-size:13px; line-height:1.7; }
   
     .canvaswrap{ width:100%; max-width:920px; margin:10px 0 0; }
     .canvaswrap canvas{ width:100%; height:auto; display:block; border-radius:12px; }
 </style>
   <link rel="stylesheet" href="/assets/ad-rail.v1.css?v=20260111d" />
+  <link rel="stylesheet" href="/assets/ui-icons.v1.css?v=20260524a" />
   <script src="/assets/adsterra-banner.v1.js?v=20260111h" defer></script>
 </head>
 <body>
@@ -50,16 +55,110 @@
 
 <div class="card">
   <div class="toplinks">
-    <a href="/">← Back to Home</a>
-    <span class="pill">Login: <code id="authState">checking...</code> <span id="authEmailWrap" style="display:none;">Email: <code id="authEmail"></code></span></span>
+    <a href="/"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#home"></use></svg></span><span>Back to Home</span></a>
+    <span class="pill"><span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#login"></use></svg></span><span>Account</span> <span id="authState"></span> <span id="authEmailWrap" style="display:none;">Signed in as <span id="authEmail"></span></span></span>
   </div>
 
-  <h1>Submit a Unit</h1>
+  <h1>MobCrafter Hub Quick Upload</h1>
   <div class="hint">
-    You can submit after logging in via Cloudflare Access. Once you select a JSON file, we validate the structure and show a simple 3D preview.
+    Share builds, units, packs, or external releases without replacing the legacy JSON workflow. Schematics are welcome, and you can add a MobCrafter JSON later when you want 3D preview.
   </div>
 
-  <label>JSON file</label>
+  <div class="hubBox">
+    <h2>Hub metadata</h2>
+    <div class="hubGrid">
+      <div>
+        <label>Content type</label>
+        <select id="contentType">
+          <option value="mobcrafter_unit_json">MobCrafter unit JSON</option>
+          <option value="schematic">Schematic</option>
+          <option value="schematic_unit_set">Schematic + unit set</option>
+          <option value="unit_pack">Unit pack / ZIP</option>
+          <option value="world_map">World / map</option>
+          <option value="creator_asset">Creator asset</option>
+          <option value="guide_workflow">Guide / workflow</option>
+          <option value="external_release">External release</option>
+        </select>
+      </div>
+      <div>
+        <label>File availability</label>
+        <select id="fileAvailability">
+          <option value="json">JSON</option>
+          <option value="schem">SCHEM</option>
+          <option value="both">JSON + SCHEM</option>
+          <option value="zip">ZIP / pack</option>
+          <option value="external">External only</option>
+        </select>
+      </div>
+      <div>
+        <label>Access type</label>
+        <select id="accessType">
+          <option value="free">Free</option>
+          <option value="creator_supported">Creator supported</option>
+          <option value="patreon_linked">Patreon-linked</option>
+          <option value="external">External access</option>
+          <option value="free_sample_supported">Free sample + support</option>
+        </select>
+      </div>
+      <div>
+        <label>Creation method</label>
+        <select id="creationMethod">
+          <option value="hand_built">Hand built</option>
+          <option value="ai_assisted">AI assisted</option>
+          <option value="imported">Imported</option>
+          <option value="remixed">Remixed</option>
+          <option value="starter_variant">Official starter variant</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Creation method note (optional)</label>
+        <input id="creationMethodSource" type="text" placeholder="e.g. remixed from starter dragon frame" />
+      </div>
+      <div>
+        <label>Publish now</label>
+        <select id="isPublished">
+          <option value="1">Public</option>
+          <option value="0">Private draft</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Extra file (optional)</label>
+        <input id="extraFile" type="file" />
+      </div>
+      <div>
+        <label>Extra file kind</label>
+        <select id="extraFileKind">
+          <option value="schem">SCHEM</option>
+          <option value="zip">ZIP</option>
+          <option value="world">World / map file</option>
+          <option value="asset">Creator asset / other</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>External release URL (optional)</label>
+        <input id="externalUrl" type="text" placeholder="https://..." />
+      </div>
+      <div>
+        <label>Support URL (optional)</label>
+        <input id="supportUrl" type="text" placeholder="https://patreon.com/..." />
+      </div>
+    </div>
+
+    <div class="callout">
+      Use at least one source: JSON, extra file, or external release URL. Existing JSON submissions and edit mode continue to work the same way.
+    </div>
+  </div>
+
+  <label>JSON file (optional for Hub, required for 3D preview)</label>
   <input id="file" type="file" accept=".json,application/json" />
 
   <div class="row">
@@ -91,8 +190,8 @@
   </div>
 
   <div class="actions">
-    <button id="btn" class="primary" disabled>Submit</button>
-    <a id="loginLink" href="/api/login?next=/submit.html" style="display:none; padding:10px 14px; border-radius:12px; background:#2563eb; color:#fff; text-decoration:none;">Log in to submit</a>
+    <button id="btn" class="primary" disabled><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#upload"></use></svg></span><span>Submit</span></button>
+    <a id="loginLink" href="/api/login?next=/submit.html" style="display:none; align-items:center; gap:6px; padding:10px 14px; border-radius:12px; background:#2563eb; color:#fff; text-decoration:none;"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#login"></use></svg></span><span>Log in to submit</span></a>
     <span id="needLogin" class="mini">* Submission requires login</span>
   </div>
 
@@ -152,6 +251,7 @@
   </aside>
 </div>
 
+<script src="/assets/ui-icons.v1.js?v=20260524a"></script>
 <script>
 (() => {
   // Optional: ?api=http://127.0.0.1:8788 to point API calls to a different origin (local dev)
@@ -184,6 +284,16 @@
   const $prev  = document.getElementById("preview");
   const $res   = document.getElementById("result");
   const $yawOffset = document.getElementById("yawOffset");
+  const $contentType = document.getElementById("contentType");
+  const $fileAvailability = document.getElementById("fileAvailability");
+  const $accessType = document.getElementById("accessType");
+  const $creationMethod = document.getElementById("creationMethod");
+  const $creationMethodSource = document.getElementById("creationMethodSource");
+  const $isPublished = document.getElementById("isPublished");
+  const $extraFile = document.getElementById("extraFile");
+  const $extraFileKind = document.getElementById("extraFileKind");
+  const $externalUrl = document.getElementById("externalUrl");
+  const $supportUrl = document.getElementById("supportUrl");
   const canvas = document.getElementById("canvas");
 
   const MAX_JSON_FILE_BYTES = 10 * 1024 * 1024; // 10MB
@@ -192,6 +302,105 @@
   let parsedBlocks = null; // normalized blocks array: [{dx,dy,dz,blockId}, ...]
   let jsonDirty = false;
   let lastSubmissionId = "";
+
+  function hasExtraFile(){
+    return Boolean($extraFile && $extraFile.files && $extraFile.files[0]);
+  }
+
+  function hasExternalRelease(){
+    return Boolean(String($externalUrl.value || "").trim());
+  }
+
+  function hasSubmissionSource(){
+    if (isEditMode) return true;
+    return Boolean(parsedJson || hasExtraFile() || hasExternalRelease());
+  }
+
+  function renderCanvasHint(message){
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#f8fafc";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#64748b";
+    ctx.font = "20px sans-serif";
+    ctx.fillText(String(message || "No JSON preview available"), 24, 44);
+  }
+
+  function syncHubDefaultsFromSources(){
+    const hasJson = Boolean(parsedJson);
+    const extra = $extraFileKind.value;
+    const external = hasExternalRelease();
+
+    if (hasJson) {
+      if ($contentType.value === "schematic" || $contentType.value === "external_release") {
+        $contentType.value = "mobcrafter_unit_json";
+      }
+      if ($fileAvailability.value === "schem") $fileAvailability.value = "both";
+      else if ($fileAvailability.value === "external") $fileAvailability.value = "json";
+    }
+
+    if (!hasJson && hasExtraFile()) {
+      if (extra === "schem") {
+        if ($contentType.value === "mobcrafter_unit_json") $contentType.value = "schematic";
+        if ($fileAvailability.value === "json") $fileAvailability.value = "schem";
+      } else if (extra === "zip" || extra === "world") {
+        if ($contentType.value === "mobcrafter_unit_json") $contentType.value = "unit_pack";
+        if ($fileAvailability.value === "json") $fileAvailability.value = "zip";
+      }
+    }
+
+    if (external && !hasJson && !hasExtraFile()) {
+      $contentType.value = "external_release";
+      $fileAvailability.value = "external";
+    }
+  }
+
+  function buildPreviewPayload(){
+    const preview = {
+      mode: isEditMode ? "edit" : "create",
+      title: $title.value.trim(),
+      content_type: $contentType.value,
+      file_availability: $fileAvailability.value,
+      access_type: $accessType.value,
+      creation_method: $creationMethod.value,
+      is_published: $isPublished.value === "1",
+      extra_file: hasExtraFile() ? ($extraFile.files[0].name || "file") : null,
+      external_url: String($externalUrl.value || "").trim() || null,
+      support_url: String($supportUrl.value || "").trim() || null,
+    };
+
+    if (parsedJson && parsedBlocks) {
+      const info = analyzeBlocks(parsedBlocks);
+      preview.blocks = parsedBlocks.length;
+      preview.size = `${info.sizeX} x ${info.sizeY} x ${info.sizeZ}`;
+      preview.frontYaw = parsedJson.frontYaw ?? null;
+      preview.yaw_offset_quarter = Number($yawOffset.value || "0");
+    }
+    return preview;
+  }
+
+  async function uploadSubmissionFile({ submissionId, file, fileKind }){
+    if (!submissionId || !file) return null;
+    const fd = new FormData();
+    fd.append("file", file, file.name || "upload.bin");
+    fd.append("file_kind", String(fileKind || "asset"));
+    fd.append("label", file.name || String(fileKind || "file"));
+    fd.append("is_primary", "1");
+
+    const r = await fetch(api(`/api/submissions/${encodeURIComponent(submissionId)}/files`), {
+      method: "POST",
+      body: fd,
+      credentials: "include"
+    });
+    const t = await r.text().catch(()=>"");
+    let d = null;
+    try { d = JSON.parse(t); } catch { d = { raw:t }; }
+    if (!r.ok) {
+      const msg = (d && (d.error || d.message)) ? String(d.error || d.message) : ("HTTP " + r.status);
+      throw new Error(msg);
+    }
+    return d;
+  }
 
   async function uploadScreenBlob({ submissionId, blob, filename, thumbMode, setThumb }){
     if (!submissionId) throw new Error("submission_id is not available");
@@ -240,6 +449,15 @@
   // This keeps compatibility with both /submit and /submit.html and preserves query params.
   $loginLink.href = "/api/login?next=" + encodeURIComponent(location.pathname + location.search);
 
+  function setIconText(node, iconName, text){
+    if(!node) return;
+    if(window.MobUi && typeof window.MobUi.set === "function"){
+      window.MobUi.set(node, iconName, text, { wrapperClass: "ui-label", iconClass: "ui-ico" });
+      return;
+    }
+    node.textContent = text;
+  }
+
   // --- Edit mode (B案) ---
   const params = new URLSearchParams(location.search);
   const editId = params.get("edit"); // submission UUID
@@ -247,14 +465,14 @@
 
 function setEditUi(){
   if(!isEditMode) return;
-  document.title = "MobCrafter - Unit Edit";
+  document.title = "MobCrafter Hub - Edit Release";
   const h = document.querySelector("h1");
-  if(h) h.textContent = "Edit Unit";
+  if(h) h.textContent = "Edit Hub Release";
 
   // ❌ const btn = document.getElementById("btnSubmit");
   // ✅ こっち
   const btn = document.getElementById("btn");
-  if(btn) btn.textContent = "Update";
+  if(btn) setIconText(btn, "edit", "Update");
 }
 
 
@@ -272,51 +490,55 @@ function setEditUi(){
         $desc.value  = item.description || "";
         $tags.value  = Array.isArray(item.tags) ? item.tags.join(", ") : (item.tags || "");
         $mv.value    = item.mod_version || "";
+        $contentType.value = item.content_type || "mobcrafter_unit_json";
+        $fileAvailability.value = item.file_availability || "json";
+        $accessType.value = item.access_type || "free";
+        $creationMethod.value = item.creation_method || "hand_built";
+        $creationMethodSource.value = item.creation_method_source || "";
+        $externalUrl.value = item.external_url || "";
+        $supportUrl.value = item.support_url || "";
+        $isPublished.value = String(Number(item.is_published ?? 1) ? 1 : 0);
         // yaw_offset_quarter の逆算は JSON ロード後に実施 (frontYaw が必要なため)
       }
 
       // json (no DL count)
-      const jsonResp = await fetch(api(`/api/submissions/${encodeURIComponent(editId)}/json`), { cache:"no-store", credentials:"include" });
-      if(!jsonResp.ok) throw new Error("json HTTP " + jsonResp.status);
-      const raw = await jsonResp.text();
-      let parsed = null;
-      try{ parsed = JSON.parse(raw); }catch{ parsed=null; }
-      const norm = normalizeMobCrafterJson(parsed);
-      if(!norm.ok){
-        setResult("Invalid JSON for editing: " + norm.error);
-        return;
-      }
-
-      parsedJson = parsed;
-      parsedBlocks = norm.blocks;
+      parsedJson = null;
+      parsedBlocks = null;
       jsonDirty = false;
+      renderCanvasHint("No JSON preview loaded yet");
 
-      // DB に保存されている drawIso quarter から submit.html の UI offset を逆算して設定
-      if (item && item.yaw_offset_quarter != null) {
-        const drawIsoQ = Number(item.yaw_offset_quarter);
-        const frontYaw = (parsedJson.frontYaw != null) ? parsedJson.frontYaw : null;
-        let uiOffset;
-        if (frontYaw != null) {
-          let deg = Number(frontYaw) % 360;
-          if (deg < 0) deg += 360;
-          const fq = Math.round(deg / 90) % 4;
-          const finalQ = (4 - drawIsoQ) % 4;
-          uiOffset = (finalQ - fq + 4) % 4;
-        } else {
-          uiOffset = (drawIsoQ - 3 + 4) % 4;
+      const jsonResp = await fetch(api(`/api/submissions/${encodeURIComponent(editId)}/json`), { cache:"no-store", credentials:"include" });
+      if(jsonResp.ok){
+        const raw = await jsonResp.text();
+        let parsed = null;
+        try{ parsed = JSON.parse(raw); }catch{ parsed=null; }
+        const norm = normalizeMobCrafterJson(parsed);
+        if(norm.ok){
+          parsedJson = parsed;
+          parsedBlocks = norm.blocks;
+
+          if (item && item.yaw_offset_quarter != null) {
+            const drawIsoQ = Number(item.yaw_offset_quarter);
+            const frontYaw = (parsedJson.frontYaw != null) ? parsedJson.frontYaw : null;
+            let uiOffset;
+            if (frontYaw != null) {
+              let deg = Number(frontYaw) % 360;
+              if (deg < 0) deg += 360;
+              const fq = Math.round(deg / 90) % 4;
+              const finalQ = (4 - drawIsoQ) % 4;
+              uiOffset = (finalQ - fq + 4) % 4;
+            } else {
+              uiOffset = (drawIsoQ - 3 + 4) % 4;
+            }
+            $yawOffset.value = String(uiOffset);
+          }
+
+          rerender();
         }
-        $yawOffset.value = String(uiOffset);
       }
 
-      const info = analyzeBlocks(parsedBlocks);
-      $prev.textContent = JSON.stringify({
-        mode: "edit",
-        blocks: norm.blockCount,
-        size: `${info.sizeX} x ${info.sizeY} x ${info.sizeZ}`,
-        frontYaw: (parsedJson.frontYaw ?? null),
-        yaw_offset_quarter: Number($yawOffset.value||"0")
-      }, null, 2);
-      rerender();
+      syncHubDefaultsFromSources();
+      setPreview(buildPreviewPayload());
       updateButtonState();
       setResult({ ok:true, mode:"edit", id: editId });
     }catch(e){
@@ -333,7 +555,7 @@ function setEditUi(){
 
   async function loadWhoami(){
     try{
-      authState.textContent = "checking...";
+      authState.textContent = "";
       authEmailWrap.style.display = "none";
       isLoggedIn = false;
 
@@ -346,27 +568,27 @@ function setEditUi(){
 
       // When Cloudflare Access blocks the request, we may get 401/403 (often non-JSON).
       if (r.status === 401 || r.status === 403) {
-        authState.textContent = "logged out";
+        authState.textContent = "signed out";
         authEmailWrap.style.display = "none";
         isLoggedIn = false;
         loggedInEmail = "";
-        $loginLink.style.display = "inline-block";
+        $loginLink.style.display = "inline-flex";
         $needLogin.textContent = `* Log in to submit (HTTP ${r.status})`;
         return;
       }
 
       const email = data ? normEmail(data.email) : "";
       if(!email){
-        authState.textContent = "logged out";
+        authState.textContent = "signed out";
         authEmailWrap.style.display = "none";
         isLoggedIn = false;
         loggedInEmail = ""; // ★追加
-        $loginLink.style.display = "inline-block";
+        $loginLink.style.display = "inline-flex";
         $needLogin.textContent = "* Log in to submit";
         return;
       }
 
-      authState.textContent = "logged in";
+      authState.textContent = "signed in";
       authEmailWrap.style.display = "inline";
       authEmail.textContent = email;
       loggedInEmail = email; // ★追加
@@ -374,11 +596,12 @@ function setEditUi(){
       $loginLink.style.display = "none";
       $needLogin.textContent = "Logged in";
     }catch{
-      authState.textContent = "unknown";
+      authState.textContent = "signed out";
+      authEmailWrap.style.display = "none";
       isLoggedIn = false;
       loggedInEmail = ""; // ★追加
-      $loginLink.style.display = "inline-block";
-      $needLogin.textContent = "Could not check login status (whoami)";
+      $loginLink.style.display = "inline-flex";
+      $needLogin.textContent = "* Log in to submit";
     }
   }
 
@@ -404,8 +627,7 @@ function setEditUi(){
     $res.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
   }
   function updateButtonState() {
-    // ★ログイン必須＋json＋title
-    $btn.disabled = !(isLoggedIn && parsedJson && ($title.value || "").trim());
+    $btn.disabled = !(isLoggedIn && ($title.value || "").trim() && hasSubmissionSource());
   }
 
   function normalizeMobCrafterJson(obj){
@@ -780,6 +1002,9 @@ function setEditUi(){
     renderThumbToCanvas(canvas, parsedJson, parsedBlocks, extra);
   }
 
+  renderCanvasHint("No JSON preview available");
+  setPreview(buildPreviewPayload());
+
   // 初回：ログイン確認
   refreshWhoami().finally(() => {
     setEditUi();
@@ -797,21 +1022,22 @@ function setEditUi(){
     parsedJson = null;
     parsedBlocks = null;
     setResult("Not sent");
-    setPreview("{}");
+    renderCanvasHint("No JSON preview available");
+    setPreview(buildPreviewPayload());
     const f = $file.files && $file.files[0];
-    if (!f) return;
-    if (f.size > MAX_JSON_FILE_BYTES) { setPreview("File is too large (over 10MB)"); return; }
+    if (!f) { syncHubDefaultsFromSources(); updateButtonState(); return; }
+    if (f.size > MAX_JSON_FILE_BYTES) { setPreview("File is too large (over 10MB)"); updateButtonState(); return; }
     try {
       const obj = JSON.parse(await f.text());
       const norm = normalizeMobCrafterJson(obj);
-      if (!norm.ok) { setPreview(norm.error); return; }
+      if (!norm.ok) { setPreview(norm.error); updateButtonState(); return; }
       parsedJson = obj;
       parsedBlocks = norm.blocks;
       // ✅ 追加：編集モードでファイルを選び直したら「JSON更新が必要」にする
       jsonDirty = isEditMode;
       if (!$title.value.trim()) $title.value = f.name.replace(/\.json$/i,"");
-      const info = analyzeBlocks(parsedBlocks);
-      setPreview({ file:{name:f.name,size:f.size}, blocks: norm.blockCount, size:`${info.sizeX} x ${info.sizeY} x ${info.sizeZ}`, frontYaw:(obj.frontYaw ?? null), yaw_offset_quarter:Number($yawOffset.value||"0") });
+      syncHubDefaultsFromSources();
+      setPreview({ ...buildPreviewPayload(), json_file:{name:f.name,size:f.size} });
       loadPalette().finally(()=>rerender());
     } catch (e) {
       setPreview("Failed to parse JSON: " + (e?.message || String(e)));
@@ -819,8 +1045,37 @@ function setEditUi(){
     updateButtonState();
   });
 
-  $yawOffset.addEventListener("change", () => { rerender(); updateButtonState(); });
-  [$title,$desc,$tags,$mv].forEach(el => el.addEventListener("input", updateButtonState));
+  $yawOffset.addEventListener("change", () => {
+    if (parsedJson) rerender();
+    setPreview(buildPreviewPayload());
+    updateButtonState();
+  });
+  [$title,$desc,$tags,$mv,$contentType,$fileAvailability,$accessType,$creationMethod,$creationMethodSource,$isPublished,$externalUrl,$supportUrl].forEach(el => {
+    el.addEventListener("input", () => {
+      syncHubDefaultsFromSources();
+      setPreview(buildPreviewPayload());
+      updateButtonState();
+    });
+    el.addEventListener("change", () => {
+      syncHubDefaultsFromSources();
+      setPreview(buildPreviewPayload());
+      updateButtonState();
+    });
+  });
+  if ($extraFile) {
+    $extraFile.addEventListener("change", () => {
+      syncHubDefaultsFromSources();
+      setPreview(buildPreviewPayload());
+      updateButtonState();
+    });
+  }
+  if ($extraFileKind) {
+    $extraFileKind.addEventListener("change", () => {
+      syncHubDefaultsFromSources();
+      setPreview(buildPreviewPayload());
+      updateButtonState();
+    });
+  }
   // === Screenshot local preview ===
 const $screenFile = document.getElementById("screenFile");
 const $screenPreview = document.getElementById("screenPreview");
@@ -840,11 +1095,16 @@ if ($screenFile && $screenPreview) {
 
 
   $btn.addEventListener("click", async () => {
-    if (!parsedJson) return;
+    syncHubDefaultsFromSources();
+    if (!hasSubmissionSource()) {
+      setResult({ ok:false, error:"missing_submission_source", message:"Provide a JSON file, an extra file, or an external release URL." });
+      updateButtonState();
+      return;
+    }
 
     // 未ログインならログイン導線を出して終了
     if (!isLoggedIn) {
-      $loginLink.style.display = "inline-block";
+      $loginLink.style.display = "inline-flex";
       setResult({ ok:false, error:"login_required" });
       updateButtonState();
       return;
@@ -858,10 +1118,19 @@ if ($screenFile && $screenPreview) {
       description: $desc.value.trim(),
       tags: ($tags.value||"").split(",").map(s=>s.trim()).filter(Boolean),
       mod_version: $mv.value.trim(),
-      yaw_offset_quarter: resolveDrawIsoYawQuarter(parsedJson && parsedJson.frontYaw, Number($yawOffset.value || "0")),
+      yaw_offset_quarter: parsedJson ? resolveDrawIsoYawQuarter(parsedJson && parsedJson.frontYaw, Number($yawOffset.value || "0")) : undefined,
+      content_type: $contentType.value,
+      file_availability: $fileAvailability.value,
+      access_type: $accessType.value,
+      creation_method: $creationMethod.value,
+      creation_method_source: $creationMethodSource.value.trim(),
+      is_published: $isPublished.value === "1",
+      external_url: $externalUrl.value.trim(),
+      support_url: $supportUrl.value.trim(),
     };
 
     let payload = null;
+    const extraFile = hasExtraFile() ? $extraFile.files[0] : null;
 
     if(!isEditMode){
       payload = {
@@ -870,12 +1139,16 @@ if ($screenFile && $screenPreview) {
         // ★追加：サーバ側で author を確実に保存できるように送る
         author_email: email,
         author_name: authorName,
-
-        json: parsedJson
       };
+      if (parsedJson) payload.json = parsedJson;
     }else{
       payload = { ...commonMeta };
     }
+
+    if (!parsedJson) delete payload.yaw_offset_quarter;
+    if (!payload.creation_method_source) delete payload.creation_method_source;
+    if (!payload.external_url) delete payload.external_url;
+    if (!payload.support_url) delete payload.support_url;
 
 
     // ownerUuid は必ず消す（念押し）
@@ -904,7 +1177,24 @@ const resp = await fetch(
       let data; try { data = JSON.parse(text); } catch { data = { raw: text }; }
 
       if (resp.status === 401 || resp.status === 403) {
-        $loginLink.style.display = "inline-block";
+        $loginLink.style.display = "inline-flex";
+      }
+
+      const submissionId =
+        (data && (data.id || data.submission_id || data.submissionId)) ||
+        (isEditMode ? editId : "");
+
+      if (resp.ok && submissionId && extraFile) {
+        try {
+          const uploadData = await uploadSubmissionFile({
+            submissionId,
+            file: extraFile,
+            fileKind: $extraFileKind.value,
+          });
+          data = { ...data, uploaded_file: uploadData };
+        } catch (e) {
+          data = { ...data, uploaded_file_error: (e?.message || String(e)) };
+        }
       }
 
             // In edit mode, if user chose a new JSON file, update JSON separately
@@ -941,9 +1231,7 @@ if ($after && resp.ok) {
 
   lastSubmissionId = submissionId; // ★スクショ用は submissionId
 
-  const unitUrl = isEditMode
-  ? ("/unit?id=" + encodeURIComponent(editId))  // ✅ 編集は editId で戻す
-  : (unitId ? ("/unit?id=" + encodeURIComponent(unitId)) : "");
+  const unitUrl = submissionId ? ("/u/" + encodeURIComponent(submissionId)) : (unitId ? ("/unit?id=" + encodeURIComponent(unitId)) : "");
   const backUrl = "/";
 
   $after.style.display = "block";
@@ -958,7 +1246,7 @@ if ($after && resp.ok) {
 
   // ★ New submissions: automatically upload a static 3D thumbnail (standard)
   // Do not auto-run in edit mode to avoid overriding existing screenshot thumbs.
-  if (!isEditMode && submissionId) {
+  if (!isEditMode && submissionId && parsedJson && parsedBlocks) {
     try {
       if (typeof $genResult !== "undefined" && $genResult) $genResult.textContent = "Uploading static 3D thumbnail...";
       const blob = await makeStatic3DThumbBlob();

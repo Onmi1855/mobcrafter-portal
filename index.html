@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MobCrafter Portal</title>
-  <meta name="description" content="Minecraft Unit Share Portal for MobCrafter MOD!" />
+  <title>MobCrafter Hub</title>
+  <meta name="description" content="Create and share MobCrafter units, schematics, packs, and creator-supported Minecraft releases." />
   <!-- Ads (default OFF): enable via /assets/ads-config.v1.js after approval -->
   <script src="/assets/ads-config.v1.js" defer></script>
   <script src="/assets/ads.v1.js" defer></script>
   <script src="/assets/adsterra-banner.v1.js?v=20260111h" defer></script>
+  <link rel="stylesheet" href="/assets/ui-icons.v1.css?v=20260524a" />
   <style>
     :root{
       --bg:#f6f8fb;
@@ -27,6 +28,63 @@
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
       color:var(--text);
       background:var(--bg);
+    }
+    .mc-nav{
+      max-width:1060px;
+      margin:0 auto 14px;
+      padding:0 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+    .mc-brand{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      text-decoration:none;
+      color:inherit;
+    }
+    .mc-brand-mark{
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:#166534;
+    }
+    .mc-brand-name{
+      font-size:28px;
+      font-weight:900;
+      letter-spacing:-.03em;
+    }
+    .mc-nav-links{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      align-items:center;
+    }
+    .mc-nav-links a{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      min-height:36px;
+      padding:8px 12px;
+      border-radius:999px;
+      text-decoration:none;
+      color:#0f172a;
+      border:1px solid rgba(148,163,184,.28);
+      background:rgba(255,255,255,.78);
+      backdrop-filter: blur(10px);
+      font-size:13px;
+      font-weight:700;
+    }
+    .mc-nav-links a.primary{
+      background:#0f172a;
+      color:#fff;
+      border-color:#0f172a;
     }
 
     /* ===== Submit call-to-action banner ===== */
@@ -105,12 +163,108 @@
       padding: 0 16px;
       color: var(--text);
     }
-    .mc-hero-copy .lead{
-      margin: 8px 0 0;
-      font-size: 16px;
+    .mc-hero-kicker{
+      margin: 0 0 8px;
+      font-size: 13px;
       font-weight: 800;
-      letter-spacing: .2px;
-      line-height: 1.25;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color:#166534;
+    }
+    .mc-hero-copy .lead{
+      margin: 0;
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: .1px;
+      line-height: 1.35;
+    }
+    .mc-hero-copy .sublead{
+      margin: 10px auto 0;
+      max-width: 760px;
+    .badge.kind{ background: rgba(220, 252, 231, .95); border-color: rgba(22, 163, 74, .20); }
+    .badge.access{ background: rgba(254, 243, 199, .95); border-color: rgba(245, 158, 11, .25); }
+    .badge.method{ background: rgba(224, 231, 255, .95); border-color: rgba(99, 102, 241, .22); }
+    .badge.official{ background: rgba(209, 250, 229, .98); border-color: rgba(5, 150, 105, .28); }
+    .badge.playable{ background: rgba(219, 234, 254, .96); border-color: rgba(59, 130, 246, .24); }
+      font-size: 14px;
+      line-height: 1.8;
+      color:#334155;
+    .card-summary{
+      margin-top:8px;
+      color:#334155;
+      font-size:13px;
+      line-height:1.65;
+      min-height:42px;
+    }
+    .card-badge-row{
+      margin-top:10px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+    .card-actions{
+      margin-top:12px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .card-open,
+    .btn-edit-inline{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:36px;
+      padding:8px 12px;
+      border-radius:999px;
+      text-decoration:none;
+      font-size:13px;
+      font-weight:700;
+      border:1px solid rgba(15,23,42,.08);
+    }
+    .card-open{
+      background:#0f172a;
+      color:#fff;
+      border-color:#0f172a;
+      flex:1;
+    }
+    .btn-edit-inline{
+      background:#fff;
+      color:#0f172a;
+    }
+    .card.cta-card{
+      border-style:dashed;
+      background:linear-gradient(145deg, rgba(248,250,252,.96), rgba(239,246,255,.96));
+      cursor:default;
+    }
+    .card.cta-card:hover{
+      transform:none;
+      box-shadow:var(--shadow);
+    }
+    .card.cta-card .card-body{
+      padding:18px;
+    }
+    .card.cta-card .title{
+      font-size:18px;
+    }
+    }
+    .mc-hero-badges{
+      margin: 14px 0 0;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+    .mc-hero-badges span{
+      display:inline-flex;
+      align-items:center;
+      font-size:12px;
+      font-weight:700;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(15,23,42,.08);
+      background:#fff;
+      box-shadow: 0 6px 14px rgba(15,23,42,.05);
     }
     .mc-hero-cta{
       margin: 10px 0 0;
@@ -143,6 +297,14 @@
       border-color: #16a34a;
       color: #fff;
     }
+    .mc-hero-note{
+      margin: 10px auto 0;
+      max-width: 860px;
+      padding: 0 16px;
+      color:#334155;
+      font-size:13px;
+      line-height:1.8;
+    }
     .mc-discover{
       margin-top: 14px;
     }
@@ -157,6 +319,13 @@
       margin: 0;
       font-size: 16px;
       letter-spacing: .2px;
+    }
+    .mc-section-head p{
+      margin: 6px 0 0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+      max-width:720px;
     }
     .mc-shelf{
       margin-top: 0;
@@ -194,6 +363,62 @@
     #shelfTrending .card{
       border-color: rgba(37,99,235,.18);
     }
+    .mc-cta-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap:14px;
+    }
+    .mc-cta-card{
+      padding:18px;
+      border-radius:18px;
+      border:1px solid rgba(37,99,235,.16);
+      background:linear-gradient(145deg, rgba(239,246,255,.96), rgba(240,253,244,.96));
+      box-shadow: 0 12px 28px rgba(15,23,42,.06);
+      text-align:left;
+    }
+    .mc-cta-card .eyebrow{
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:#166534;
+      margin-bottom:8px;
+    }
+    .mc-cta-card h3{
+      margin:0 0 8px;
+      font-size:18px;
+      line-height:1.3;
+    }
+    .mc-cta-card p{
+      margin:0 0 14px;
+      color:#334155;
+      font-size:13px;
+      line-height:1.7;
+    }
+    .mc-cta-card .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .mc-cta-card .actions a{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:36px;
+      padding:8px 12px;
+      border-radius:999px;
+      text-decoration:none;
+      font-size:13px;
+      font-weight:700;
+      border:1px solid rgba(15,23,42,.08);
+      background:#fff;
+      color:#0f172a;
+    }
+    .mc-cta-card .actions a.primary{
+      background:#0f172a;
+      color:#fff;
+      border-color:#0f172a;
+    }
     .hero{
   max-width:1060px;
   margin:0 auto 10px;
@@ -216,9 +441,21 @@
       font-size:20px;
       letter-spacing:.4px;
     }
+    .mc-nav{
+      padding:0 12px;
+    }
+    .mc-brand-name{
+      font-size:24px;
+    }
+    .mc-nav-links{
+      justify-content:flex-start;
+    }
     header p{
       margin:4px 0 0;
       color:var(--muted);
+    .mc-hero-copy .lead{
+      font-size:20px;
+    }
       font-size:11px;
       line-height: 1.45;
       max-width: 980px;
@@ -259,7 +496,9 @@
       align-items:flex-end;
     }
     .field label{
-      display:block;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
       font-size:12px;
       color:var(--muted);
       margin-bottom:6px;
@@ -355,6 +594,8 @@
       align-items:center;
     }
     .badge{
+      display:inline-flex;
+      align-items:center;
       font-size:11px;
       padding:4px 8px;
       border-radius:999px;
@@ -639,48 +880,654 @@
       padding: 0 14px 14px;
       border-top: 1px solid #e5e7eb;
     }
+
+    /* Phase 1.5 homepage polish overrides */
+    .mc-nav-links a{
+      transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+    }
+    .mc-nav-links a:hover{
+      transform: translateY(-1px);
+      border-color: rgba(37,99,235,.24);
+      box-shadow: 0 8px 18px rgba(15,23,42,.08);
+    }
+    .mc-nav-links a.accent{
+      color:#2563eb;
+      border-color: rgba(37,99,235,.24);
+      background: rgba(239,246,255,.94);
+    }
+    .hero-shell{
+      max-width:1060px;
+      margin:0 auto;
+      padding:0 16px;
+      display:grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, .94fr);
+      gap:12px;
+      align-items:stretch;
+    }
+    .mc-hero-copy{
+      margin:0;
+      padding:0;
+      color:var(--text);
+      text-align:left;
+    }
+    .mc-hero-panel{
+      height:100%;
+      padding:16px;
+      border-radius:22px;
+      border:1px solid rgba(15,23,42,.08);
+      background:
+        radial-gradient(circle at top left, rgba(96,165,250,.18), transparent 42%),
+        linear-gradient(145deg, rgba(255,255,255,.98), rgba(239,246,255,.96) 56%, rgba(240,253,244,.92));
+      box-shadow: 0 12px 28px rgba(15,23,42,.08);
+      display:grid;
+      gap:8px;
+      align-content:start;
+    }
+    .mc-hero-title{
+      margin:0;
+      font-size: clamp(30px, 4vw, 46px);
+      line-height:.96;
+      letter-spacing:-.05em;
+      font-weight:900;
+      max-width: 13ch;
+    }
+    .mc-hero-copy .lead{
+      margin:2px 0 0;
+      font-size:15px;
+      font-weight:800;
+      letter-spacing:.01em;
+      line-height:1.25;
+      max-width:16em;
+    }
+    .mc-hero-copy .sublead{
+      display:none;
+    }
+    .mc-hero-badges{
+      display:none;
+    }
+    .mc-hero-cta{
+      margin:2px 0 0;
+      justify-content:flex-start;
+    }
+    .mc-hero-proof{
+      display:none;
+    }
+    .hero-art{
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+    }
+    .hero-showcase{
+      height:100%;
+      padding:10px;
+      border-radius:22px;
+      border:1px solid rgba(15,23,42,.10);
+      background:
+        radial-gradient(circle at top right, rgba(96,165,250,.16), transparent 34%),
+        linear-gradient(155deg, rgba(255,255,255,.98), rgba(239,246,255,.96) 52%, rgba(248,250,252,.98));
+      box-shadow: 0 12px 28px rgba(15,23,42,.10);
+      display:grid;
+      gap:8px;
+      align-content:start;
+    }
+    .hero-showcase-head{
+      display:grid;
+      gap:2px;
+    }
+    .hero-showcase-kicker{
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:#166534;
+    }
+    .hero-showcase-head strong{
+      font-size:16px;
+      line-height:1.1;
+      color:#0f172a;
+    }
+    .hero-showcase-head p{
+      display:none;
+    }
+    .hero-feature-card{
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      align-items:end;
+      min-height:220px;
+      border-radius:18px;
+      border:1px solid rgba(15,23,42,.12);
+      background:linear-gradient(180deg, rgba(15,23,42,.94), rgba(30,41,59,.98));
+      color:#f8fafc;
+      text-decoration:none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    .hero-feature-media{
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(circle at 16% 14%, rgba(125,211,252,.28), transparent 24%),
+        radial-gradient(circle at 84% 18%, rgba(253,224,71,.18), transparent 20%),
+        linear-gradient(180deg, rgba(37,99,235,.34), rgba(15,23,42,.10));
+    }
+    .hero-feature-media::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(180deg, rgba(15,23,42,.04) 14%, rgba(15,23,42,.78) 100%);
+      pointer-events:none;
+    }
+    .hero-feature-thumb,
+    .hero-feature-media img,
+    .hero-feature-media canvas{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .hero-feature-media canvas{ background:transparent; }
+    .hero-feature-copy{
+      position:relative;
+      z-index:1;
+      display:grid;
+      gap:6px;
+      padding:12px;
+    }
+    .hero-feature-badges,
+    .hero-mini-badges{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+    .hero-feature-pill,
+    .hero-mini-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      padding:5px 9px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.12);
+      font-size:11px;
+      font-weight:700;
+      color:#f8fafc;
+      backdrop-filter: blur(6px);
+    }
+    .hero-feature-title{
+      margin:0;
+      font-size:22px;
+      line-height:1.02;
+      font-weight:900;
+      letter-spacing:-.03em;
+      color:#fff;
+    }
+    .hero-feature-summary{
+      margin:0;
+      max-width:24ch;
+      font-size:12px;
+      line-height:1.4;
+      color:rgba(241,245,249,.92);
+      display:-webkit-box;
+      -webkit-box-orient:vertical;
+      -webkit-line-clamp:1;
+      overflow:hidden;
+    }
+    .hero-feature-meta{
+      display:none;
+    }
+    .hero-showcase-list{
+      display:none;
+    }
+    .hero-mini-card{
+      display:grid;
+      gap:6px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(148,163,184,.18);
+      background:rgba(255,255,255,.88);
+      color:inherit;
+      text-decoration:none;
+      transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+    }
+    .hero-mini-card:hover{
+      transform:translateY(-1px);
+      border-color:rgba(37,99,235,.24);
+      box-shadow:0 10px 22px rgba(15,23,42,.08);
+    }
+    .hero-mini-title{
+      font-size:13px;
+      font-weight:800;
+      line-height:1.25;
+      color:#0f172a;
+    }
+    .hero-mini-meta{
+      font-size:11px;
+      line-height:1.35;
+      color:#64748b;
+    }
+    .hero-feature-empty .hero-feature-title{ font-size:24px; }
+    .hero-feature-empty .hero-feature-summary{ max-width:32ch; }
+    .hero-mini-card.hero-mini-empty{
+      border-style:dashed;
+      background:rgba(248,250,252,.94);
+    }
+    .mc-value-grid{
+      margin:0;
+      padding:0;
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap:8px;
+    }
+    .mc-value-wrap{
+      margin:12px 0 0;
+      padding:0;
+    }
+    .mc-value-intro{
+      margin-bottom:8px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px 12px;
+      align-items:baseline;
+    }
+    .mc-value-eyebrow{
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:#166534;
+    }
+    .mc-value-intro h2{
+      margin:0;
+      font-size:16px;
+      line-height:1.2;
+      color:#0f172a;
+    }
+    .mc-value-intro p{
+      margin:0;
+      max-width:720px;
+      font-size:12px;
+      line-height:1.45;
+      color:#475569;
+    }
+    .mc-value-card{
+      padding:12px 13px;
+      border-radius:14px;
+      border:1px solid rgba(148,163,184,.16);
+      background:rgba(255,255,255,.72);
+      box-shadow: 0 8px 20px rgba(15,23,42,.04);
+      text-align:left;
+    }
+    .mc-value-card strong{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      margin-bottom:5px;
+      font-size:13px;
+      font-weight:800;
+      color:#0f172a;
+    }
+    .mc-value-card p{
+      margin:0;
+      font-size:11px;
+      line-height:1.45;
+      color:#334155;
+    }
+    .mc-submit-banner{
+      margin:12px 0 0;
+    }
+    .mc-submit-banner-inner{
+      background: linear-gradient(135deg, rgba(255,255,255,.96) 0%, rgba(239,246,255,.96) 52%, rgba(240,253,244,.95) 100%);
+      border: 1px solid rgba(37,99,235,.16);
+      border-radius: 16px;
+      padding: 10px 14px;
+      box-shadow: 0 10px 24px rgba(15,23,42,.06);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+    .mc-submit-banner-text{ display:grid; gap:6px; }
+    .mc-submit-banner-text strong{ font-size:14px; margin-bottom:0; }
+    .mc-submit-banner-text span{ font-size:12px; line-height:1.45; color:#475569; }
+    .mc-submit-banner-pills{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+    .mc-submit-banner-pill{
+      display:inline-flex;
+      align-items:center;
+      padding:5px 9px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.20);
+      background:rgba(255,255,255,.84);
+      font-size:11px;
+      font-weight:700;
+      color:#334155;
+    }
+    .mc-featured-shelf{
+      display:grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr);
+      gap:16px;
+      align-items:start;
+    }
+    .mc-featured-stack{
+      display:grid;
+      gap:12px;
+      align-content:start;
+    }
+    .mc-shelf.grid{
+      grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+      gap:20px;
+    }
+    .mc-shelf .thumbwrap{ height:286px; }
+    .mc-shelf canvas.thumb,
+    .mc-shelf img.thumbimg{ height:286px; }
+    #shelfCommunity.grid,
+    #shelfTrending.grid{ grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); }
+    #shelfCommunity .thumbwrap,
+    #shelfTrending .thumbwrap{ height:272px; }
+    #shelfCommunity canvas.thumb,
+    #shelfTrending canvas.thumb,
+    #shelfCommunity img.thumbimg,
+    #shelfTrending canvas.thumb,
+    #shelfTrending img.thumbimg{ height:272px; }
+    .grid{ gap:18px; }
+    .card{
+      overflow:hidden;
+      background:#fff;
+      border:1px solid rgba(148,163,184,.18);
+      border-radius:22px;
+      box-shadow: 0 18px 38px rgba(15,23,42,.08);
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    }
+    .card:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 22px 40px rgba(15,23,42,.12);
+      border-color: rgba(37,99,235,.18);
+    }
+    .thumbwrap{
+      height:190px;
+      background: radial-gradient(circle at top, rgba(191,219,254,.98), rgba(248,250,252,.98) 64%);
+    }
+    #grid .thumbwrap{ height:270px; }
+    #grid canvas.thumb,
+    #grid img.thumbimg{ height:270px; }
+    .badge{
+      padding:5px 9px;
+      background:rgba(255,255,255,.9);
+    }
+    .card-body{
+      padding:18px 18px 20px;
+      display:grid;
+      gap:10px;
+      align-content:start;
+    }
+    .card-kicker{
+      margin:0;
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:#2563eb;
+    }
+    .title{
+      margin:0;
+      font-size:21px;
+      font-weight:800;
+      line-height:1.2;
+    }
+    .card-summary{
+      margin-top:0;
+      color:#475569;
+      font-size:12px;
+      line-height:1.45;
+      display:-webkit-box;
+      -webkit-box-orient:vertical;
+      -webkit-line-clamp:1;
+      overflow:hidden;
+      min-height:0;
+    }
+    .card-badge-row{
+      margin-top:0;
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+    .meta{
+      margin-top:0;
+      padding-top:0;
+      border-top:none;
+      gap:10px;
+      justify-content:space-between;
+    }
+    .meta .left,
+    .meta .right{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      flex-wrap:wrap;
+      min-width:0;
+    }
+    .meta .author{ font-weight:700; color:#0f172a; }
+    .meta .author span{ max-width:160px; }
+    .meta .metric,
+    .meta .dl{
+      display:flex;
+      gap:6px;
+      align-items:center;
+      line-height:1.2;
+    }
+    .meta .metric .metric-ico,
+    .meta .dl .dl-ico{
+      display:inline-block;
+      width:1em;
+      text-align:center;
+      transform: translateY(.5px);
+    }
+    .meta .time{
+      font-size:12px;
+      color:#64748b;
+      white-space:nowrap;
+    }
+    .tagline{ display:none; }
+    .card-actions{ margin-top:2px; }
+    .card.card-featured-primary .thumbwrap{ height:500px; }
+    .card.card-featured-primary canvas.thumb,
+    .card.card-featured-primary img.thumbimg{ height:500px; }
+    .card.card-featured-primary .title{ font-size:32px; line-height:1.02; }
+    .card.card-featured-primary .card-body{ padding:18px 18px 20px; gap:10px; }
+    .card.card-featured-primary .card-summary{ font-size:12px; }
+    .card.card-featured-mini{
+      display:grid;
+      grid-template-columns: 190px minmax(0, 1fr);
+      min-height:186px;
+    }
+    .card.card-featured-mini .thumbwrap{
+      height:100%;
+      min-height:186px;
+    }
+    .card.card-featured-mini canvas.thumb,
+    .card.card-featured-mini img.thumbimg{
+      height:100%;
+      min-height:186px;
+    }
+    .card.card-featured-mini .card-body{
+      padding:14px 14px 15px;
+      gap:6px;
+      align-content:center;
+    }
+    .card.card-featured-mini .title{ font-size:18px; }
+    .card.card-featured-mini .card-summary{ display:none; }
+    .card.card-featured-mini .card-badge-row{ gap:5px; }
+    .card.card-featured-mini .card-actions{ margin-top:0; }
+    .card.card-featured-mini .card-open{ padding:8px 12px; }
+    .cta-card.cta-card-community{
+      background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.98));
+      border-style:dashed;
+    }
+    .cta-card.cta-card-community .title{ font-size:20px; }
+    .cta-card.cta-card-community .card-summary{ -webkit-line-clamp:2; }
+    .authbar{
+      margin-top:6px;
+      padding:8px 0 0;
+      border:none;
+      border-top:1px dashed rgba(148,163,184,.28);
+      border-radius:0;
+      background:transparent;
+    }
+    .auth-kicker{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:#166534;
+    }
+    .auth-status,
+    .auth-meta{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:5px 10px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid rgba(148,163,184,.22);
+    }
+    .auth-meta-label,
+    .auth-status-label{
+      font-size:11px;
+      font-weight:700;
+      color:#64748b;
+    }
+    footer{ margin-top:30px; }
+    .mc-footer{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px 18px;
+      align-items:flex-start;
+      justify-content:space-between;
+      padding-top:18px;
+      border-top:1px solid rgba(148,163,184,.25);
+    }
+    .mc-footer-brand{
+      display:grid;
+      gap:6px;
+      text-align:left;
+      max-width:320px;
+    }
+    .mc-footer-brand strong{ color:#0f172a; font-size:13px; }
+    .mc-footer-links{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px 10px;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .mc-footer-links a{ color:inherit; text-decoration:none; }
+    .mc-footer-links a:hover{ color:#0f172a; }
+    @media (max-width: 920px){
+      .hero-shell{ grid-template-columns:1fr; }
+      .hero-feature-card{ min-height:220px; }
+      .mc-value-grid{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+      .mc-featured-shelf{ grid-template-columns:1fr; }
+      .card.card-featured-primary .thumbwrap,
+      .card.card-featured-primary canvas.thumb,
+      .card.card-featured-primary img.thumbimg{ height:380px; }
+    }
+    @media (max-width: 720px){
+      .mc-hero-panel{ padding:14px; }
+      .mc-hero-title{ max-width:none; }
+      .authbar{ align-items:flex-start; }
+      .mc-footer-links{ justify-content:flex-start; }
+      .hero-showcase{ padding:8px; }
+      .hero-feature-title{ font-size:22px; }
+      .card.card-featured-mini{ grid-template-columns:1fr; }
+      .card.card-featured-mini .thumbwrap,
+      .card.card-featured-mini canvas.thumb,
+      .card.card-featured-mini img.thumbimg{ min-height:210px; height:210px; }
+      .mc-submit-banner-inner{ align-items:flex-start; }
+    }
+    @media (max-width: 560px){
+      .mc-value-grid{ grid-template-columns:1fr; }
+      .mc-shelf.grid{ grid-template-columns:1fr; }
+      .card.card-featured-primary .thumbwrap,
+      .card.card-featured-primary canvas.thumb,
+      .card.card-featured-primary img.thumbimg{ height:320px; }
+      #grid .thumbwrap,
+      #grid canvas.thumb,
+      #grid img.thumbimg{ height:232px; }
+      .mc-hero-title{ max-width:11ch; }
+    }
   </style>
   <link rel="stylesheet" href="/assets/ad-rail.v1.css?v=20260111d" />
 </head>
 <body class="mc-page-index">
 <header>
-<div class="hero">
-  <img class="hero-img" src="/assets/top_banner.png" alt="MobCrafter — Create Your Own Units!">
+<div class="mc-nav">
+  <a class="mc-brand" href="/">
+    <span class="mc-brand-mark">Minecraft Creator Hub</span>
+    <span class="mc-brand-name">MobCrafter Hub</span>
+  </a>
+  <nav class="mc-nav-links" aria-label="primary">
+    <a href="#discover"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#grid"></use></svg></span><span>Browse</span></a>
+    <a href="/creators/"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#users"></use></svg></span><span>Creators</span></a>
+    <a href="/how-to-use.html"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#book"></use></svg></span><span>How to Use</span></a>
+    <a href="/guidelines.html"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#shield"></use></svg></span><span>Guidelines</span></a>
+    <a href="#searchtools"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#search"></use></svg></span><span>Search</span></a>
+    <a id="navUploadLink" class="accent" href="/submit.html"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#upload"></use></svg></span><span>Upload</span></a>
+    <a id="navAuthLink" href="/api/login?next=%2F"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#login"></use></svg></span><span>Log in</span></a>
+    <a class="primary" href="https://www.curseforge.com/minecraft/mc-mods/mobcrafter" target="_blank" rel="noopener noreferrer"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#external"></use></svg></span><span>Get MobCrafter</span></a>
+  </nav>
 </div>
-  <h1>MobCrafter Portal</h1>
+<section class="hero-shell" aria-label="MobCrafter Hub hero">
   <div class="mc-hero-copy">
-    <div class="lead">Download ready-to-use Minecraft units for MobCrafter</div>
-    <div class="mc-hero-cta">
-      <a class="primary" href="https://www.curseforge.com/minecraft/mc-mods/mobcrafter" target="_blank" rel="noopener noreferrer">Get MobCrafter</a>
-      <a class="submit-cta" id="heroCTASubmit" href="/submit.html">&#43; Submit Your Unit</a>
-      <a href="#overview" data-open-overview="1">How to Install</a>
-      <a href="#secVanilla">Browse Vanilla Only</a>
-    </div>
-  </div>
-  <p>
-    Unit JSON sharing portal for <strong>MobCrafter</strong> (Minecraft Forge <strong>1.20.1</strong>).<br />
-    Download MobCrafter from CurseForge:
-    <a href="https://www.curseforge.com/minecraft/mc-mods/mobcrafter" target="_blank" rel="noopener noreferrer">
-      https://www.curseforge.com/minecraft/mc-mods/mobcrafter
-    </a>
-    <br /><br />
-    <strong>Important:</strong> The units shared here are <strong>JSON files for the MobCrafter mod</strong>.<br />
-    You can build units using blocks from other mods too, but you must install those mods as <strong>required dependencies</strong>
-    in your modpack/world to use the unit.
-  </p>
-  <!-- Submit / community banner -->
-  <div class="mc-submit-banner" id="submitBanner">
-    <div class="mc-submit-banner-inner">
-      <div class="mc-submit-banner-text">
-        <strong>Share Your Own Unit</strong>
-        <span>Upload your MobCrafter creation — screenshot, 3D thumbnail, tags, and dependencies all supported.</span>
-      </div>
-      <div class="mc-submit-banner-actions">
-        <a id="bannerSubmitLink" class="primary" href="/submit.html">&#43; Submit Unit</a>
-        <a id="bannerMyLink" class="secondary" href="/submit.html" style="display:none;">My Submissions</a>
+    <div class="mc-hero-panel">
+      <div class="mc-hero-kicker">MobCrafter Hub</div>
+      <h1 class="mc-hero-title">Build it. Summon it. Fight with it.</h1>
+      <div class="lead">Real releases from the MobCrafter catalog.</div>
+      <div class="sublead">Start with Official Starter picks, then drop into the shelves below.</div>
+      <div class="mc-hero-cta">
+        <a href="#discover"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#grid"></use></svg></span><span>Browse Creations</span></a>
+        <a class="submit-cta" id="heroCTASubmit" href="/submit.html"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#upload"></use></svg></span><span>Upload Your Creation</span></a>
+        <a class="primary" href="https://www.curseforge.com/minecraft/mc-mods/mobcrafter" target="_blank" rel="noopener noreferrer"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#external"></use></svg></span><span>Get MobCrafter</span></a>
       </div>
     </div>
   </div>
+  <div class="hero-art">
+    <div class="hero-showcase" id="heroShowcase">
+      <div class="hero-showcase-head">
+        <span class="hero-showcase-kicker">Official Starter Showcase</span>
+        <strong>Featured creations from the live catalog</strong>
+      </div>
+      <a class="hero-feature-card hero-feature-empty" id="heroFeatureCard" href="#discover">
+        <div class="hero-feature-media" id="heroFeatureMedia"></div>
+        <div class="hero-feature-copy">
+          <div class="hero-feature-badges" id="heroFeatureBadges">
+            <span class="hero-feature-pill">Official Starter</span>
+            <span class="hero-feature-pill">Featured</span>
+          </div>
+          <h2 class="hero-feature-title" id="heroFeatureTitle">Official Starter Collection</h2>
+          <p class="hero-feature-summary" id="heroFeatureSummary">Ready-to-try examples curated for new MobCrafter players appear here from the live catalog.</p>
+          <div class="hero-feature-meta" id="heroFeatureMeta">
+            <span>Featured creations load here from real Hub uploads.</span>
+          </div>
+        </div>
+      </a>
+      <div class="hero-showcase-list" id="heroShowcaseList">
+        <a class="hero-mini-card hero-mini-empty" href="#discover">
+          <div class="hero-mini-title">Browse starter creations</div>
+          <div class="hero-mini-meta">Official Starter cards stay honest until real uploads fill them.</div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
 </header>
 
 <main>
@@ -702,39 +1549,104 @@
     <section id="discover" class="mc-discover" style="display:none;">
       <div class="mc-section" id="secFeatured">
         <div class="mc-section-head">
-          <h2>Featured Units</h2>
+          <div>
+            <h2>Official Starter Collection</h2>
+            <p>Ready-to-try examples from the MobCrafter catalog.</p>
+          </div>
         </div>
-        <section id="shelfFeatured" class="grid mc-shelf" aria-label="Featured Units"></section>
+        <section id="shelfFeatured" class="mc-featured-shelf" aria-label="Official Starter Collection"></section>
       </div>
 
-      <div class="mc-section" id="secVanilla">
+      <div class="mc-section" id="secCommunity">
         <div class="mc-section-head">
-          <h2>Vanilla Only</h2>
+          <div>
+            <h2>New Community Uploads</h2>
+            <p>Fresh public uploads from real creators in the catalog.</p>
+          </div>
         </div>
-        <section id="shelfVanilla" class="grid mc-shelf" aria-label="Vanilla Only"></section>
+        <section id="shelfCommunity" class="grid mc-shelf" aria-label="New Community Uploads"></section>
+
+        <section class="mc-value-wrap" aria-label="Why upload here">
+          <div class="mc-value-intro">
+            <span class="mc-value-eyebrow">Why upload here?</span>
+            <h2>Why upload here?</h2>
+            <p>Upload fast, appear in real shelves, and keep schematic-only, creator-supported, or AI-assisted work clearly labeled.</p>
+          </div>
+          <div class="mc-value-grid">
+            <article class="mc-value-card">
+              <strong><span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#upload"></use></svg></span><span>Upload in minutes</span></strong>
+              <p>Add a title, file, tags, and publish.</p>
+            </article>
+            <article class="mc-value-card">
+              <strong><span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#grid"></use></svg></span><span>Show up in shelves</span></strong>
+              <p>Starter, community, and format rows update from real uploads.</p>
+            </article>
+            <article class="mc-value-card">
+              <strong><span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#file"></use></svg></span><span>Schematic-first is fine</span></strong>
+              <p>Start with a build now and add a unit later.</p>
+            </article>
+            <article class="mc-value-card">
+              <strong><span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#support"></use></svg></span><span>Support links fit naturally</span></strong>
+              <p>Creator-supported and external releases stay clearly labeled.</p>
+            </article>
+          </div>
+        </section>
+
+        <div class="mc-submit-banner" id="submitBanner">
+          <div class="mc-submit-banner-inner">
+            <div class="mc-submit-banner-text">
+              <strong>Upload in under 60 seconds</strong>
+              <span>Share builds, units, packs, or releases without bringing back direct-download clutter.</span>
+              <div class="mc-submit-banner-pills" aria-label="Upload formats and labels">
+                <span class="mc-submit-banner-pill">Schematic-only uploads are welcome</span>
+                <span class="mc-submit-banner-pill">Creator-supported links are welcome</span>
+                <span class="mc-submit-banner-pill">AI-assisted accepted</span>
+              </div>
+            </div>
+            <div class="mc-submit-banner-actions">
+              <a id="bannerSubmitLink" class="primary" href="/submit.html"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#upload"></use></svg></span><span>Upload Your Creation</span></a>
+              <a id="bannerMyLink" class="secondary" href="/submit.html" style="display:none;"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#dashboard"></use></svg></span><span>Creator Dashboard</span></a>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="mc-section" id="secTrending">
         <div class="mc-section-head">
-          <h2>Trending Now <span style="font-size:12px;font-weight:400;color:var(--muted);margin-left:4px;">past 30 days</span></h2>
+          <div>
+            <h2>Trending Schematics <span style="font-size:12px;font-weight:400;color:var(--muted);margin-left:4px;">past 30 days</span></h2>
+            <p>Build-friendly releases and schematic-first uploads.</p>
+          </div>
         </div>
-        <section id="shelfTrending" class="grid mc-shelf" aria-label="Trending Now"></section>
+        <section id="shelfTrending" class="grid mc-shelf" aria-label="Trending Schematics"></section>
+      </div>
+
+      <div class="mc-section" id="secSets">
+        <div class="mc-section-head">
+          <div>
+            <h2>Schematic + Unit Sets</h2>
+            <p>Build once, share the schematic, and attach a summon-ready unit when you have one.</p>
+          </div>
+        </div>
+        <section id="shelfSets" class="grid mc-shelf" aria-label="Schematic and Unit Sets"></section>
       </div>
 
       <div class="mc-section" id="secPopular">
         <div class="mc-section-head">
-          <h2>Popular <span style="font-size:12px;font-weight:400;color:var(--muted);margin-left:4px;">all&#8209;time</span></h2>
+          <div>
+            <h2>Creator-Supported Releases</h2>
+            <p>Free uploads and creator-supported releases can coexist with clear labels.</p>
+          </div>
         </div>
-        <section id="shelfPopular" class="grid mc-shelf" aria-label="Popular All-time"></section>
+        <section id="shelfPopular" class="grid mc-shelf" aria-label="Creator-Supported Releases"></section>
       </div>
     </section>
 
-    <div class="topbar">
+    <div class="topbar" id="searchtools">
     <div class="leftbox">
       <div class="field">
-        <label>Search</label>
+        <label><span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#search"></use></svg></span><span>Search</span></label>
         <input id="q" type="text" placeholder="Enter KeyWord" />
-        <div class="muted">Search by title / description / tags. Thumbnails are lightweight 3D previews.</div>
       </div>
 
       <div class="field">
@@ -745,7 +1657,6 @@
           <option value="90">+90°</option>
           <option value="0">None</option>
         </select>
-        <div class="muted">Click a card for details (/unit.html?id=number or UUID)</div>
       </div>
     </div>
 
@@ -759,45 +1670,39 @@
     </div>
 
     <div id="err" class="error"></div>
-    <div class="muted" style="width:100%; margin-top:8px; line-height:1.5;">
-  This portal shares <strong>MobCrafter unit JSON</strong> (Forge <strong>1.20.1</strong>).<br />
-  If a unit uses blocks from other mods, those mods must be installed as <strong>required dependencies</strong>.
-</div>
-
-
     <div class="authbar" id="authbar">
       <div class="left">
-        <span>Login:</span>
-        <code id="authState">checking...</code>
-        <span id="authEmailWrap" style="display:none;">Email: <code id="authEmail"></code></span>
-        <span id="authAdminWrap" style="display:none;">Admin: <code id="authAdmin"></code></span>
+        <span class="auth-kicker"><span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#users"></use></svg></span><span>Creator tools</span></span>
+        <span id="authState" hidden></span>
+        <span id="authEmailWrap" class="auth-meta" style="display:none;"><span class="auth-meta-label">Signed in as</span><code id="authEmail"></code></span>
+        <span id="authAdminWrap" class="auth-meta" style="display:none;"><span class="auth-meta-label">Admin</span><code id="authAdmin"></code></span>
 
         <label id="mineWrap" class="chip" style="display:none;">
           <input id="mineOnly" type="checkbox" />
-          <span>My submissions only</span>
+          <span>My creations only</span>
         </label>
       </div>
 
       <div class="right">
-        <a id="authActionLink" href="/api/whoami">Log in</a>
-        <a id="postLink" class="primary" href="/submit.html">Submit</a>
+        <a id="authActionLink" href="/api/whoami"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#login"></use></svg></span><span>Log in</span></a>
+        <a id="postLink" class="primary" href="/submit.html"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#upload"></use></svg></span><span>Upload Your Creation</span></a>
       </div>
     </div>
     </div>
 
     <div class="mc-section-head" id="newUnitsHead" style="display:none;">
-      <h2>New Units</h2>
+      <h2>Latest Creations</h2>
     </div>
     <section id="grid" class="grid"></section>
     <div id="pager" class="pager" style="display:none;"></div>
 
     <details class="mc-collapsible" id="overview">
       <summary>
-        About / How to use / Posting rules
+        About MobCrafter Hub / How to use / Creator rules
         <span class="mc-collapsible-hint">(click to expand)</span>
       </summary>
       <div class="mc-collapsible-body">
-        <h2 style="margin:12px 0 8px; font-size:14px;">About MobCrafter (Quick Overview)</h2>
+        <h2 style="margin:12px 0 8px; font-size:14px;">About MobCrafter Hub (Quick Overview)</h2>
         <div style="color:#334155; font-size:12px; line-height:1.7;">
           <p style="margin:0 0 8px;">
             MobCrafter is a Minecraft Forge mod that lets you turn block-built creations into a single controllable unit.
@@ -814,27 +1719,46 @@
             Unit JSON files are loaded from <code>config/mob_crafter/units/</code>. In multiplayer, server-side JSON is used and synced to clients.
           </p>
           <p style="margin:0;">
-            Note: Units shown in mod screenshots are personal examples and are not bundled with the mod. This portal shares community unit JSON files.
+            Note: units shown in mod screenshots are personal examples and are not bundled with the mod. Hub now accepts community JSON, schematics, packs, and creator-supported releases, but legacy JSON is still the core compatible format.
           </p>
         </div>
 
         <h2 style="margin:12px 0 8px; font-size:14px;">How to use</h2>
         <ol style="margin:0; padding-left:18px; color:#334155; font-size:12px; line-height:1.7;">
-          <li>Download a unit JSON from this portal.</li>
+          <li>Download a release from Hub.</li>
           <li>Place the JSON into MobCrafter's unit folder (your modpack must include required dependency mods if used).</li>
           <li>Use MobCrafter items in-game to summon the unit.</li>
         </ol>
 
-        <h2 style="margin:12px 0 8px; font-size:14px;">Posting rules</h2>
+        <h2 style="margin:12px 0 8px; font-size:14px;">Creator rules</h2>
         <ul style="margin:0; padding-left:18px; color:#334155; font-size:12px; line-height:1.7;">
           <li>Only upload content you have rights to share.</li>
           <li>Do not upload copyrighted character models/textures unless you have permission.</li>
           <li>If your unit uses blocks from other mods, mention them as dependencies.</li>
+          <li>If AI helped generate the creation or workflow, disclose that in the upload metadata.</li>
         </ul>
       </div>
     </details>
 
-    <footer>© 2025 MobCrafter Portal — MVP</footer>
+    <footer class="mc-footer">
+      <span class="mc-footer-brand">
+        <strong>MobCrafter Hub</strong>
+        <span>Creator Hub for custom Minecraft bosses, pets, vehicles, armies, schematics, units, and creator-supported releases.</span>
+      </span>
+      <span class="mc-footer-links">
+        <a href="/about.html">About</a>
+        <a href="/mobcrafter.html">MobCrafter</a>
+        <a href="/how-to-use.html">How to Use</a>
+        <a href="/upload-guide.html">Upload Guide</a>
+        <a href="/creator-support.html">Creator Support</a>
+        <a href="/guidelines.html">Guidelines</a>
+        <a href="/ai-guidelines.html">AI Guidelines</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/terms.html">Terms</a>
+        <a href="/dmca.html">DMCA</a>
+        <a href="/contact.html">Contact</a>
+      </span>
+    </footer>
   </div>
 
   <!-- Right rail (layout only; ad code inserted later) -->
@@ -848,6 +1772,7 @@
   </aside>
 </main>
 
+<script src="/assets/ui-icons.v1.js?v=20260524a"></script>
 <script>
 (() => {
   // ====== Dev helper ======
@@ -889,6 +1814,8 @@
   const authAdmin = document.getElementById("authAdmin");
 
   const authActionLink = document.getElementById("authActionLink");
+  const navAuthLink = document.getElementById("navAuthLink");
+  const navUploadLink = document.getElementById("navUploadLink");
   const postLink = document.getElementById("postLink");
 
   const mineWrap = document.getElementById("mineWrap");
@@ -903,9 +1830,49 @@
     return (s && s.includes("@")) ? s : "";
   }
 
+  function syncSubmitLinks(href, { showDashboard=false } = {}){
+    postLink.href = href;
+    if(navUploadLink) navUploadLink.href = href;
+
+    const bannerSubmitLink = document.getElementById("bannerSubmitLink");
+    const bannerMyLink = document.getElementById("bannerMyLink");
+    const heroCTASubmit = document.getElementById("heroCTASubmit");
+
+    if(bannerSubmitLink) bannerSubmitLink.href = href;
+    if(heroCTASubmit) heroCTASubmit.href = href;
+    if(bannerMyLink){
+      bannerMyLink.href = "/dashboard.html";
+      bannerMyLink.style.display = showDashboard ? "inline-flex" : "none";
+    }
+  }
+
+  function syncAuthLinks({ loggedIn=false } = {}){
+    if(loggedIn){
+      const href = "/cdn-cgi/access/logout?returnTo=" + encodeURIComponent(location.origin + "/");
+      setUiText(authActionLink, "logout", "Log out");
+      authActionLink.className = "danger";
+      authActionLink.href = href;
+      if(navAuthLink){
+        setUiText(navAuthLink, "logout", "Log out");
+        navAuthLink.href = href;
+      }
+      return;
+    }
+
+    const href = `/api/login?next=${encodeURIComponent("/")}`;
+    setUiText(authActionLink, "login", "Log in");
+    authActionLink.className = "";
+    authActionLink.href = href;
+    if(navAuthLink){
+      setUiText(navAuthLink, "login", "Log in");
+      navAuthLink.href = href;
+    }
+  }
+
   async function loadWhoami(){
     try{
-      authState.textContent = "checking...";
+      authState.textContent = "";
+      authState.hidden = true;
       authEmailWrap.style.display = "none";
       authAdminWrap.style.display = "none";
       mineWrap.style.display = "none";
@@ -919,29 +1886,15 @@
       let data = null;
       try { data = JSON.parse(text); } catch { data = null; }
 
-      authActionLink.href = `/api/login?next=${encodeURIComponent("/")}`;
+      syncAuthLinks({ loggedIn: false });
 
       if (!r.ok || !data) {
         // Access can block API calls with 401/403 (often returning HTML).
         if (r.status === 401 || r.status === 403) {
-          authState.textContent = "logged out";
-          authActionLink.textContent = "Log in";
-          authActionLink.className = "";
-          postLink.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
-          const _bsl401 = document.getElementById("bannerSubmitLink");
-          const _hcs401 = document.getElementById("heroCTASubmit");
-          if(_bsl401) _bsl401.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
-          if(_hcs401) _hcs401.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
+          syncSubmitLinks(`/api/login?next=${encodeURIComponent("/submit.html")}`);
           return;
         }
-        authState.textContent = "unknown";
-        authActionLink.textContent = "Log in";
-        authActionLink.className = "";
-        postLink.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
-        const _bslU = document.getElementById("bannerSubmitLink");
-        const _hcsU = document.getElementById("heroCTASubmit");
-        if(_bslU) _bslU.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
-        if(_hcsU) _hcsU.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
+        syncSubmitLinks(`/api/login?next=${encodeURIComponent("/submit.html")}`);
         return;
       }
 
@@ -950,14 +1903,7 @@
       const uid = String(data.user_id || "").trim();
 
       if(!email){
-        authState.textContent = "logged out";
-        authActionLink.textContent = "Log in";
-        authActionLink.className = "";
-        postLink.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
-        const _bslLO = document.getElementById("bannerSubmitLink");
-        const _hcsLO = document.getElementById("heroCTASubmit");
-        if(_bslLO) _bslLO.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
-        if(_hcsLO) _hcsLO.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
+        syncSubmitLinks(`/api/login?next=${encodeURIComponent("/submit.html")}`);
         return;
       }
 
@@ -965,41 +1911,26 @@
       meIsAdmin = isAdmin;
       meUserId = uid || null;
 
-      authState.textContent = "logged in";
-      authEmailWrap.style.display = "inline";
+      authEmailWrap.style.display = "inline-flex";
       authEmail.textContent = email;
 
-      authAdminWrap.style.display = "inline";
-      authAdmin.textContent = isAdmin ? "true" : "false";
+      authAdminWrap.style.display = isAdmin ? "inline-flex" : "none";
+      authAdmin.textContent = isAdmin ? "enabled" : "";
 
-      authActionLink.textContent = "Log out";
-      authActionLink.className = "danger";
-      authActionLink.href = "/cdn-cgi/access/logout?returnTo=" + encodeURIComponent(location.origin + "/");
-
-      postLink.href = "/submit.html";
+      syncAuthLinks({ loggedIn: true });
+      syncSubmitLinks("/submit.html", { showDashboard: true });
       mineWrap.style.display = "inline-flex";
-
-      // Submit banner: logged-in state — show My Submissions link
-      const bannerSubmitLink = document.getElementById("bannerSubmitLink");
-      const bannerMyLink     = document.getElementById("bannerMyLink");
-      const heroCTASubmit    = document.getElementById("heroCTASubmit");
-      if(bannerSubmitLink) bannerSubmitLink.href = "/submit.html";
-      if(bannerMyLink){ bannerMyLink.href = "/submit.html"; bannerMyLink.style.display = "inline-flex"; }
-      if(heroCTASubmit)   heroCTASubmit.href = "/submit.html";
     }catch{
-      authState.textContent = "unknown";
-      authActionLink.textContent = "Log in";
-      authActionLink.className = "";
-      authActionLink.href = `/api/login?next=${encodeURIComponent("/")}`;
-      postLink.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
+      authState.textContent = "";
+      authState.hidden = true;
+      authEmailWrap.style.display = "none";
+      authAdminWrap.style.display = "none";
+      syncAuthLinks({ loggedIn: false });
+      syncSubmitLinks(`/api/login?next=${encodeURIComponent("/submit.html")}`);
       mineWrap.style.display = "none";
       meEmail = null;
       meIsAdmin = false;
       meUserId = null;
-      const _bsl2 = document.getElementById("bannerSubmitLink");
-      const _hcs2 = document.getElementById("heroCTASubmit");
-      if(_bsl2) _bsl2.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
-      if(_hcs2) _hcs2.href = `/api/login?next=${encodeURIComponent("/submit.html")}`;
     }
   }
 
@@ -1015,15 +1946,111 @@
   const err = document.getElementById("err");
 
   const discover = document.getElementById("discover");
+  const heroFeatureCard = document.getElementById("heroFeatureCard");
+  const heroFeatureMedia = document.getElementById("heroFeatureMedia");
+  const heroFeatureBadges = document.getElementById("heroFeatureBadges");
+  const heroFeatureTitle = document.getElementById("heroFeatureTitle");
+  const heroFeatureSummary = document.getElementById("heroFeatureSummary");
+  const heroFeatureMeta = document.getElementById("heroFeatureMeta");
+  const heroShowcaseList = document.getElementById("heroShowcaseList");
   const shelfFeatured = document.getElementById("shelfFeatured");
-  const shelfVanilla = document.getElementById("shelfVanilla");
+  const shelfCommunity = document.getElementById("shelfCommunity");
   const shelfTrending = document.getElementById("shelfTrending");
+  const shelfSets = document.getElementById("shelfSets");
   const shelfPopular  = document.getElementById("shelfPopular");
   const newUnitsHead = document.getElementById("newUnitsHead");
 
   const PAGE_SIZE = 20;
   const DISCOVERY_DL_PAGE_SIZE = 30;
   const DISCOVERY_SHELF_SIZE = 6;
+  const HUB_FILE_AVAILABILITY_LABELS = {
+    json: "JSON",
+    schem: "SCHEM",
+    both: "JSON + SCHEM",
+    zip: "ZIP",
+    external: "External",
+  };
+  const HUB_ACCESS_TYPE_LABELS = {
+    free: "Free",
+    creator_supported: "Creator Supported",
+    patreon_linked: "Patreon-linked",
+    external: "External Access",
+    free_sample_supported: "Free Sample",
+  };
+  const HUB_CREATION_METHOD_LABELS = {
+    hand_built: "Hand Built",
+    ai_assisted: "AI Assisted",
+    imported: "Imported",
+    remixed: "Remixed",
+    starter_variant: "Starter Variant",
+  };
+  const HUB_CONTENT_TYPE_LABELS = {
+    mobcrafter_unit_json: "MobCrafter Unit",
+    schematic: "Schematic",
+    schematic_unit_set: "Unit Set",
+    unit_pack: "Pack",
+    world_map: "World / Map",
+    creator_asset: "Creator Asset",
+    guide_workflow: "Guide",
+    external_release: "External Release",
+  };
+  const HUB_EMPTY_SHELF_CARDS = {
+    starter: [{
+      eyebrow: "Starter collection",
+      title: "Official starter picks expand as the catalog grows",
+      text: "Ready-to-try examples curated for new MobCrafter players will surface here when the live catalog adds more starter-ready releases.",
+      primaryHref: "/submit.html",
+      primaryText: "Upload your creation",
+      secondaryHref: "#overview",
+      secondaryText: "Read the rules",
+    }],
+    community: [{
+      eyebrow: "First community drop",
+      title: "Be one of the first creators players discover",
+      text: "New public uploads from real creators appear here as the catalog grows.",
+      primaryHref: "/submit.html",
+      primaryText: "Publish a creation",
+      secondaryHref: "#searchtools",
+      secondaryText: "Browse existing releases",
+      cardClass: "cta-card-community",
+    },{
+      eyebrow: "Early creator advantage",
+      title: "Upload now and define what this shelf feels like",
+      text: "Schematic-only, creator-supported, and AI-assisted releases can all show up here with clear badges.",
+      primaryHref: "/submit.html",
+      primaryText: "Upload your creation",
+      secondaryHref: "/guidelines.html",
+      secondaryText: "Read the guidelines",
+      cardClass: "cta-card-community",
+    }],
+    schematics: [{
+      eyebrow: "Schematics welcome",
+      title: "Be the first to upload a schematic",
+      text: "Schematic-only uploads are allowed. Start with a build now and add a MobCrafter JSON later.",
+      primaryHref: "/submit.html",
+      primaryText: "Upload a schematic",
+      secondaryHref: "#overview",
+      secondaryText: "How it works",
+    }],
+    sets: [{
+      eyebrow: "MobCrafter-ready",
+      title: "Upload a schematic + unit set",
+      text: "Pair a build with a summon-ready unit so players can rebuild and fight the same creation.",
+      primaryHref: "/submit.html",
+      primaryText: "Publish a unit set",
+      secondaryHref: "/submit.html",
+      secondaryText: "Open full submit page",
+    }],
+    supported: [{
+      eyebrow: "Creator-supported",
+      title: "Add a creator-supported release",
+      text: "Free uploads and creator-supported releases can coexist when support links stay clearly labeled.",
+      primaryHref: "/submit.html",
+      primaryText: "Add a creator-supported release",
+      secondaryHref: "/guidelines.html",
+      secondaryText: "Community guidelines",
+    }],
+  };
 
   function showError(msg){
     err.style.display = "block";
@@ -1041,6 +2068,33 @@
       .replaceAll(">","&gt;")
       .replaceAll('"',"&quot;")
       .replaceAll("'","&#39;");
+  }
+
+  function renderUiLabel(iconName, text, { wrapperClass="ui-label", iconClass="ui-ico ui-ico-sm" } = {}){
+    if(!iconName || !window.MobUi || typeof window.MobUi.label !== "function") return escapeHtml(text);
+    return window.MobUi.label(iconName, text, { wrapperClass, iconClass });
+  }
+
+  function setUiText(node, iconName, text, { wrapperClass="ui-label", iconClass="ui-ico" } = {}){
+    if(!node) return;
+    if(window.MobUi && typeof window.MobUi.set === "function"){
+      window.MobUi.set(node, iconName, text, { wrapperClass, iconClass });
+      return;
+    }
+    node.textContent = text;
+  }
+
+  function inferActionIcon(label, href){
+    const text = String(label || "").trim().toLowerCase();
+    const url = String(href || "").trim().toLowerCase();
+    if(text.includes("upload") || text.includes("publish")) return "upload";
+    if(text.includes("creator") || url.includes("dashboard")) return "dashboard";
+    if(text.includes("guideline") || text.includes("rule")) return "shield";
+    if(text.includes("browse") || text.includes("discover") || text.includes("search")) return "search";
+    if(text.includes("log in")) return "login";
+    if(text.includes("log out")) return "logout";
+    if(/^https?:\/\//i.test(url)) return "external";
+    return "grid";
   }
 
   function normalizeTags(t){
@@ -1070,6 +2124,118 @@
   function resolveNo(row){
     const n = Number(row.submission_no ?? row.submissionNo ?? row.no ?? 0);
     return n || 0;
+  }
+
+  function normalizeBool(v, fallback=false){
+    if(v === null || v === undefined || v === "") return fallback;
+    if(typeof v === "boolean") return v;
+    if(typeof v === "number") return v !== 0;
+    const s = String(v).trim().toLowerCase();
+    if(["1","true","yes","on"].includes(s)) return true;
+    if(["0","false","no","off"].includes(s)) return false;
+    return fallback;
+  }
+
+  function resolveOfficialStarter(row){
+    const seedIds = new Set(["oj1755", "oj1755@gmail.com"]);
+    const candidates = [
+      row?.author_email,
+      row?.authorEmail,
+      row?.author_id,
+      row?.authorId,
+      row?.author_name,
+      row?.authorName,
+    ];
+    if(candidates.some((value) => seedIds.has(String(value || "").trim().toLowerCase()))){
+      return true;
+    }
+
+    return normalizeBool(row?.is_official_starter ?? row?.isOfficialStarter, false);
+  }
+
+  function hubLabel(map, value, fallback){
+    const key = String(value || "").trim().toLowerCase();
+    return map[key] || fallback;
+  }
+
+  function fileAvailabilityLabel(value){
+    return hubLabel(HUB_FILE_AVAILABILITY_LABELS, value, "JSON");
+  }
+
+  function accessTypeLabel(value){
+    return hubLabel(HUB_ACCESS_TYPE_LABELS, value, "Free");
+  }
+
+  function creationMethodLabel(value){
+    return hubLabel(HUB_CREATION_METHOD_LABELS, value, "Hand Built");
+  }
+
+  function contentTypeLabel(value){
+    return hubLabel(HUB_CONTENT_TYPE_LABELS, value, "MobCrafter Unit");
+  }
+
+  function isPlayableItem(it){
+    return it && (it.fileAvailability === "json" || it.fileAvailability === "both");
+  }
+
+  function isSchematicLikeItem(it){
+    return !!it && (
+      it.fileAvailability === "schem" ||
+      it.fileAvailability === "both" ||
+      it.contentType === "schematic" ||
+      it.contentType === "schematic_unit_set"
+    );
+  }
+
+  function isUnitSetLikeItem(it){
+    return !!it && (it.fileAvailability === "both" || it.contentType === "schematic_unit_set");
+  }
+
+  function isCreatorSupportedItem(it){
+    return !!it && ["creator_supported", "patreon_linked", "external", "free_sample_supported"].includes(String(it.accessType || "").trim().toLowerCase());
+  }
+
+  function trimText(value, maxLen){
+    const text = String(value || "").trim();
+    if(!text) return "";
+    if(text.length <= maxLen) return text;
+    return text.slice(0, Math.max(0, maxLen - 1)).trimEnd() + "…";
+  }
+
+  function buildCardSummary(it){
+    const desc = trimText(it?.desc, 92);
+    if(desc) return desc;
+
+    if(it?.isOfficialStarter) return "Ready-to-try example from the MobCrafter catalog.";
+
+    const parts = [];
+    if(Array.isArray(it?.tags) && it.tags.length) parts.push(it.tags.slice(0, 2).join(" / "));
+    if(!parts.length){
+      const content = contentTypeLabel(it?.contentType);
+      const files = fileAvailabilityLabel(it?.fileAvailability);
+      if(content && files && content !== files) parts.push(`${content} • ${files}`);
+      else parts.push(content || files);
+    }
+    return parts.filter(Boolean).join(" • ");
+  }
+
+  function buildCardBadges(it){
+    const badges = [];
+    if(it?.isOfficialStarter) badges.push({ cls: "official", icon: "official", label: "Official Starter" });
+    const availability = fileAvailabilityLabel(it?.fileAvailability);
+    if(availability) badges.push({ cls: "kind", icon: "file", label: availability });
+
+    const access = String(it?.accessType || "").trim().toLowerCase();
+    if(access === "creator_supported") badges.push({ cls: "access", icon: "support", label: "Creator-supported" });
+    else if(access === "free_sample_supported") badges.push({ cls: "access", icon: "support", label: "Free sample available" });
+    else if(access === "patreon_linked") badges.push({ cls: "access", icon: "support", label: "Patreon-linked" });
+    else if(access === "external") badges.push({ cls: "access", icon: "external", label: "External release" });
+    else if(access === "free") badges.push({ cls: "access", label: "Free" });
+
+    const method = String(it?.creationMethod || "").trim().toLowerCase();
+    if(isPlayableItem(it)) badges.push({ cls: "playable", label: "MobCrafter Ready" });
+    if(method === "ai_assisted") badges.push({ cls: "method", label: "AI-assisted" });
+    return badges.slice(0, 4);
   }
 
   // ===== URL state =====
@@ -1453,8 +2619,8 @@
   }
 
   function getUnitHref(it){
-    if (it && it.no) return `/unit.html?id=${encodeURIComponent(String(it.no))}`;
-    return `/unit.html?id=${encodeURIComponent(String(it?.id || ""))}`;
+    if (it && it.no) return `/u/${encodeURIComponent(String(it.no))}`;
+    return `/u/${encodeURIComponent(String(it?.id || ""))}`;
   }
 
   function goUnit(it){
@@ -1464,13 +2630,11 @@
   function buildThumbAlt(it){
     const title = String(it?.name || "Untitled").trim();
     const author = String(it?.author || "unknown").trim();
-    const tags = Array.isArray(it?.tags)
-      ? it.tags.map(t => String(t || "").trim()).filter(Boolean)
-      : [];
-
-    const bits = [title, `MobCrafter unit by ${author}`];
-    if(tags.length) bits.push(tags.join(", "));
-    return bits.join(" - ");
+    const type = contentTypeLabel(it?.contentType);
+    const files = fileAvailabilityLabel(it?.fileAvailability);
+    const bits = [title, `${type} by ${author}`, files];
+    if(it?.isOfficialStarter) bits.push("Official Starter Collection");
+    return bits.filter(Boolean).join(" - ");
   }
 
   // ===== Lazy canvas thumbs (fallback only) =====
@@ -1605,8 +2769,12 @@
   }
 
   function renderCard(it){
+    let variant = "default";
+    if(arguments.length > 1 && arguments[1] && typeof arguments[1] === "object"){
+      variant = String(arguments[1].variant || "default");
+    }
     const card = document.createElement("article");
-    card.className = "card";
+    card.className = `card${variant !== "default" ? ` card-${variant}` : ""}`;
 
     const isMine = Boolean(meEmail && it.authorEmail && String(it.authorEmail) === String(meEmail));
     const canEdit = isMine;
@@ -1617,12 +2785,17 @@
     const imgFitClass = is3DThumb ? " contain" : "";
     const unitHref = getUnitHref(it);
     const thumbAlt = buildThumbAlt(it);
-    const openLabel = `Open ${String(it.name || "Unit")}`;
+    const openLabel = `Open ${String(it.name || "Creation")}`;
 
     const st = String(it.status || "approved").toLowerCase();
     const statusBadge = (st && st !== "approved")
       ? `<span class="badge ${escapeHtml(st)}">${escapeHtml(st)}</span>`
       : ``;
+    const cardBadges = buildCardBadges(it)
+      .slice(0, variant === "featured-primary" ? 4 : 3)
+      .map((badge) => `<span class="badge ${escapeHtml(badge.cls)}">${renderUiLabel(badge.icon, badge.label, { wrapperClass: "ui-badge-label", iconClass: "ui-ico ui-ico-xs" })}</span>`)
+      .join("");
+    const cardSummary = buildCardSummary(it);
 
     const publicSrc = hasScreen
       ? (API_PUBLIC_SCREEN(it.thumbScreenId) + "?v=" + encodeURIComponent(it.created || it.createdText || ""))
@@ -1661,24 +2834,29 @@
           <span class="badge">${escapeHtml(it.mod || "Forge")}</span>
           ${statusBadge}
         </div>
-        <a class="btn-dl" href="${escapeHtml(API_DL(it.id))}" download>Download</a>
         ${canEdit ? `<a class="btn-edit" href="${escapeHtml(`/submit?edit=${encodeURIComponent(it.id)}`)}">Edit</a>` : ``}
       </div>
 
       <div class="card-body">
         <p class="title"><a href="${escapeHtml(unitHref)}">${escapeHtml(it.name)}</a></p>
+        <div class="card-badge-row">${cardBadges}</div>
         <div class="meta">
           <div class="left">
-            <div class="author">👤 <span>${escapeHtml(it.author || "unknown")}</span></div>
-            <div class="dl"><span class="dl-ico">↓</span><span class="dl-num">${escapeHtml(it.dl ?? 0)}</span></div>
+            <div class="author">By <span>${escapeHtml(it.author || "unknown")}</span></div>
+          </div>
+          <div class="right">
+            <div class="metric dl"><span class="metric-ico">↓</span><span class="dl-num">${escapeHtml(it.dl ?? 0)}</span></div>
             <div class="like">
               <button class="btn-like" type="button" data-like-btn data-submission-id="${escapeHtml(it.id)}" aria-pressed="false" title="Like">♡</button>
               <span data-like-count>${escapeHtml(it.likesCount ?? 0)}</span>
             </div>
           </div>
-          <div class="time">🕒 ${escapeHtml(it.createdText)}</div>
         </div>
-        <div class="tagline">${escapeHtml(it.tags.join(" / "))}</div>
+        <div class="card-summary">${escapeHtml(cardSummary)}</div>
+        <div class="card-actions">
+          <a class="card-open" href="${escapeHtml(unitHref)}">View Details</a>
+          ${canEdit ? `<a class="btn-edit-inline" href="${escapeHtml(`/submit?edit=${encodeURIComponent(it.id)}`)}">Edit</a>` : ``}
+        </div>
       </div>
     `;
 
@@ -1687,16 +2865,6 @@
       if (a) return;
       goUnit(it);
     });
-
-    const editBtn = card.querySelector(".btn-edit");
-    if (editBtn) {
-      editBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        goUnit(it);
-      });
-    }
-
     const likeBtn = card.querySelector("[data-like-btn]");
     const likeCountEl = card.querySelector("[data-like-count]");
     if (likeBtn && likeCountEl) {
@@ -1920,6 +3088,11 @@
       const thumbModeRaw =
         (r.thumb_mode ?? r.thumbMode ?? r.thumbnail_mode ?? r.thumbnailMode ?? "");
 
+      const fileAvailability = String(r.file_availability ?? r.fileAvailability ?? "json").trim().toLowerCase() || "json";
+      const accessType = String(r.access_type ?? r.accessType ?? "free").trim().toLowerCase() || "free";
+      const creationMethod = String(r.creation_method ?? r.creationMethod ?? "hand_built").trim().toLowerCase() || "hand_built";
+      const contentType = String(r.content_type ?? r.contentType ?? "mobcrafter_unit_json").trim().toLowerCase() || "mobcrafter_unit_json";
+
       return ({
         id: String(r.id),
         no,
@@ -1937,7 +3110,19 @@
         thumbMode: normalizeThumbMode(thumbModeRaw),
         thumbScreenId: screenId ? String(screenId) : null,
         yawOffsetQuarter: r.yaw_offset_quarter != null ? (Number(r.yaw_offset_quarter) % 4) : null,
-        status
+        status,
+        slug: String(r.slug || "").trim(),
+        contentType,
+        fileAvailability,
+        accessType,
+        creationMethod,
+        creationMethodSource: String(r.creation_method_source ?? r.creationMethodSource ?? "").trim(),
+        isOfficialStarter: resolveOfficialStarter(r),
+        isFeatured: normalizeBool(r.is_featured ?? r.isFeatured, false),
+        isPublished: normalizeBool(r.is_published ?? r.isPublished, true),
+        externalUrl: String(r.external_url ?? r.externalUrl ?? "").trim(),
+        supportUrl: String(r.support_url ?? r.supportUrl ?? "").trim(),
+        viewCount: Number(r.view_count ?? r.viewCount ?? 0) || 0,
       });
     });
   }
@@ -2016,11 +3201,165 @@
     return preferScreenOrder(arr).slice(0, Math.max(0, n|0));
   }
 
-  function renderShelf(el, arr){
+  function createHeroThumbCanvas(width, height, alt){
+    const canvas = document.createElement("canvas");
+    canvas.className = "hero-feature-thumb";
+    canvas.width = width;
+    canvas.height = height;
+    canvas.setAttribute("role", "img");
+    if(alt) canvas.setAttribute("aria-label", alt);
+    return canvas;
+  }
+
+  function renderHeroShowcaseMedia(it){
+    if(!heroFeatureMedia) return;
+    heroFeatureMedia.innerHTML = "";
+    if(!it || !it.id){
+      heroFeatureMedia.innerHTML = '<div class="hero-feature-thumb"></div>';
+      return;
+    }
+
+    const thumbAlt = buildThumbAlt(it);
+    const publicSrc = it.thumbScreenId ? (API_PUBLIC_SCREEN(it.thumbScreenId) + "?v=" + encodeURIComponent(it.created || it.createdText || "")) : "";
+    const privateSrc = it.thumbScreenId ? (API_PRIVATE_SCREEN(it.thumbScreenId) + "?v=" + encodeURIComponent(it.created || it.createdText || "")) : "";
+    const initialSrc = (meEmail && String(it.status || "").toLowerCase() !== "approved") ? privateSrc : publicSrc;
+
+    if(initialSrc){
+      const img = document.createElement("img");
+      img.className = "hero-feature-thumb";
+      img.alt = thumbAlt;
+      img.loading = "eager";
+      img.decoding = "async";
+      img.src = initialSrc;
+      img.addEventListener("error", () => {
+        if(!heroFeatureMedia.isConnected) return;
+        const canvas = createHeroThumbCanvas(720, 460, thumbAlt);
+        if(it.yawOffsetQuarter != null) canvas.dataset.yawQuarter = String(it.yawOffsetQuarter);
+        heroFeatureMedia.innerHTML = "";
+        heroFeatureMedia.appendChild(canvas);
+        lazyRenderCanvasThumb(canvas, it.id);
+      }, { once:true });
+      heroFeatureMedia.appendChild(img);
+      return;
+    }
+
+    const canvas = createHeroThumbCanvas(720, 460, thumbAlt);
+    if(it.yawOffsetQuarter != null) canvas.dataset.yawQuarter = String(it.yawOffsetQuarter);
+    heroFeatureMedia.appendChild(canvas);
+    lazyRenderCanvasThumb(canvas, it.id);
+  }
+
+  function renderHeroShowcase({ featuredItems=[], communityItems=[] } = {}){
+    if(!heroFeatureCard || !heroFeatureTitle || !heroFeatureSummary || !heroFeatureMeta || !heroFeatureBadges || !heroShowcaseList) return;
+
+    const featured = Array.isArray(featuredItems) ? featuredItems : [];
+    const community = Array.isArray(communityItems) ? communityItems : [];
+    const primary = featured[0] || community[0] || null;
+    const secondary = uniqById(featured.slice(1).concat(community).filter(Boolean)).slice(0, 2);
+
+    if(!primary){
+      heroFeatureCard.href = "#discover";
+      heroFeatureCard.classList.add("hero-feature-empty");
+      heroFeatureBadges.innerHTML = `<span class="hero-feature-pill">${renderUiLabel("official", "Official Starter", { wrapperClass: "ui-pill-label", iconClass: "ui-ico ui-ico-xs" })}</span><span class="hero-feature-pill">${renderUiLabel("grid", "Live catalog", { wrapperClass: "ui-pill-label", iconClass: "ui-ico ui-ico-xs" })}</span>`;
+      heroFeatureTitle.textContent = "Official Starter Showcase";
+      heroFeatureSummary.textContent = "Ready-to-try examples from the live catalog.";
+      heroFeatureMeta.innerHTML = "<span>Browse the starter shelf below.</span>";
+      renderHeroShowcaseMedia(null);
+      heroShowcaseList.innerHTML = `
+        <a class="hero-mini-card hero-mini-empty" href="#discover">
+          <div class="hero-mini-title">Browse starter creations</div>
+          <div class="hero-mini-meta">Official Starter picks stay honest until real uploads fill them.</div>
+        </a>`;
+      return;
+    }
+
+    heroFeatureCard.classList.remove("hero-feature-empty");
+    heroFeatureCard.href = getUnitHref(primary);
+    renderHeroShowcaseMedia(primary);
+    heroFeatureBadges.innerHTML = buildCardBadges(primary).slice(0, 3).map((badge) => `<span class="hero-feature-pill">${renderUiLabel(badge.icon, badge.label, { wrapperClass: "ui-pill-label", iconClass: "ui-ico ui-ico-xs" })}</span>`).join("") || `<span class="hero-feature-pill">${renderUiLabel("grid", "Featured creation", { wrapperClass: "ui-pill-label", iconClass: "ui-ico ui-ico-xs" })}</span>`;
+    heroFeatureTitle.textContent = String(primary.name || "Featured creation");
+    heroFeatureSummary.textContent = trimText(primary.desc || buildCardSummary(primary) || "Ready-to-try example from the live MobCrafter catalog.", 54);
+    heroFeatureMeta.innerHTML = `
+      <span>By ${escapeHtml(primary.author || "unknown")}</span>
+      <span>${escapeHtml(fileAvailabilityLabel(primary.fileAvailability) || contentTypeLabel(primary.contentType) || "Creation")}</span>
+      <span>${escapeHtml(primary.createdText || "recently")}</span>`;
+
+    heroShowcaseList.innerHTML = secondary.map((it) => {
+      const miniBadges = buildCardBadges(it).slice(0, 2).map((badge) => `<span class="hero-mini-pill">${renderUiLabel(badge.icon, badge.label, { wrapperClass: "ui-pill-label", iconClass: "ui-ico ui-ico-xs" })}</span>`).join("");
+      return `
+        <a class="hero-mini-card" href="${escapeHtml(getUnitHref(it))}">
+          <div class="hero-mini-badges">${miniBadges}</div>
+          <div class="hero-mini-title">${escapeHtml(it.name || "Untitled")}</div>
+          <div class="hero-mini-meta">By ${escapeHtml(it.author || "unknown")} • Updated ${escapeHtml(it.createdText || "recently")}</div>
+        </a>`;
+    }).join("");
+  }
+
+  function renderCtaCard(def){
+    const card = document.createElement("article");
+    card.className = `card cta-card${def && def.cardClass ? ` ${String(def.cardClass)}` : ""}`;
+    card.innerHTML = `
+      <div class="card-body">
+        <div class="tagline">${escapeHtml(def.eyebrow || "")}</div>
+        <p class="title">${escapeHtml(def.title || "")}</p>
+        <div class="card-summary">${escapeHtml(def.text || "")}</div>
+        <div class="card-actions">
+          <a class="card-open" href="${escapeHtml(def.primaryHref || "/submit.html")}">${renderUiLabel(inferActionIcon(def.primaryText, def.primaryHref), def.primaryText || "Open", { wrapperClass: "ui-label", iconClass: "ui-ico ui-ico-sm" })}</a>
+          ${def.secondaryHref && def.secondaryText ? `<a class="btn-edit-inline" href="${escapeHtml(def.secondaryHref)}">${renderUiLabel(inferActionIcon(def.secondaryText, def.secondaryHref), def.secondaryText, { wrapperClass: "ui-label", iconClass: "ui-ico ui-ico-sm" })}</a>` : ``}
+        </div>
+      </div>
+    `;
+    return card;
+  }
+
+  function renderFeaturedShelf(el, arr, { emptyCards=[] } = {}){
     if(!el) return;
     el.innerHTML = "";
-    for(const it of (arr || [])){
+    const itemsToRender = Array.isArray(arr) ? arr : [];
+    if(!itemsToRender.length){
+      for(const def of (emptyCards || [])){
+        el.appendChild(renderCtaCard(def));
+      }
+      return;
+    }
+
+    el.appendChild(renderCard(itemsToRender[0], { variant: "featured-primary" }));
+
+    const stack = document.createElement("div");
+    stack.className = "mc-featured-stack";
+    for(const it of itemsToRender.slice(1, 6)){
+      stack.appendChild(renderCard(it, { variant: "featured-mini" }));
+    }
+    el.appendChild(stack);
+  }
+
+  function renderCommunityShelf(el, arr, { emptyCards=[] } = {}){
+    if(!el) return;
+    el.innerHTML = "";
+    const itemsToRender = Array.isArray(arr) ? arr : [];
+    for(const it of itemsToRender){
       el.appendChild(renderCard(it));
+    }
+
+    const defs = Array.isArray(emptyCards) ? emptyCards : [];
+    const ctaCount = itemsToRender.length === 0 ? Math.min(2, defs.length) : (itemsToRender.length < 3 ? Math.min(1, defs.length) : 0);
+    for(const def of defs.slice(0, ctaCount)){
+      el.appendChild(renderCtaCard(def));
+    }
+  }
+
+  function renderShelf(el, arr, { emptyCards=[] } = {}){
+    if(!el) return;
+    el.innerHTML = "";
+    const itemsToRender = Array.isArray(arr) ? arr : [];
+    if(itemsToRender.length){
+      for(const it of itemsToRender){
+        el.appendChild(renderCard(it));
+      }
+      return;
+    }
+    for(const def of (emptyCards || [])){
+      el.appendChild(renderCtaCard(def));
     }
   }
 
@@ -2030,18 +3369,21 @@
     try{ if(document.body) document.body.classList.toggle("mc-discover-on", !!on); }catch{}
 
     const secFeatured = document.getElementById("secFeatured");
-    const secVanilla = document.getElementById("secVanilla");
+    const secCommunity = document.getElementById("secCommunity");
     const secTrending = document.getElementById("secTrending");
+    const secSets = document.getElementById("secSets");
     const secPopular  = document.getElementById("secPopular");
 
     // Always reset shelves; updateDiscoverySections will re-show sections as needed.
     if(secFeatured) secFeatured.style.display = "none";
-    if(secVanilla) secVanilla.style.display = "none";
+    if(secCommunity) secCommunity.style.display = "none";
     if(secTrending) secTrending.style.display = "none";
+    if(secSets) secSets.style.display = "none";
     if(secPopular)  secPopular.style.display  = "none";
     if(shelfFeatured) shelfFeatured.innerHTML = "";
-    if(shelfVanilla) shelfVanilla.innerHTML = "";
+    if(shelfCommunity) shelfCommunity.innerHTML = "";
     if(shelfTrending) shelfTrending.innerHTML = "";
+    if(shelfSets) shelfSets.innerHTML = "";
     if(shelfPopular)  shelfPopular.innerHTML  = "";
   }
 
@@ -2051,30 +3393,33 @@
     const basePop  = Array.isArray(popularItems)  ? popularItems  : [];
     const pool = uniqById(baseNew.concat(baseTrnd).concat(basePop));
 
-    const featured  = pickShelf(pool.filter(it => tagHas(it, "featured")), DISCOVERY_SHELF_SIZE);
-    const vanilla   = pickShelf(pool.filter(it => tagHas(it, "vanilla")),  DISCOVERY_SHELF_SIZE);
-    // Trending Now: from the dedicated Trending API result
-    const trending  = pickShelf(baseTrnd, DISCOVERY_SHELF_SIZE);
-    // Popular (all-time): from the dedicated Popular API result, exclude already shown in trending
-    const trendingIds = new Set(trending.map(x => x.id));
-    const popular   = pickShelf(basePop.filter(x => !trendingIds.has(x.id)), DISCOVERY_SHELF_SIZE);
+    const featured = pickShelf(pool.filter(it => it.isOfficialStarter), DISCOVERY_SHELF_SIZE);
+    const community = pickShelf(uniqById(baseNew.concat(pool)).filter(it => !it.isOfficialStarter), DISCOVERY_SHELF_SIZE);
+    const trending = pickShelf(uniqById(baseTrnd.concat(pool)).filter(isSchematicLikeItem), DISCOVERY_SHELF_SIZE);
+    const sets = pickShelf(pool.filter(isUnitSetLikeItem), DISCOVERY_SHELF_SIZE);
+    const popular = pickShelf(uniqById(basePop.concat(pool)).filter(isCreatorSupportedItem), DISCOVERY_SHELF_SIZE);
+
+    renderHeroShowcase({ featuredItems: featured, communityItems: community });
 
     const secFeatured = document.getElementById("secFeatured");
-    const secVanilla  = document.getElementById("secVanilla");
+    const secCommunity  = document.getElementById("secCommunity");
     const secTrending = document.getElementById("secTrending");
+    const secSets = document.getElementById("secSets");
     const secPopular  = document.getElementById("secPopular");
-    if(secFeatured) secFeatured.style.display = featured.length  ? "block" : "none";
-    if(secVanilla)  secVanilla.style.display  = vanilla.length   ? "block" : "none";
-    if(secTrending) secTrending.style.display = trending.length  ? "block" : "none";
-    if(secPopular)  secPopular.style.display  = popular.length   ? "block" : "none";
+    if(secFeatured) secFeatured.style.display = "block";
+    if(secCommunity) secCommunity.style.display = "block";
+    if(secTrending) secTrending.style.display = "block";
+    if(secSets) secSets.style.display = "block";
+    if(secPopular) secPopular.style.display = "block";
 
-    renderShelf(shelfFeatured, featured);
-    renderShelf(shelfVanilla,  vanilla);
-    renderShelf(shelfTrending, trending);
-    renderShelf(shelfPopular,  popular);
+    renderFeaturedShelf(shelfFeatured, featured, { emptyCards: HUB_EMPTY_SHELF_CARDS.starter });
+    renderCommunityShelf(shelfCommunity, community, { emptyCards: HUB_EMPTY_SHELF_CARDS.community });
+    renderShelf(shelfTrending, trending, { emptyCards: HUB_EMPTY_SHELF_CARDS.schematics });
+    renderShelf(shelfSets, sets, { emptyCards: HUB_EMPTY_SHELF_CARDS.sets });
+    renderShelf(shelfPopular, popular, { emptyCards: HUB_EMPTY_SHELF_CARDS.supported });
 
     // likes hydrate: best-effort, limited to 50 ids.
-    const ids = uniqById(featured.concat(vanilla).concat(trending).concat(popular).concat(baseNew)).map(x=>x.id);
+    const ids = uniqById(featured.concat(community).concat(trending).concat(sets).concat(popular).concat(baseNew)).map(x=>x.id);
     hydrateLikesForGrid(ids);
   }
 
@@ -2120,6 +3465,11 @@
       }
 
       items = mapItems(arr);
+
+      renderHeroShowcase({
+        featuredItems: pickShelf(items.filter(it => it.isOfficialStarter), 4),
+        communityItems: pickShelf(items.filter(it => !it.isOfficialStarter), 4),
+      });
 
       renderGrid(items);
       if (!wantDiscover) {

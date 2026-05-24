@@ -1,0 +1,51 @@
+.ui-ico{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:14px;
+  height:14px;
+  flex:0 0 14px;
+  color:inherit;
+}
+.ui-ico svg{
+  width:100%;
+  height:100%;
+  display:block;
+  stroke:currentColor;
+  fill:none;
+  stroke-width:1.75;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.ui-ico-xs{
+  width:11px;
+  height:11px;
+  flex-basis:11px;
+}
+.ui-ico-sm{
+  width:12px;
+  height:12px;
+  flex-basis:12px;
+}
+.ui-ico-lg{
+  width:16px;
+  height:16px;
+  flex-basis:16px;
+}
+.ui-label,
+.ui-badge-label,
+.ui-pill-label{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+}
+.ui-badge-label,
+.ui-pill-label{
+  gap:5px;
+}
+.ui-label > span:last-child,
+.ui-badge-label > span:last-child,
+.ui-pill-label > span:last-child{
+  min-width:0;
+}

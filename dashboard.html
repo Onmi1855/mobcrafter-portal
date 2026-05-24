@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>MobCrafter Hub - Creator Dashboard</title>
+  <link rel="stylesheet" href="/assets/ui-icons.v1.css?v=20260524a" />
+  <style>
+    :root{
+      --bg:#f6f8fb;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line:#e5e7eb;
+      --brand:#0f172a;
+      --accent:#2563eb;
+      --shadow:0 10px 25px rgba(15,23,42,.08);
+      --radius:16px;
+    }
+    *{ box-sizing:border-box; }
+    body{ margin:0; font-family: system-ui, -apple-system, Segoe UI, sans-serif; background:var(--bg); color:var(--text); }
+    header, main{ max-width:1060px; margin:0 auto; padding:20px 16px; }
+    .hero{ padding:18px; border-radius:20px; border:1px solid rgba(15,23,42,.08); background:linear-gradient(145deg, rgba(239,246,255,.96), rgba(240,253,244,.96)); box-shadow:var(--shadow); }
+    .hero h1{ margin:0 0 6px; font-size:30px; letter-spacing:-.03em; }
+    .lead{ color:#334155; font-size:14px; line-height:1.8; max-width:760px; }
+    .actions{ margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; }
+    .actions a{ display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:38px; padding:8px 12px; border-radius:999px; text-decoration:none; border:1px solid rgba(15,23,42,.08); background:#fff; color:#0f172a; font-weight:700; }
+    .actions a.primary{ background:var(--brand); color:#fff; border-color:var(--brand); }
+    .card{ margin-top:16px; background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; }
+    .muted{ color:var(--muted); }
+    .grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:14px; }
+    .item{ border:1px solid var(--line); border-radius:16px; padding:14px; background:#fff; }
+    .item h2{ margin:0; font-size:18px; line-height:1.35; }
+    .item p{ margin:8px 0 0; color:#334155; font-size:13px; line-height:1.7; min-height:44px; }
+    .meta, .chips{ margin-top:10px; display:flex; gap:6px; flex-wrap:wrap; }
+    .chips span{ display:inline-flex; align-items:center; padding:4px 8px; border-radius:999px; border:1px solid rgba(148,163,184,.25); background:#fff; font-size:12px; color:#334155; }
+    .itemActions{ margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; }
+    .itemActions a{ display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:34px; padding:8px 12px; border-radius:999px; text-decoration:none; font-size:12px; font-weight:700; border:1px solid rgba(15,23,42,.08); background:#fff; color:#0f172a; }
+    .itemActions a.primary{ background:#0f172a; color:#fff; border-color:#0f172a; }
+    .empty{ padding:18px; border-radius:16px; border:1px dashed rgba(148,163,184,.35); background:#fff; color:#475569; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="hero">
+    <h1>Creator Dashboard</h1>
+    <div class="lead">Review your MobCrafter Hub units, schematics, packs, and creator-supported releases, then jump to the edit flow or public detail page. This dashboard keeps the existing same-origin Worker APIs and static site flow intact.</div>
+    <div class="actions">
+      <a href="/"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#home"></use></svg></span><span>Back to Hub</span></a>
+      <a class="primary" href="/submit.html"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#upload"></use></svg></span><span>Upload Your Creation</span></a>
+      <a href="/creators/"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#users"></use></svg></span><span>Browse creators</span></a>
+      <a id="loginLink" href="/api/login?next=%2Fdashboard.html"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#login"></use></svg></span><span>Log in</span></a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="card">
+    <div id="authState" class="muted"></div>
+  </section>
+
+  <section class="card">
+    <h2 style="margin:0 0 8px; font-size:20px;">My releases</h2>
+    <div id="listState" class="muted">Loading…</div>
+    <div id="items" class="grid" style="margin-top:12px;"></div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const API_ORIGIN = (() => {
+    const v = String(new URLSearchParams(location.search).get("api") || "").trim();
+    if (!v) return "";
+    try { return new URL(v, location.href).origin; } catch { return ""; }
+  })();
+  const api = (path) => (API_ORIGIN ? (API_ORIGIN + path) : path);
+
+  const API_WHOAMI = api("/api/whoami");
+  const API_MY = api("/api/my/submissions");
+
+  const $authState = document.getElementById("authState");
+  const $listState = document.getElementById("listState");
+  const $items = document.getElementById("items");
+  const $loginLink = document.getElementById("loginLink");
+  $loginLink.href = "/api/login?next=" + encodeURIComponent(location.pathname + location.search);
+
+  function esc(s){
+    return String(s ?? "").replace(/[&<>"']/g, (m) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
+  }
+
+  function trimText(value, maxLen){
+    const text = String(value || "").trim();
+    if (!text) return "";
+    if (text.length <= maxLen) return text;
+    return text.slice(0, Math.max(0, maxLen - 1)).trimEnd() + "…";
+  }
+
+  function detailHref(item){
+    const no = item.submission_no ?? item.submissionNo ?? null;
+    if (no != null && String(no).trim() !== "") return `/u/${encodeURIComponent(String(no))}`;
+    return `/u/${encodeURIComponent(String(item.id || ""))}`;
+  }
+
+  async function fetchJson(url){
+    let r;
+    try {
+      r = await fetch(url, { cache:"no-store", credentials:"include" });
+    } catch {
+      return { ok: false, status: 0, data: null };
+    }
+    const t = await r.text();
+    let d = null;
+    try { d = JSON.parse(t); } catch { d = null; }
+    return { ok: r.ok, status: r.status, data: d };
+  }
+
+  function renderItems(items){
+    if (!items.length) {
+      $items.innerHTML = `<div class="empty">You do not have any submissions yet. Use Quick Upload to publish the first one.</div>`;
+      return;
+    }
+
+    $items.innerHTML = items.map((item) => `
+      <article class="item">
+        <h2>${esc(item.title || item.unit_id || "Untitled")}</h2>
+        <p>${esc(trimText(item.description || `${item.content_type || "Creation"} • ${item.file_availability || "JSON"}`, 140))}</p>
+        <div class="chips">
+          <span>${esc(item.status || "unknown")}</span>
+          ${item.content_type ? `<span>${esc(item.content_type)}</span>` : ``}
+          ${item.file_availability ? `<span>${esc(item.file_availability)}</span>` : ``}
+          ${item.access_type ? `<span>${esc(item.access_type)}</span>` : ``}
+          ${item.is_published === false || item.is_published === 0 ? `<span>draft</span>` : `<span>published</span>`}
+        </div>
+        <div class="meta muted">Downloads: ${esc(String(item.download_count || 0))}${item.updated_at ? ` • Updated: ${esc(String(item.updated_at))}` : ``}</div>
+        <div class="itemActions">
+          <a class="primary" href="/submit.html?edit=${encodeURIComponent(String(item.id || ""))}"><span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#edit"></use></svg></span><span>Edit</span></a>
+          <a href="${esc(detailHref(item))}"><span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#preview"></use></svg></span><span>View detail</span></a>
+        </div>
+      </article>
+    `).join("");
+  }
+
+  async function load(){
+    const who = await fetchJson(API_WHOAMI + (API_WHOAMI.includes("?") ? "&" : "?") + "t=" + Date.now());
+    const email = who.ok && who.data ? String(who.data.email || "").trim() : "";
+    if (!email) {
+      $authState.textContent = "You are logged out. Log in to view your dashboard.";
+      $listState.textContent = "Login required.";
+      $items.innerHTML = `<div class="empty">Creator Dashboard requires the same Cloudflare Access login used for submit and edit.</div>`;
+      return;
+    }
+
+    $authState.textContent = `Logged in as ${email}`;
+    const res = await fetchJson(API_MY);
+    if (!res.ok || !res.data) {
+      $listState.textContent = "Failed to load your releases.";
+      $items.innerHTML = `<div class="empty">Your releases could not be loaded right now.</div>`;
+      return;
+    }
+
+    const items = Array.isArray(res.data.items) ? res.data.items : [];
+    $listState.textContent = items.length ? `${items.length} release(s)` : "No releases yet.";
+    renderItems(items);
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>

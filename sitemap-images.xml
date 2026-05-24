@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://mobcrafter.net/</loc>
+    <image:image>
+      <image:loc>https://mobcrafter.net/assets/top_banner_new.png</image:loc>
+      <image:title>MobCrafter Hub banner</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://mobcrafter.net/about.html</loc>
+    <image:image>
+      <image:loc>https://mobcrafter.net/assets/top_banner_new.png</image:loc>
+      <image:title>About MobCrafter Hub</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://mobcrafter.net/mobcrafter.html</loc>
+    <image:image>
+      <image:loc>https://mobcrafter.net/assets/top_banner.png</image:loc>
+      <image:title>MobCrafter banner</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://mobcrafter.net/upload-guide.html</loc>
+    <image:image>
+      <image:loc>https://mobcrafter.net/assets/top_banner_new.png</image:loc>
+      <image:title>MobCrafter Hub upload guide</image:title>
+    </image:image>
+  </url>
+</urlset>
