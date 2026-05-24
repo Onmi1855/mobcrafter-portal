@@ -327,9 +327,8 @@
     .mc-shelf.grid{
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     }
-    .mc-shelf .thumbwrap{ height: 170px; }
     .mc-shelf canvas.thumb,
-    .mc-shelf img.thumbimg{ height: 170px; }
+    .mc-shelf img.thumbimg{ image-rendering:auto; }
 
     .mc-cta-grid{
       display:grid;
@@ -516,42 +515,65 @@
       transform: translateY(-1px);
       box-shadow: 0 14px 30px rgba(15,23,42,.10);
     }
+    /* ===== Phase 2: unified card thumbnail (aspect-ratio + contain + soft bg) ===== */
     .thumbwrap{
-      height:140px;
-      background: linear-gradient(180deg, #e6f0ff, #f5f9ff);
+      aspect-ratio: 16 / 9;
+      width:100%;
+      background:
+        radial-gradient(120% 80% at 50% 35%, rgba(255,255,255,.85) 0%, rgba(255,255,255,0) 60%),
+        linear-gradient(180deg, #eaf2ff 0%, #f5f9ff 55%, #eef7ee 100%);
       display:flex;
       align-items:center;
       justify-content:center;
       position:relative;
+      overflow:hidden;
     }
     .thumb-link{
+      position:absolute;
+      inset:0;
       display:block;
-      width:100%;
-      height:100%;
       color:inherit;
       text-decoration:none;
     }
-    canvas.thumb{
-      width:100%;
-      height:140px;
-      image-rendering:pixelated;
-      display:block;
-    }
-
+    canvas.thumb,
     img.thumbimg{
+      position:absolute;
+      inset:0;
       width:100%;
-      height:140px;
-      object-fit:cover;
-      image-rendering:auto;
+      height:100%;
+      object-fit:contain;
+      object-position:center;
       display:block;
+      image-rendering:auto;
     }
-
+    canvas.thumb{ image-rendering:pixelated; }
+    /* Opt-in modifier kept for cases where a true edge-to-edge crop is wanted. */
+    img.thumbimg.cover{ object-fit:cover; }
+    /* Legacy .contain class is now a no-op (contain is the default). */
     img.thumbimg.contain{ object-fit:contain; }
 
-    /* Slightly taller thumbs in the main grid (New Units/search results) to reduce “cramped” crops */
-    #grid .thumbwrap{ height: 150px; }
-    #grid canvas.thumb,
-    #grid img.thumbimg{ height: 150px; }
+    .thumb-placeholder{
+      position:absolute;
+      inset:0;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      color:#64748b;
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      text-align:center;
+      padding:8px;
+    }
+    .thumb-placeholder svg{
+      width:38px;
+      height:38px;
+      opacity:.55;
+    }
+    .thumb-placeholder span{ opacity:.75; }
 
     .pill{
       position:absolute;
@@ -1130,13 +1152,7 @@
       grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
       gap:20px;
     }
-    .mc-shelf .thumbwrap{ height:286px; }
-    .mc-shelf canvas.thumb,
-    .mc-shelf img.thumbimg{ height:286px; }
     #shelfCommunity.grid{ grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); }
-    #shelfCommunity .thumbwrap{ height:272px; }
-    #shelfCommunity canvas.thumb,
-    #shelfCommunity img.thumbimg{ height:272px; }
     .grid{ gap:18px; }
     .card{
       overflow:hidden;
@@ -1151,13 +1167,6 @@
       box-shadow: 0 22px 40px rgba(15,23,42,.12);
       border-color: rgba(37,99,235,.18);
     }
-    .thumbwrap{
-      height:190px;
-      background: radial-gradient(circle at top, rgba(191,219,254,.98), rgba(248,250,252,.98) 64%);
-    }
-    #grid .thumbwrap{ height:270px; }
-    #grid canvas.thumb,
-    #grid img.thumbimg{ height:270px; }
     .badge{
       padding:5px 9px;
       background:rgba(255,255,255,.9);
@@ -1237,9 +1246,6 @@
     }
     .tagline{ display:none; }
     .card-actions{ margin-top:2px; }
-    .card.card-featured-primary .thumbwrap{ height:500px; }
-    .card.card-featured-primary canvas.thumb,
-    .card.card-featured-primary img.thumbimg{ height:500px; }
     .card.card-featured-primary .title{ font-size:32px; line-height:1.02; }
     .card.card-featured-primary .card-body{ padding:18px 18px 20px; gap:10px; }
     .card.card-featured-primary .card-summary{ font-size:12px; }
@@ -1249,12 +1255,12 @@
       min-height:186px;
     }
     .card.card-featured-mini .thumbwrap{
+      aspect-ratio:auto;
       height:100%;
       min-height:186px;
     }
     .card.card-featured-mini canvas.thumb,
     .card.card-featured-mini img.thumbimg{
-      height:100%;
       min-height:186px;
     }
     .card.card-featured-mini .card-body{
@@ -1311,9 +1317,6 @@
       .hero-shell{ grid-template-columns:1fr; }
       .hero-feature-card{ min-height:220px; }
       .mc-featured-shelf{ grid-template-columns:1fr; }
-      .card.card-featured-primary .thumbwrap,
-      .card.card-featured-primary canvas.thumb,
-      .card.card-featured-primary img.thumbimg{ height:380px; }
     }
     @media (max-width: 720px){
       .mc-hero-panel{ padding:14px; }
@@ -1323,19 +1326,25 @@
       .hero-showcase{ padding:8px; }
       .hero-feature-title{ font-size:22px; }
       .card.card-featured-mini{ grid-template-columns:1fr; }
-      .card.card-featured-mini .thumbwrap,
+      .card.card-featured-mini .thumbwrap{
+        aspect-ratio: 16 / 9;
+        min-height:0;
+      }
       .card.card-featured-mini canvas.thumb,
-      .card.card-featured-mini img.thumbimg{ min-height:210px; height:210px; }
+      .card.card-featured-mini img.thumbimg{ min-height:0; }
       .mc-submit-banner-inner{ align-items:flex-start; }
+      .mc-submit-banner-actions{
+        width:100%;
+        flex-direction:column;
+        align-items:stretch;
+      }
+      .mc-submit-banner-actions a{
+        justify-content:center;
+        white-space:normal;
+      }
     }
     @media (max-width: 560px){
       .mc-shelf.grid{ grid-template-columns:1fr; }
-      .card.card-featured-primary .thumbwrap,
-      .card.card-featured-primary canvas.thumb,
-      .card.card-featured-primary img.thumbimg{ height:320px; }
-      #grid .thumbwrap,
-      #grid canvas.thumb,
-      #grid img.thumbimg{ height:232px; }
       .mc-hero-title{ max-width:11ch; }
     }
   </style>
@@ -2512,19 +2521,43 @@
     try{ obs.observe(canvas); }catch{}
   }
 
+  function buildThumbPlaceholder(alt){
+    const div = document.createElement("div");
+    div.className = "thumb-placeholder";
+    div.setAttribute("role", "img");
+    div.setAttribute("aria-label", String(alt || "No preview available"));
+    div.innerHTML = `
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="5" width="18" height="14" rx="2"/>
+        <circle cx="8.5" cy="10.5" r="1.5"/>
+        <path d="M21 16l-5-5-7 7"/>
+      </svg>
+      <span>Preview coming soon</span>
+    `;
+    return div;
+  }
+
   function replaceCanvasWithFallbackImage(canvas){
     if(!canvas) return false;
-    const publicSrc = String(canvas.getAttribute("data-fallback-public-src") || "").trim();
-    const privateSrc = String(canvas.getAttribute("data-fallback-private-src") || "").trim();
-    const src = (meEmail && privateSrc) ? privateSrc : (publicSrc || privateSrc);
-    if(!src) return false;
-
     const wrap = canvas.closest(".thumbwrap");
     if(!wrap) return false;
 
+    const publicSrc = String(canvas.getAttribute("data-fallback-public-src") || "").trim();
+    const privateSrc = String(canvas.getAttribute("data-fallback-private-src") || "").trim();
+    const src = (meEmail && privateSrc) ? privateSrc : (publicSrc || privateSrc);
+    const alt = String(canvas.getAttribute("data-thumb-alt") || "");
+
+    if(!src){
+      // No screenshot available either; install a unified placeholder so the card
+      // never shows an empty/transparent thumb panel.
+      canvas.remove();
+      wrap.prepend(buildThumbPlaceholder(alt));
+      return true;
+    }
+
     const img = document.createElement("img");
-    img.className = "thumbimg contain";
-    img.alt = String(canvas.getAttribute("data-thumb-alt") || "");
+    img.className = "thumbimg";
+    img.alt = alt;
     img.src = src;
     img.loading = "lazy";
     img.decoding = "async";
@@ -2546,9 +2579,8 @@
     const canEdit = isMine;
 
     const hasScreen = Boolean(it.thumbScreenId);
-    const is3DThumb = (String(it.thumbMode || "").toLowerCase() === "3d");
-    const useScreenThumb = hasScreen;
-    const imgFitClass = is3DThumb ? " contain" : "";
+    // Phase 2: always use object-fit:contain for static thumbs so unit silhouettes
+    // are never clipped. (Background gradient on .thumbwrap fills any letterbox.)
     const unitHref = getUnitHref(it);
     const thumbAlt = buildThumbAlt(it);
     const openLabel = `Open ${String(it.name || "Creation")}`;
@@ -2577,8 +2609,8 @@
     card.innerHTML = `
       <div class="thumbwrap">
         <a class="thumb-link" href="${escapeHtml(unitHref)}" aria-label="${escapeHtml(openLabel)}">
-          ${useScreenThumb
-            ? `<img class="thumbimg${imgFitClass}"
+          ${hasScreen
+            ? `<img class="thumbimg"
                     src="${escapeHtml(initialSrc)}"
                     alt="${escapeHtml(thumbAlt)}"
                     loading="lazy"
