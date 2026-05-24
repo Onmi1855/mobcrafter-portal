@@ -150,12 +150,6 @@
       color: var(--brand);
       border-color: rgba(37,99,235,.25);
     }
-    /* ===== Popular shelf ===== */
-    #secPopular{ margin-top: 18px; }
-    #secPopular .mc-section-head h2{
-      font-size: 16px;
-      font-weight: 800;
-    }
     /* ===== Phase 1: Hero + discovery sections ===== */
     .mc-hero-copy{
       max-width: 840px;
@@ -337,32 +331,6 @@
     .mc-shelf canvas.thumb,
     .mc-shelf img.thumbimg{ height: 170px; }
 
-    /* ===== Trending: slightly stronger “featured shelf” feel (minimal, scoped) ===== */
-    #secTrending{ margin-top: 18px; }
-    #secTrending .mc-section-head{
-      margin: 20px 2px 12px;
-    }
-    #secTrending .mc-section-head h2{
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing: .2px;
-    }
-    #secTrending .mc-section-head::after{
-      content:"";
-      flex:1;
-      height:1px;
-      margin-left: 12px;
-      background: rgba(148,163,184,.45);
-    }
-    #shelfTrending.grid{
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    }
-    #shelfTrending .thumbwrap{ height: 180px; }
-    #shelfTrending canvas.thumb,
-    #shelfTrending img.thumbimg{ height: 180px; }
-    #shelfTrending .card{
-      border-color: rgba(37,99,235,.18);
-    }
     .mc-cta-grid{
       display:grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -1113,67 +1081,6 @@
       border-style:dashed;
       background:rgba(248,250,252,.94);
     }
-    .mc-value-grid{
-      margin:0;
-      padding:0;
-      display:grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap:8px;
-    }
-    .mc-value-wrap{
-      margin:12px 0 0;
-      padding:0;
-    }
-    .mc-value-intro{
-      margin-bottom:8px;
-      display:flex;
-      flex-wrap:wrap;
-      gap:6px 12px;
-      align-items:baseline;
-    }
-    .mc-value-eyebrow{
-      font-size:11px;
-      font-weight:800;
-      letter-spacing:.14em;
-      text-transform:uppercase;
-      color:#166534;
-    }
-    .mc-value-intro h2{
-      margin:0;
-      font-size:16px;
-      line-height:1.2;
-      color:#0f172a;
-    }
-    .mc-value-intro p{
-      margin:0;
-      max-width:720px;
-      font-size:12px;
-      line-height:1.45;
-      color:#475569;
-    }
-    .mc-value-card{
-      padding:12px 13px;
-      border-radius:14px;
-      border:1px solid rgba(148,163,184,.16);
-      background:rgba(255,255,255,.72);
-      box-shadow: 0 8px 20px rgba(15,23,42,.04);
-      text-align:left;
-    }
-    .mc-value-card strong{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      margin-bottom:5px;
-      font-size:13px;
-      font-weight:800;
-      color:#0f172a;
-    }
-    .mc-value-card p{
-      margin:0;
-      font-size:11px;
-      line-height:1.45;
-      color:#334155;
-    }
     .mc-submit-banner{
       margin:12px 0 0;
     }
@@ -1226,15 +1133,10 @@
     .mc-shelf .thumbwrap{ height:286px; }
     .mc-shelf canvas.thumb,
     .mc-shelf img.thumbimg{ height:286px; }
-    #shelfCommunity.grid,
-    #shelfTrending.grid{ grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); }
-    #shelfCommunity .thumbwrap,
-    #shelfTrending .thumbwrap{ height:272px; }
+    #shelfCommunity.grid{ grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); }
+    #shelfCommunity .thumbwrap{ height:272px; }
     #shelfCommunity canvas.thumb,
-    #shelfTrending canvas.thumb,
-    #shelfCommunity img.thumbimg,
-    #shelfTrending canvas.thumb,
-    #shelfTrending img.thumbimg{ height:272px; }
+    #shelfCommunity img.thumbimg{ height:272px; }
     .grid{ gap:18px; }
     .card{
       overflow:hidden;
@@ -1379,32 +1281,6 @@
       border-radius:0;
       background:transparent;
     }
-    .auth-kicker{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      font-size:11px;
-      font-weight:800;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      color:#166534;
-    }
-    .auth-status,
-    .auth-meta{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:5px 10px;
-      border-radius:999px;
-      background:#fff;
-      border:1px solid rgba(148,163,184,.22);
-    }
-    .auth-meta-label,
-    .auth-status-label{
-      font-size:11px;
-      font-weight:700;
-      color:#64748b;
-    }
     footer{ margin-top:30px; }
     .mc-footer{
       display:flex;
@@ -1434,7 +1310,6 @@
     @media (max-width: 920px){
       .hero-shell{ grid-template-columns:1fr; }
       .hero-feature-card{ min-height:220px; }
-      .mc-value-grid{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
       .mc-featured-shelf{ grid-template-columns:1fr; }
       .card.card-featured-primary .thumbwrap,
       .card.card-featured-primary canvas.thumb,
@@ -1454,7 +1329,6 @@
       .mc-submit-banner-inner{ align-items:flex-start; }
     }
     @media (max-width: 560px){
-      .mc-value-grid{ grid-template-columns:1fr; }
       .mc-shelf.grid{ grid-template-columns:1fr; }
       .card.card-featured-primary .thumbwrap,
       .card.card-featured-primary canvas.thumb,
@@ -1566,41 +1440,15 @@
         </div>
         <section id="shelfCommunity" class="grid mc-shelf" aria-label="New Community Uploads"></section>
 
-        <section class="mc-value-wrap" aria-label="Why upload here">
-          <div class="mc-value-intro">
-            <span class="mc-value-eyebrow">Why upload here?</span>
-            <h2>Why upload here?</h2>
-            <p>Upload fast, appear in real shelves, and keep schematic-only, creator-supported, or AI-assisted work clearly labeled.</p>
-          </div>
-          <div class="mc-value-grid">
-            <article class="mc-value-card">
-              <strong><span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#upload"></use></svg></span><span>Upload in minutes</span></strong>
-              <p>Add a title, file, tags, and publish.</p>
-            </article>
-            <article class="mc-value-card">
-              <strong><span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#grid"></use></svg></span><span>Show up in shelves</span></strong>
-              <p>Starter, community, and format rows update from real uploads.</p>
-            </article>
-            <article class="mc-value-card">
-              <strong><span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#file"></use></svg></span><span>Schematic-first is fine</span></strong>
-              <p>Start with a build now and add a unit later.</p>
-            </article>
-            <article class="mc-value-card">
-              <strong><span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#support"></use></svg></span><span>Support links fit naturally</span></strong>
-              <p>Creator-supported and external releases stay clearly labeled.</p>
-            </article>
-          </div>
-        </section>
-
         <div class="mc-submit-banner" id="submitBanner">
           <div class="mc-submit-banner-inner">
             <div class="mc-submit-banner-text">
-              <strong>Upload in under 60 seconds</strong>
-              <span>Share builds, units, packs, or releases without bringing back direct-download clutter.</span>
+              <strong>Share your creation</strong>
+              <span>Upload a build, unit, pack, or release in about a minute and it shows up in the shelves above.</span>
               <div class="mc-submit-banner-pills" aria-label="Upload formats and labels">
-                <span class="mc-submit-banner-pill">Schematic-only uploads are welcome</span>
-                <span class="mc-submit-banner-pill">Creator-supported links are welcome</span>
-                <span class="mc-submit-banner-pill">AI-assisted accepted</span>
+                <span class="mc-submit-banner-pill">Schematic-only OK</span>
+                <span class="mc-submit-banner-pill">Creator-supported OK</span>
+                <span class="mc-submit-banner-pill">AI-assisted OK</span>
               </div>
             </div>
             <div class="mc-submit-banner-actions">
@@ -1609,36 +1457,6 @@
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="mc-section" id="secTrending">
-        <div class="mc-section-head">
-          <div>
-            <h2>Trending Schematics <span style="font-size:12px;font-weight:400;color:var(--muted);margin-left:4px;">past 30 days</span></h2>
-            <p>Build-friendly releases and schematic-first uploads.</p>
-          </div>
-        </div>
-        <section id="shelfTrending" class="grid mc-shelf" aria-label="Trending Schematics"></section>
-      </div>
-
-      <div class="mc-section" id="secSets">
-        <div class="mc-section-head">
-          <div>
-            <h2>Schematic + Unit Sets</h2>
-            <p>Build once, share the schematic, and attach a summon-ready unit when you have one.</p>
-          </div>
-        </div>
-        <section id="shelfSets" class="grid mc-shelf" aria-label="Schematic and Unit Sets"></section>
-      </div>
-
-      <div class="mc-section" id="secPopular">
-        <div class="mc-section-head">
-          <div>
-            <h2>Creator-Supported Releases</h2>
-            <p>Free uploads and creator-supported releases can coexist with clear labels.</p>
-          </div>
-        </div>
-        <section id="shelfPopular" class="grid mc-shelf" aria-label="Creator-Supported Releases"></section>
       </div>
     </section>
 
@@ -1671,18 +1489,7 @@
 
     <div id="err" class="error"></div>
     <div class="authbar" id="authbar">
-      <div class="left">
-        <span class="auth-kicker"><span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#users"></use></svg></span><span>Creator tools</span></span>
-        <span id="authState" hidden></span>
-        <span id="authEmailWrap" class="auth-meta" style="display:none;"><span class="auth-meta-label">Signed in as</span><code id="authEmail"></code></span>
-        <span id="authAdminWrap" class="auth-meta" style="display:none;"><span class="auth-meta-label">Admin</span><code id="authAdmin"></code></span>
-
-        <label id="mineWrap" class="chip" style="display:none;">
-          <input id="mineOnly" type="checkbox" />
-          <span>My creations only</span>
-        </label>
-      </div>
-
+      <!-- Account meta (email/admin/status) and "My creations only" filter now live on /dashboard.html and /admin.html. -->
       <div class="right">
         <a id="authActionLink" href="/api/whoami"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#login"></use></svg></span><span>Log in</span></a>
         <a id="postLink" class="primary" href="/submit.html"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#upload"></use></svg></span><span>Upload Your Creation</span></a>
@@ -1698,45 +1505,26 @@
 
     <details class="mc-collapsible" id="overview">
       <summary>
-        About MobCrafter Hub / How to use / Creator rules
+        About MobCrafter Hub
         <span class="mc-collapsible-hint">(click to expand)</span>
       </summary>
       <div class="mc-collapsible-body">
-        <h2 style="margin:12px 0 8px; font-size:14px;">About MobCrafter Hub (Quick Overview)</h2>
-        <div style="color:#334155; font-size:12px; line-height:1.7;">
-          <p style="margin:0 0 8px;">
-            MobCrafter is a Minecraft Forge mod that lets you turn block-built creations into a single controllable unit.
-            Build with normal blocks, capture the structure as unit data, then summon it in your world for testing and experimentation.
-          </p>
-          <p style="margin:0 0 8px;">Basic flow:</p>
-          <ol style="margin:0 0 8px; padding-left:18px;">
-            <li>Build a structure with blocks.</li>
-            <li>Attach a Bone Block as the core/pivot.</li>
-            <li>Use the Capture Tool on the Bone Block to save the structure as a unit.</li>
-            <li>Summon the unit in-game.</li>
-          </ol>
-          <p style="margin:0 0 8px;">
-            Unit JSON files are loaded from <code>config/mob_crafter/units/</code>. In multiplayer, server-side JSON is used and synced to clients.
+        <div style="color:#334155; font-size:13px; line-height:1.7;">
+          <p style="margin:0 0 10px;">
+            MobCrafter Hub is the upload &amp; discovery site for the MobCrafter mod &mdash; a Minecraft Forge mod
+            that turns block-built creations into summonable units. The shelves above are the main view; the
+            pages below have the full details.
           </p>
           <p style="margin:0;">
-            Note: units shown in mod screenshots are personal examples and are not bundled with the mod. Hub now accepts community JSON, schematics, packs, and creator-supported releases, but legacy JSON is still the core compatible format.
+            <a href="/mobcrafter.html">What is MobCrafter?</a>
+            &nbsp;&middot;&nbsp;
+            <a href="/how-to-use.html">How to use the mod &amp; Hub</a>
+            &nbsp;&middot;&nbsp;
+            <a href="/upload-guide.html">Upload Guide</a>
+            &nbsp;&middot;&nbsp;
+            <a href="/guidelines.html">Creator Guidelines</a>
           </p>
         </div>
-
-        <h2 style="margin:12px 0 8px; font-size:14px;">How to use</h2>
-        <ol style="margin:0; padding-left:18px; color:#334155; font-size:12px; line-height:1.7;">
-          <li>Download a release from Hub.</li>
-          <li>Place the JSON into MobCrafter's unit folder (your modpack must include required dependency mods if used).</li>
-          <li>Use MobCrafter items in-game to summon the unit.</li>
-        </ol>
-
-        <h2 style="margin:12px 0 8px; font-size:14px;">Creator rules</h2>
-        <ul style="margin:0; padding-left:18px; color:#334155; font-size:12px; line-height:1.7;">
-          <li>Only upload content you have rights to share.</li>
-          <li>Do not upload copyrighted character models/textures unless you have permission.</li>
-          <li>If your unit uses blocks from other mods, mention them as dependencies.</li>
-          <li>If AI helped generate the creation or workflow, disclose that in the upload metadata.</li>
-        </ul>
       </div>
     </details>
 
@@ -1807,19 +1595,13 @@
   // ====== AUTH ======
   const API_WHOAMI = api("/api/whoami");
 
-  const authState = document.getElementById("authState");
-  const authEmailWrap = document.getElementById("authEmailWrap");
-  const authEmail = document.getElementById("authEmail");
-  const authAdminWrap = document.getElementById("authAdminWrap");
-  const authAdmin = document.getElementById("authAdmin");
-
   const authActionLink = document.getElementById("authActionLink");
   const navAuthLink = document.getElementById("navAuthLink");
   const navUploadLink = document.getElementById("navUploadLink");
   const postLink = document.getElementById("postLink");
 
-  const mineWrap = document.getElementById("mineWrap");
-  const mineOnly = document.getElementById("mineOnly");
+  const mineWrap = null;
+  const mineOnly = null;
 
   let meEmail = null;
   let meIsAdmin = false;
@@ -1871,11 +1653,6 @@
 
   async function loadWhoami(){
     try{
-      authState.textContent = "";
-      authState.hidden = true;
-      authEmailWrap.style.display = "none";
-      authAdminWrap.style.display = "none";
-      mineWrap.style.display = "none";
       meEmail = null;
       meIsAdmin = false;
       meUserId = null;
@@ -1911,23 +1688,11 @@
       meIsAdmin = isAdmin;
       meUserId = uid || null;
 
-      authEmailWrap.style.display = "inline-flex";
-      authEmail.textContent = email;
-
-      authAdminWrap.style.display = isAdmin ? "inline-flex" : "none";
-      authAdmin.textContent = isAdmin ? "enabled" : "";
-
       syncAuthLinks({ loggedIn: true });
       syncSubmitLinks("/submit.html", { showDashboard: true });
-      mineWrap.style.display = "inline-flex";
     }catch{
-      authState.textContent = "";
-      authState.hidden = true;
-      authEmailWrap.style.display = "none";
-      authAdminWrap.style.display = "none";
       syncAuthLinks({ loggedIn: false });
       syncSubmitLinks(`/api/login?next=${encodeURIComponent("/submit.html")}`);
-      mineWrap.style.display = "none";
       meEmail = null;
       meIsAdmin = false;
       meUserId = null;
@@ -1955,9 +1720,10 @@
   const heroShowcaseList = document.getElementById("heroShowcaseList");
   const shelfFeatured = document.getElementById("shelfFeatured");
   const shelfCommunity = document.getElementById("shelfCommunity");
-  const shelfTrending = document.getElementById("shelfTrending");
-  const shelfSets = document.getElementById("shelfSets");
-  const shelfPopular  = document.getElementById("shelfPopular");
+  // Hidden secondary shelves (Trending/Sets/Popular) were removed in Phase 1.9 DOM cleanup.
+  const shelfTrending = null;
+  const shelfSets = null;
+  const shelfPopular  = null;
   const newUnitsHead = document.getElementById("newUnitsHead");
 
   const PAGE_SIZE = 20;
@@ -3370,21 +3136,12 @@
 
     const secFeatured = document.getElementById("secFeatured");
     const secCommunity = document.getElementById("secCommunity");
-    const secTrending = document.getElementById("secTrending");
-    const secSets = document.getElementById("secSets");
-    const secPopular  = document.getElementById("secPopular");
 
     // Always reset shelves; updateDiscoverySections will re-show sections as needed.
     if(secFeatured) secFeatured.style.display = "none";
     if(secCommunity) secCommunity.style.display = "none";
-    if(secTrending) secTrending.style.display = "none";
-    if(secSets) secSets.style.display = "none";
-    if(secPopular)  secPopular.style.display  = "none";
     if(shelfFeatured) shelfFeatured.innerHTML = "";
     if(shelfCommunity) shelfCommunity.innerHTML = "";
-    if(shelfTrending) shelfTrending.innerHTML = "";
-    if(shelfSets) shelfSets.innerHTML = "";
-    if(shelfPopular)  shelfPopular.innerHTML  = "";
   }
 
   function updateDiscoverySections({ newItems, trendingItems, popularItems }){
@@ -3403,20 +3160,11 @@
 
     const secFeatured = document.getElementById("secFeatured");
     const secCommunity  = document.getElementById("secCommunity");
-    const secTrending = document.getElementById("secTrending");
-    const secSets = document.getElementById("secSets");
-    const secPopular  = document.getElementById("secPopular");
     if(secFeatured) secFeatured.style.display = "block";
     if(secCommunity) secCommunity.style.display = "block";
-    if(secTrending) secTrending.style.display = "block";
-    if(secSets) secSets.style.display = "block";
-    if(secPopular) secPopular.style.display = "block";
 
     renderFeaturedShelf(shelfFeatured, featured, { emptyCards: HUB_EMPTY_SHELF_CARDS.starter });
     renderCommunityShelf(shelfCommunity, community, { emptyCards: HUB_EMPTY_SHELF_CARDS.community });
-    renderShelf(shelfTrending, trending, { emptyCards: HUB_EMPTY_SHELF_CARDS.schematics });
-    renderShelf(shelfSets, sets, { emptyCards: HUB_EMPTY_SHELF_CARDS.sets });
-    renderShelf(shelfPopular, popular, { emptyCards: HUB_EMPTY_SHELF_CARDS.supported });
 
     // likes hydrate: best-effort, limited to 50 ids.
     const ids = uniqById(featured.concat(community).concat(trending).concat(sets).concat(popular).concat(baseNew)).map(x=>x.id);
