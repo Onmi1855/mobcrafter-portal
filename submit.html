@@ -4,252 +4,396 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="robots" content="noindex" />
-  <title>MobCrafter Hub - Quick Upload</title>
+  <title>MobCrafter Hub – Upload</title>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 24px; background:#f6f8fb; color:#0f172a; }
-    .card { max-width: 880px; background:#fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px; box-shadow: 0 10px 25px rgba(15,23,42,.08); }
-    h1 { margin: 0 0 6px; }
-    .hint { color:#555; font-size: 13px; margin: 6px 0 10px; }
-    label { display:block; margin-top: 12px; font-weight: 600; }
-    input[type="text"], textarea, select { width: 100%; padding: 10px; border: 1px solid #cbd5f5; border-radius: 10px; background:#fff; }
-    textarea { min-height: 96px; }
-    .row { display:flex; gap: 12px; }
-    .row > div { flex: 1; }
-    .actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    button { margin-top: 14px; padding: 10px 14px; border: 0; border-radius: 12px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
-    button.primary { background:#111; color:#fff; }
-    button.secondary { background:#e5e7eb; }
-    button:disabled { opacity:.5; cursor:not-allowed; }
-    pre { white-space: pre-wrap; word-break: break-word; background:#f6f6f6; padding: 12px; border-radius: 12px; }
-    canvas { margin-top: 10px; background:#fff; border:1px solid #e5e7eb; border-radius:12px; max-width:100%; height:auto; }
-    .mini { color:#666; font-size: 12px; margin-top: 6px; }
-    .divider { height:1px; background:#e5e7eb; margin:14px 0; }
-    .toplinks{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
-    .toplinks a{ color:#2563eb; text-decoration:none; border:1px solid rgba(37,99,235,.25); padding:6px 10px; border-radius:999px; background:#fff; display:inline-flex; align-items:center; gap:6px; }
-    .pill{ display:inline-flex; align-items:center; gap:8px; font-size:12px; color:#64748b; }
-    .pill code{ background:rgba(148,163,184,.15); border:1px solid rgba(148,163,184,.25); padding:2px 6px; border-radius:999px; color:#0f172a; }
-    .hubBox{ margin-top:14px; padding:14px; border:1px solid rgba(37,99,235,.16); border-radius:14px; background:linear-gradient(145deg, rgba(239,246,255,.96), rgba(240,253,244,.96)); }
-    .hubBox h2{ margin:0 0 8px; font-size:16px; }
-    .hubGrid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; }
-    .callout{ margin-top:8px; color:#334155; font-size:13px; line-height:1.7; }
-  
-    .canvaswrap{ width:100%; max-width:920px; margin:10px 0 0; }
-    .canvaswrap canvas{ width:100%; height:auto; display:block; border-radius:12px; }
-</style>
-  <link rel="stylesheet" href="/assets/ad-rail.v1.css?v=20260111d" />
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin:0; font-family:system-ui,-apple-system,Segoe UI,sans-serif; background:#f1f5f9; color:#0f172a; }
+    a { color:#2563eb; }
+    /* Page layout */
+    .sb-page { max-width:700px; margin:0 auto; padding:16px 16px 60px; }
+    /* Nav */
+    .sb-nav { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:20px; }
+    .sb-nav-link { display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border:1px solid rgba(37,99,235,.25); border-radius:999px; background:#fff; color:#2563eb; text-decoration:none; font-size:13px; font-weight:600; }
+    .sb-nav-auth { margin-left:auto; font-size:12px; color:#64748b; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+    /* Section cards */
+    .sb-section { background:#fff; border:1px solid rgba(148,163,184,.2); border-radius:18px; padding:22px; margin-bottom:14px; box-shadow:0 1px 4px rgba(15,23,42,.06); }
+    .sb-section-head { margin-bottom:16px; }
+    .sb-section-head h2 { margin:0 0 3px; font-size:17px; font-weight:800; color:#0f172a; }
+    .sb-section-head p { margin:0; font-size:13px; color:#64748b; line-height:1.5; }
+    /* Dropzone */
+    .sb-dropzone { border:2px dashed rgba(37,99,235,.35); border-radius:14px; background:linear-gradient(180deg,#eaf2ff,#f5f9ff); padding:28px 20px; text-align:center; cursor:pointer; transition:border-color .15s,background .15s; user-select:none; }
+    .sb-dropzone:hover, .sb-dropzone.drag-over { border-color:#2563eb; background:#dbeafe; }
+    .sb-dropzone-title { font-size:15px; font-weight:700; color:#1e3a6e; margin-bottom:4px; }
+    .sb-dropzone-sub { font-size:12px; color:#64748b; line-height:1.5; }
+    /* Screenshot previews */
+    .sb-screen-previews { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; margin-top:14px; }
+    .sb-screen-thumb { position:relative; aspect-ratio:16/9; border-radius:10px; overflow:hidden; background:#f1f5f9; border:2px solid rgba(148,163,184,.2); }
+    .sb-screen-thumb.is-main { border-color:#2563eb; }
+    .sb-screen-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+    .sb-screen-badge { position:absolute; bottom:4px; left:4px; background:rgba(15,23,42,.72); color:#fff; font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px; pointer-events:none; }
+    .sb-screen-del { position:absolute; top:4px; right:4px; width:22px; height:22px; background:rgba(15,23,42,.6); color:#fff; border:none; border-radius:50%; cursor:pointer; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; padding:0; }
+    .sb-screen-del:hover { background:rgba(239,68,68,.85); }
+    /* File rows */
+    .sb-file-rows { display:grid; gap:10px; }
+    .sb-file-row { display:grid; gap:6px; }
+    .sb-file-row-label { font-size:13px; font-weight:700; color:#334155; display:flex; align-items:center; gap:6px; }
+    .sb-file-row-opt { font-size:11px; font-weight:400; color:#94a3b8; }
+    .sb-file-btn { display:flex; align-items:center; gap:10px; padding:10px 14px; border:1px solid rgba(148,163,184,.3); border-radius:10px; background:#f8fafc; cursor:pointer; transition:border-color .15s,background .15s; min-height:44px; }
+    .sb-file-btn:hover { border-color:#2563eb; background:#eff6ff; }
+    .sb-file-btn.has-file { border-color:rgba(22,163,74,.4); background:#f0fdf4; }
+    .sb-file-ico { width:18px; height:18px; flex-shrink:0; color:#64748b; }
+    .sb-file-btn.has-file .sb-file-ico { color:#16a34a; }
+    .sb-file-name { flex:1; font-size:13px; color:#64748b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .sb-file-btn.has-file .sb-file-name { color:#166534; font-weight:600; }
+    .sb-file-clear { font-size:11px; color:#ef4444; cursor:pointer; padding:2px 6px; border-radius:4px; flex-shrink:0; }
+    .sb-file-clear:hover { background:#fef2f2; }
+    .sb-divider { height:1px; background:#f1f5f9; margin:16px 0; }
+    /* URL inputs */
+    .sb-url-row { display:grid; gap:6px; margin-bottom:12px; }
+    .sb-url-label { font-size:13px; font-weight:700; color:#334155; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+    .sb-url-label-opt { font-size:11px; font-weight:400; color:#94a3b8; }
+    .sb-url-input { width:100%; padding:10px 12px; border:1px solid rgba(148,163,184,.3); border-radius:10px; font-size:13px; background:#fff; color:#0f172a; }
+    .sb-url-input:focus { outline:none; border-color:#2563eb; }
+    /* Detected type */
+    .sb-detected { margin-top:16px; padding:12px 16px; border-radius:12px; background:rgba(239,246,255,.9); border:1px solid rgba(37,99,235,.15); font-size:13px; }
+    .sb-detected-row { display:flex; align-items:center; gap:8px; }
+    .sb-detected-label { color:#64748b; }
+    .sb-detected-value { font-weight:700; color:#1d4ed8; }
+    .sb-detected-hint { font-size:12px; color:#64748b; margin-top:4px; }
+    /* Basic info */
+    .sb-field { margin-bottom:14px; }
+    .sb-field:last-child { margin-bottom:0; }
+    .sb-field-label { display:block; font-size:13px; font-weight:700; color:#334155; margin-bottom:6px; }
+    .sb-field-label-opt { font-size:11px; font-weight:400; color:#94a3b8; margin-left:4px; }
+    .sb-input { width:100%; padding:10px 12px; border:1px solid rgba(148,163,184,.3); border-radius:10px; font-size:14px; background:#fff; color:#0f172a; }
+    .sb-input:focus { outline:none; border-color:#2563eb; }
+    .sb-textarea { min-height:80px; resize:vertical; font-family:inherit; }
+    /* Settings */
+    .sb-settings-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+    .sb-setting-field { display:grid; gap:5px; }
+    .sb-setting-label { font-size:13px; font-weight:700; color:#334155; }
+    .sb-select { width:100%; padding:10px 12px; border:1px solid rgba(148,163,184,.3); border-radius:10px; font-size:13px; background:#fff; color:#0f172a; cursor:pointer; }
+    .sb-select:focus { outline:none; border-color:#2563eb; }
+    /* Submit area */
+    .sb-submit-area { background:#fff; border:1px solid rgba(148,163,184,.2); border-radius:18px; padding:22px; margin-bottom:14px; box-shadow:0 1px 4px rgba(15,23,42,.06); }
+    .sb-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .sb-btn { padding:12px 22px; border:0; border-radius:12px; cursor:pointer; font-size:14px; font-weight:700; display:inline-flex; align-items:center; gap:6px; }
+    .sb-btn.primary { background:#2563eb; color:#fff; }
+    .sb-btn.primary:hover:not(:disabled) { background:#1d4ed8; }
+    .sb-btn.primary:disabled { opacity:.45; cursor:not-allowed; }
+    .sb-btn.secondary { background:#e5e7eb; color:#0f172a; }
+    .sb-btn.secondary:disabled { opacity:.5; cursor:not-allowed; }
+    .sb-login-a { display:inline-flex; align-items:center; gap:6px; padding:12px 18px; border-radius:12px; background:#2563eb; color:#fff; text-decoration:none; font-size:14px; font-weight:700; }
+    .sb-mini { font-size:12px; color:#64748b; }
+    .sb-result { margin-top:12px; white-space:pre-wrap; word-break:break-word; background:#f6f6f6; padding:10px 12px; border-radius:10px; font-size:11px; font-family:monospace; }
+    /* Screen box */
+    .sb-screen-box { margin-top:10px; padding:18px; border:1px dashed rgba(148,163,184,.35); border-radius:14px; background:#f8fafc; }
+    .sb-screen-box h3 { margin:0 0 4px; font-size:15px; font-weight:700; }
+    /* Advanced */
+    .sb-advanced { margin-bottom:14px; border:1px solid rgba(148,163,184,.2); border-radius:16px; background:#fff; }
+    .sb-advanced > summary { padding:14px 20px; cursor:pointer; font-size:13px; font-weight:700; color:#64748b; list-style:none; display:flex; align-items:center; gap:8px; user-select:none; }
+    .sb-advanced > summary::-webkit-details-marker { display:none; }
+    .sb-advanced > summary::after { content:"▼"; font-size:9px; margin-left:auto; transition:transform .2s; }
+    .sb-advanced[open] > summary::after { transform:rotate(180deg); }
+    .sb-advanced-inner { padding:0 20px 20px; border-top:1px solid rgba(148,163,184,.1); }
+    .adv-label { display:block; margin-top:14px; font-weight:700; font-size:13px; color:#334155; margin-bottom:5px; }
+    .sb-adv-input { width:100%; padding:9px 12px; border:1px solid rgba(148,163,184,.3); border-radius:10px; font-size:13px; background:#fff; }
+    .sb-adv-select { width:100%; padding:9px 12px; border:1px solid rgba(148,163,184,.3); border-radius:10px; font-size:13px; background:#fff; cursor:pointer; }
+    .adv-pre { white-space:pre-wrap; word-break:break-word; background:#f6f6f6; padding:10px; border-radius:10px; font-size:11px; }
+    .sb-canvas-wrap { width:100%; max-width:920px; margin:8px 0 0; }
+    .sb-canvas-wrap canvas { width:100%; height:auto; display:block; border-radius:12px; border:1px solid #e5e7eb; }
+    @media (max-width:600px) {
+      .sb-settings-grid { grid-template-columns:1fr; }
+      .sb-dropzone { padding:20px 14px; }
+      .sb-page { padding:12px 12px 48px; }
+    }
+  </style>
   <link rel="stylesheet" href="/assets/ui-icons.v1.css?v=20260524a" />
-  <script src="/assets/adsterra-banner.v1.js?v=20260111h" defer></script>
 </head>
 <body>
+<div class="sb-page">
 
-<div class="mc-submit-shell">
-  <!-- Left rail (layout only; ad code inserted later) -->
-  <aside class="mc-left-rail" aria-label="advertisement">
-    <div class="mc-left-rail-inner">
-      <div class="mc-ad-frame">
-        <div class="mc-ad-frame-label">Advertisement</div>
-        <div class="mc-ad-frame-box" data-adsterra-banner-host></div>
-      </div>
+  <!-- Nav bar -->
+  <nav class="sb-nav">
+    <a class="sb-nav-link" href="/">
+      <span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#home"></use></svg></span>
+      <span>Back to Home</span>
+    </a>
+    <div class="sb-nav-auth">
+      <span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#login"></use></svg></span>
+      <span id="authState"></span>
+      <span id="authEmailWrap" style="display:none;">Signed in as <span id="authEmail"></span></span>
     </div>
-  </aside>
+  </nav>
 
-<div class="card">
-  <div class="toplinks">
-    <a href="/"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#home"></use></svg></span><span>Back to Home</span></a>
-    <span class="pill"><span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#login"></use></svg></span><span>Account</span> <span id="authState"></span> <span id="authEmailWrap" style="display:none;">Signed in as <span id="authEmail"></span></span></span>
+  <!-- Page title -->
+  <div style="margin-bottom:20px;">
+    <h1 id="pageTitle" style="margin:0 0 4px;font-size:24px;font-weight:900;color:#0f172a;">Upload to MobCrafter Hub</h1>
+    <p style="margin:0;font-size:13px;color:#64748b;">Share your Minecraft creation — JSON, schematic, ZIP, or an external link all work.</p>
   </div>
 
-  <h1>MobCrafter Hub Quick Upload</h1>
-  <div class="hint">
-    Share builds, units, packs, or external releases without replacing the legacy JSON workflow. Schematics are welcome, and you can add a MobCrafter JSON later when you want 3D preview.
-  </div>
+  <!-- Section A: Show your creation -->
+  <section class="sb-section">
+    <div class="sb-section-head">
+      <h2>Show your creation</h2>
+      <p>Drop screenshots here. The first image becomes the main thumbnail. You can also upload more after submission.</p>
+    </div>
+    <div class="sb-dropzone" id="dropzoneScreenshots" role="button" tabindex="0" aria-label="Add screenshots — click or drag images here">
+      <svg style="width:36px;height:36px;margin:0 auto 10px;color:#2563eb;opacity:.8;display:block;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5-7 7"/><path d="M14 10l2-2 5 5"/></svg>
+      <div class="sb-dropzone-title">Drop screenshots here or click to select</div>
+      <div class="sb-dropzone-sub">PNG, JPG, WebP · Multiple images supported · First image = main thumbnail</div>
+    </div>
+    <input id="dropzoneScreenInput" type="file" accept="image/*" multiple hidden />
+    <div id="screenshotPreviews" class="sb-screen-previews"></div>
+  </section>
 
-  <div class="hubBox">
-    <h2>Hub metadata</h2>
-    <div class="hubGrid">
-      <div>
-        <label>Content type</label>
-        <select id="contentType">
-          <option value="mobcrafter_unit_json">MobCrafter unit JSON</option>
-          <option value="schematic">Schematic</option>
-          <option value="schematic_unit_set">Schematic + unit set</option>
-          <option value="unit_pack">Unit pack / ZIP</option>
-          <option value="world_map">World / map</option>
-          <option value="creator_asset">Creator asset</option>
-          <option value="guide_workflow">Guide / workflow</option>
-          <option value="external_release">External release</option>
-        </select>
+  <!-- Section B: Add files -->
+  <section class="sb-section">
+    <div class="sb-section-head">
+      <h2>Add files</h2>
+      <p>Add any combination. Release type is detected automatically.</p>
+    </div>
+
+    <div class="sb-file-rows">
+
+      <!-- MobCrafter Unit JSON -->
+      <div class="sb-file-row">
+        <div class="sb-file-row-label">
+          <svg class="sb-file-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+          MobCrafter Unit JSON
+          <span class="sb-file-row-opt">required for 3D preview</span>
+        </div>
+        <div class="sb-file-btn" id="jsonFileDrop" tabindex="0" role="button" aria-label="Choose MobCrafter JSON file">
+          <svg class="sb-file-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span class="sb-file-name" id="jsonFileLabel">Choose or drop .json file</span>
+          <span class="sb-file-clear" id="jsonFileClear" style="display:none;" role="button">Remove</span>
+        </div>
+        <input id="file" type="file" accept=".json,application/json" hidden />
       </div>
-      <div>
-        <label>File availability</label>
-        <select id="fileAvailability">
-          <option value="json">JSON</option>
-          <option value="schem">SCHEM</option>
-          <option value="both">JSON + SCHEM</option>
-          <option value="zip">ZIP / pack</option>
-          <option value="external">External only</option>
-        </select>
+
+      <!-- Schematic / Litematic -->
+      <div class="sb-file-row">
+        <div class="sb-file-row-label">
+          <svg class="sb-file-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="6" height="6" rx="1"/><rect x="9" y="3" width="6" height="6" rx="1"/><rect x="9" y="10" width="6" height="6" rx="1"/><rect x="2" y="10" width="6" height="6" rx="1"/></svg>
+          Schematic / Litematic
+          <span class="sb-file-row-opt">optional</span>
+        </div>
+        <div class="sb-file-btn" id="schemFileDrop" tabindex="0" role="button" aria-label="Choose schematic file">
+          <svg class="sb-file-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span class="sb-file-name" id="schemFileLabel">Choose or drop .schem / .litematic</span>
+          <span class="sb-file-clear" id="schemFileClear" style="display:none;" role="button">Remove</span>
+        </div>
+        <input id="schemDropInput" type="file" accept=".schem,.litematic,.schematic" hidden />
       </div>
-      <div>
-        <label>Access type</label>
-        <select id="accessType">
+
+      <!-- ZIP Pack -->
+      <div class="sb-file-row">
+        <div class="sb-file-row-label">
+          <svg class="sb-file-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10H3"/><path d="M21 10V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V10"/><path d="M21 10l-2-7H5L3 10"/></svg>
+          ZIP Pack
+          <span class="sb-file-row-opt">optional</span>
+        </div>
+        <div class="sb-file-btn" id="zipFileDrop" tabindex="0" role="button" aria-label="Choose ZIP file">
+          <svg class="sb-file-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span class="sb-file-name" id="zipFileLabel">Choose or drop .zip file</span>
+          <span class="sb-file-clear" id="zipFileClear" style="display:none;" role="button">Remove</span>
+        </div>
+        <input id="zipDropInput" type="file" accept=".zip" hidden />
+      </div>
+
+    </div><!-- /sb-file-rows -->
+
+    <div class="sb-divider"></div>
+
+    <!-- External release URL -->
+    <div class="sb-url-row">
+      <label class="sb-url-label" for="externalUrl">
+        External Release URL
+        <span class="sb-url-label-opt">optional — CurseForge, Planet Minecraft, etc.</span>
+      </label>
+      <input class="sb-url-input" id="externalUrl" type="text" placeholder="https://..." autocomplete="off" />
+    </div>
+
+    <!-- Support URL -->
+    <div class="sb-url-row">
+      <label class="sb-url-label" for="supportUrl">
+        Support / Patreon URL
+        <span class="sb-url-label-opt">optional — enables Creator-supported badge</span>
+      </label>
+      <input class="sb-url-input" id="supportUrl" type="text" placeholder="https://patreon.com/..." autocomplete="off" />
+    </div>
+
+    <!-- Detected release type -->
+    <div class="sb-detected">
+      <div class="sb-detected-row">
+        <span class="sb-detected-label">Detected release:</span>
+        <span class="sb-detected-value" id="detectedTypeLabel">—</span>
+      </div>
+      <div class="sb-detected-hint" id="detectedTypeHint"></div>
+    </div>
+
+    <!-- Hidden selects/inputs (all IDs preserved for JS) -->
+    <select id="contentType" hidden aria-hidden="true">
+      <option value="mobcrafter_unit_json">MobCrafter unit JSON</option>
+      <option value="schematic">Schematic</option>
+      <option value="schematic_unit_set">Schematic + unit set</option>
+      <option value="unit_pack">Unit pack / ZIP</option>
+      <option value="world_map">World / map</option>
+      <option value="creator_asset">Creator asset</option>
+      <option value="guide_workflow">Guide / workflow</option>
+      <option value="external_release">External release</option>
+    </select>
+    <select id="fileAvailability" hidden aria-hidden="true">
+      <option value="json">JSON</option>
+      <option value="schem">SCHEM</option>
+      <option value="both">JSON + SCHEM</option>
+      <option value="zip">ZIP / pack</option>
+      <option value="external">External only</option>
+    </select>
+    <input id="extraFile" type="file" hidden aria-hidden="true" />
+    <select id="extraFileKind" hidden aria-hidden="true">
+      <option value="schem">SCHEM</option>
+      <option value="zip">ZIP</option>
+      <option value="world">World / map file</option>
+      <option value="asset">Creator asset / other</option>
+    </select>
+  </section>
+
+  <!-- Section C: Basic info -->
+  <section class="sb-section">
+    <div class="sb-section-head">
+      <h2>Basic info</h2>
+    </div>
+    <div class="sb-field">
+      <label class="sb-field-label" for="title">Title <span style="color:#ef4444;font-weight:900;">*</span></label>
+      <input class="sb-input" id="title" type="text" placeholder="e.g. Sephiroth Unit v1" maxlength="80" autocomplete="off" />
+    </div>
+    <div class="sb-field">
+      <label class="sb-field-label" for="tags">Tags <span class="sb-field-label-opt">optional · comma-separated</span></label>
+      <input class="sb-input" id="tags" type="text" placeholder="boss, ff7, sword" autocomplete="off" />
+    </div>
+    <div class="sb-field">
+      <label class="sb-field-label" for="description">Description <span class="sb-field-label-opt">optional</span></label>
+      <textarea class="sb-input sb-textarea" id="description" placeholder="What makes this special? Requirements, credits, usage notes…"></textarea>
+    </div>
+  </section>
+
+  <!-- Section D: Release settings -->
+  <section class="sb-section">
+    <div class="sb-section-head">
+      <h2>Release settings</h2>
+    </div>
+    <div class="sb-settings-grid">
+      <div class="sb-setting-field">
+        <label class="sb-setting-label" for="accessType">Access</label>
+        <select class="sb-select" id="accessType">
           <option value="free">Free</option>
-          <option value="creator_supported">Creator supported</option>
+          <option value="creator_supported">Creator-supported</option>
           <option value="patreon_linked">Patreon-linked</option>
           <option value="external">External access</option>
           <option value="free_sample_supported">Free sample + support</option>
         </select>
       </div>
-      <div>
-        <label>Creation method</label>
-        <select id="creationMethod">
-          <option value="hand_built">Hand built</option>
-          <option value="ai_assisted">AI assisted</option>
-          <option value="imported">Imported</option>
-          <option value="remixed">Remixed</option>
-          <option value="starter_variant">Official starter variant</option>
+      <div class="sb-setting-field">
+        <label class="sb-setting-label" for="creationMethod">Creation method</label>
+        <select class="sb-select" id="creationMethod">
+          <option value="unspecified">Not specified</option>
+          <option value="mostly_handmade">Mostly handmade</option>
+          <option value="mixed">Mixed</option>
+          <option value="ai_assisted">AI-assisted</option>
+          <option value="ai_generated">AI-generated</option>
+          <option value="hand_built" style="display:none;">Hand built</option>
+          <option value="imported" style="display:none;">Imported</option>
+          <option value="remixed" style="display:none;">Remixed</option>
+          <option value="starter_variant" style="display:none;">Official starter variant</option>
         </select>
       </div>
-    </div>
-
-    <div class="row">
-      <div>
-        <label>Creation method note (optional)</label>
-        <input id="creationMethodSource" type="text" placeholder="e.g. remixed from starter dragon frame" />
-      </div>
-      <div>
-        <label>Publish now</label>
-        <select id="isPublished">
-          <option value="1">Public</option>
+      <div class="sb-setting-field">
+        <label class="sb-setting-label" for="isPublished">Visibility</label>
+        <select class="sb-select" id="isPublished">
+          <option value="1">Publish now</option>
           <option value="0">Private draft</option>
         </select>
       </div>
     </div>
+  </section>
 
-    <div class="row">
-      <div>
-        <label>Extra file (optional)</label>
-        <input id="extraFile" type="file" />
+  <!-- Submit -->
+  <div class="sb-submit-area">
+    <div class="sb-actions">
+      <button id="btn" class="sb-btn primary" disabled>
+        <span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#upload"></use></svg></span>
+        <span>Submit</span>
+      </button>
+      <a id="loginLink" class="sb-login-a" href="/api/login?next=/submit.html" style="display:none;">
+        <span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#login"></use></svg></span>
+        <span>Log in to submit</span>
+      </a>
+      <span id="needLogin" class="sb-mini">Log in to submit your creation</span>
+    </div>
+
+    <pre id="result" class="sb-result" style="display:none;"></pre>
+    <div id="afterSuccess" style="display:none;"></div>
+
+    <!-- Screenshot box (visible after success) -->
+    <div id="screenBox" class="sb-screen-box" style="display:none;">
+      <h3>Upload more screenshots</h3>
+      <div class="sb-mini" style="margin-bottom:10px;">Add extra images or replace the main thumbnail after submission.</div>
+
+      <label style="display:block;margin-bottom:4px;font-size:13px;font-weight:700;">Image file</label>
+      <input id="screenFile" type="file" accept="image/*" />
+      <img id="screenPreview" style="display:none;max-width:100%;margin-top:8px;border-radius:8px;border:1px solid #e5e7eb;" alt="Screenshot preview" />
+
+      <div style="display:flex;gap:14px;align-items:center;margin-top:8px;flex-wrap:wrap;">
+        <label style="font-size:13px;cursor:pointer;"><input type="radio" name="thumbMode" value="3d" checked> 3D preview as thumbnail</label>
+        <label style="font-size:13px;cursor:pointer;"><input type="radio" name="thumbMode" value="screen"> This screenshot as thumbnail</label>
       </div>
-      <div>
-        <label>Extra file kind</label>
-        <select id="extraFileKind">
-          <option value="schem">SCHEM</option>
-          <option value="zip">ZIP</option>
-          <option value="world">World / map file</option>
-          <option value="asset">Creator asset / other</option>
-        </select>
+
+      <div class="sb-actions" style="margin-top:10px;">
+        <button id="btnUploadScreen" class="sb-btn secondary">Upload screenshot</button>
+        <span id="screenResult" class="sb-mini"></span>
       </div>
-    </div>
-
-    <div class="row">
-      <div>
-        <label>External release URL (optional)</label>
-        <input id="externalUrl" type="text" placeholder="https://..." />
-      </div>
-      <div>
-        <label>Support URL (optional)</label>
-        <input id="supportUrl" type="text" placeholder="https://patreon.com/..." />
-      </div>
-    </div>
-
-    <div class="callout">
-      Use at least one source: JSON, extra file, or external release URL. Existing JSON submissions and edit mode continue to work the same way.
-    </div>
-  </div>
-
-  <label>JSON file (optional for Hub, required for 3D preview)</label>
-  <input id="file" type="file" accept=".json,application/json" />
-
-  <div class="row">
-    <div>
-      <label>Title</label>
-      <input id="title" type="text" placeholder="e.g. Sephiroth Unit v1" />
-    </div>
-    <div>
-      <label>mod_version (optional)</label>
-      <input id="modVersion" type="text" placeholder="1.0.0" />
-    </div>
-  </div>
-
-  <label>Description</label>
-  <textarea id="description" placeholder="Description (optional)"></textarea>
-
-  <label>Tags (comma-separated)</label>
-  <input id="tags" type="text" placeholder="boss, ff7, sword" />
-
-  <label>Front offset (0/90/180/270) (optional)</label>
-  <select id="yawOffset">
-    <option value="0" selected>0° (no offset)</option>
-    <option value="1">+90°</option>
-    <option value="2">+180°</option>
-    <option value="3">+270°</option>
-  </select>
-  <div class="mini">
-    If your unit has no frontYaw, or each unit uses a different "front" direction, adjust it here (saved to preview and submission metadata).
-  </div>
-
-  <div class="actions">
-    <button id="btn" class="primary" disabled><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#upload"></use></svg></span><span>Submit</span></button>
-    <a id="loginLink" href="/api/login?next=/submit.html" style="display:none; align-items:center; gap:6px; padding:10px 14px; border-radius:12px; background:#2563eb; color:#fff; text-decoration:none;"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#login"></use></svg></span><span>Log in to submit</span></a>
-    <span id="needLogin" class="mini">* Submission requires login</span>
-  </div>
-
-  <div class="divider"></div>
-
-  <label>Preview (info)</label>
-  <pre id="preview">{}</pre>
-
-  <label>3D preview (simple)</label>
-  <div class="canvaswrap"><canvas id="canvas" width="900" height="520"></canvas></div>
-  <div class="hint">
-    This is a simple shape preview. Colors/materials may differ from in-game.
-  </div>
-
-  <label>Result</label>
-  <pre id="result">Not sent</pre>
-  <div id="afterSuccess" class="mini" style="display:none; margin-top:8px;"></div>
-  <!-- === Screenshot Upload (after success only) === -->
-<div id="screenBox" style="display:none; margin-top:12px; padding:12px; border:1px dashed #cbd5e1; border-radius:12px; background:#f8fafc;">
-  <div><strong>Screenshot (optional)</strong></div>
-  <div class="mini">Only available after the JSON submission succeeds</div>
-
-  <label style="margin-top:8px;">Image file</label>
-  <input id="screenFile" type="file" accept="image/*" />
-  <img
-  id="screenPreview"
-  style="display:none; max-width:100%; margin-top:8px; border-radius:8px; border:1px solid #e5e7eb;"
-/>
-
-
-  <div style="display:flex; gap:14px; align-items:center; margin-top:8px;">
-    <label><input type="radio" name="thumbMode" value="3d" checked> Thumbnail: 3D</label>
-    <label><input type="radio" name="thumbMode" value="screen"> Thumbnail: this screenshot</label>
-  </div>
-
-  <div class="actions">
-    <button id="btnUploadScreen" class="secondary">Upload screenshot</button>
-    <span id="screenResult" class="mini"></span>
-  </div>
-
-  <div class="actions" style="margin-top:8px;">
-    <button id="btnGenThumb" class="secondary">Generate static 3D image (for search)</button>
-    <span id="genResult" class="mini"></span>
-  </div>
-</div>
-
-</div>
-
-  <!-- Right rail (layout only; ad code inserted later) -->
-  <aside class="mc-right-rail" aria-label="advertisement">
-    <div class="mc-right-rail-inner">
-      <div class="mc-ad-frame">
-        <div class="mc-ad-frame-label">Advertisement</div>
-        <div class="mc-ad-frame-box" data-adsterra-banner-host></div>
+      <div class="sb-actions" style="margin-top:8px;">
+        <button id="btnGenThumb" class="sb-btn secondary">Generate static 3D thumbnail</button>
+        <span id="genResult" class="sb-mini"></span>
       </div>
     </div>
-  </aside>
-</div>
+  </div>
+
+  <!-- Advanced / Technical -->
+  <details class="sb-advanced">
+    <summary>
+      <span class="ui-ico ui-ico-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#settings"></use></svg></span>
+      Advanced options
+    </summary>
+    <div class="sb-advanced-inner">
+      <p style="margin:12px 0 0;font-size:12px;color:#64748b;">Optional — defaults work for most submissions.</p>
+
+      <label class="adv-label" for="modVersion">Mod version</label>
+      <input class="sb-adv-input" id="modVersion" type="text" placeholder="1.0.0" />
+
+      <label class="adv-label" for="yawOffset">Front direction offset (3D preview)</label>
+      <select class="sb-adv-select" id="yawOffset">
+        <option value="0" selected>0° (no offset)</option>
+        <option value="1">+90°</option>
+        <option value="2">+180°</option>
+        <option value="3">+270°</option>
+      </select>
+      <p style="margin:4px 0 0;font-size:11px;color:#64748b;">Adjust if your unit faces the wrong direction in the 3D preview.</p>
+
+      <label class="adv-label" for="creationMethodSource">Creation method note</label>
+      <input class="sb-adv-input" id="creationMethodSource" type="text" placeholder="e.g. remixed from starter dragon frame" />
+
+      <label class="adv-label">Technical payload preview (JSON)</label>
+      <pre class="adv-pre" id="preview">{}</pre>
+
+      <label class="adv-label">3D preview</label>
+      <div class="sb-canvas-wrap"><canvas id="canvas" width="900" height="520"></canvas></div>
+      <p style="margin:4px 0 0;font-size:11px;color:#64748b;">Simple block shape — colors may differ from in-game.</p>
+    </div>
+  </details>
+
+</div><!-- /sb-page -->
 
 <script src="/assets/ui-icons.v1.js?v=20260524a"></script>
 <script>
@@ -353,6 +497,9 @@
       $contentType.value = "external_release";
       $fileAvailability.value = "external";
     }
+
+    // Update detection display (Phase 2.1)
+    if (typeof window.__mcRefreshDetectedType === "function") window.__mcRefreshDetectedType();
   }
 
   function buildPreviewPayload(){
@@ -468,6 +615,8 @@ function setEditUi(){
   document.title = "MobCrafter Hub - Edit Release";
   const h = document.querySelector("h1");
   if(h) h.textContent = "Edit Hub Release";
+  const pt = document.getElementById("pageTitle");
+  if(pt) pt.textContent = "Edit Hub Release";
 
   // ❌ const btn = document.getElementById("btnSubmit");
   // ✅ こっち
@@ -625,6 +774,7 @@ function setEditUi(){
   }
   function setResult(v) {
     $res.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
+    $res.style.display = "";
   }
   function updateButtonState() {
     $btn.disabled = !(isLoggedIn && ($title.value || "").trim() && hasSubmissionSource());
@@ -1246,7 +1396,26 @@ if ($after && resp.ok) {
 
   // ★ New submissions: automatically upload a static 3D thumbnail (standard)
   // Do not auto-run in edit mode to avoid overriding existing screenshot thumbs.
-  if (!isEditMode && submissionId && parsedJson && parsedBlocks) {
+
+  // First, upload any pre-submission screenshots the user dropped in Section A.
+  if (!isEditMode && submissionId && (window.__mcPendingScreenshots || []).length > 0) {
+    const _pending = window.__mcPendingScreenshots || [];
+    for (let _psi = 0; _psi < _pending.length; _psi++) {
+      const _ps = _pending[_psi];
+      try {
+        await uploadScreenBlob({
+          submissionId,
+          blob: _ps.file,
+          filename: _ps.file.name || "screenshot.png",
+          thumbMode: "screen",
+          setThumb: (_psi === 0),
+        });
+      } catch (_e) { /* silent */ }
+    }
+  }
+
+  // Auto-generate 3D thumbnail only when no screenshot was provided.
+  if (!isEditMode && submissionId && parsedJson && parsedBlocks && !(window.__mcPendingScreenshots || []).length) {
     try {
       if (typeof $genResult !== "undefined" && $genResult) $genResult.textContent = "Uploading static 3D thumbnail...";
       const blob = await makeStatic3DThumbBlob();
@@ -1336,7 +1505,302 @@ if ($btnGenThumb) {
 }
 
 })();
-</script>
+
+// ============================================================
+// Phase 2.1 — Pre-submission screenshot queue + file dropzones
+// ============================================================
+(() => {
+  // ---- Screenshot queue ----
+  const pendingScreenshots = []; // { file, url }
+
+  function refreshScreenshotUI() {
+    const grid = document.getElementById("screenshotPreviews");
+    if (!grid) return;
+    grid.innerHTML = "";
+    pendingScreenshots.forEach(({ url }, i) => {
+      const div = document.createElement("div");
+      div.className = "sb-screen-thumb" + (i === 0 ? " is-main" : "");
+      const img = document.createElement("img");
+      img.src = url;
+      img.alt = "Screenshot " + (i + 1);
+      const badge = document.createElement("div");
+      badge.className = "sb-screen-badge";
+      badge.textContent = i === 0 ? "Main thumbnail" : "Screenshot " + (i + 1);
+      const del = document.createElement("button");
+      del.className = "sb-screen-del";
+      del.type = "button";
+      del.textContent = "×";
+      del.setAttribute("aria-label", "Remove screenshot " + (i + 1));
+      del.addEventListener("click", () => {
+        URL.revokeObjectURL(pendingScreenshots[i].url);
+        pendingScreenshots.splice(i, 1);
+        refreshScreenshotUI();
+      });
+      div.appendChild(img);
+      div.appendChild(badge);
+      div.appendChild(del);
+      grid.appendChild(div);
+    });
+  }
+
+  function addScreenshots(files) {
+    Array.from(files).forEach((f) => {
+      if (!f.type.startsWith("image/")) return;
+      pendingScreenshots.push({ file: f, url: URL.createObjectURL(f) });
+    });
+    refreshScreenshotUI();
+    // Expose to the outer IIFE's success handler
+    window.__mcPendingScreenshots = pendingScreenshots;
+  }
+
+  // Expose the array globally so the outer IIFE success handler can upload them
+  window.__mcPendingScreenshots = pendingScreenshots;
+
+  // Screenshot dropzone
+  const $dz = document.getElementById("dropzoneScreenshots");
+  const $dzInput = document.getElementById("dropzoneScreenInput");
+  if ($dz && $dzInput) {
+    $dz.addEventListener("click", (e) => {
+      if (!e.target.closest(".sb-screen-del")) $dzInput.click();
+    });
+    $dz.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $dzInput.click(); }
+    });
+    $dz.addEventListener("dragover", (e) => { e.preventDefault(); $dz.classList.add("drag-over"); });
+    $dz.addEventListener("dragleave", () => $dz.classList.remove("drag-over"));
+    $dz.addEventListener("drop", (e) => {
+      e.preventDefault();
+      $dz.classList.remove("drag-over");
+      if (e.dataTransfer?.files?.length) addScreenshots(e.dataTransfer.files);
+    });
+    $dzInput.addEventListener("change", () => {
+      if ($dzInput.files?.length) addScreenshots($dzInput.files);
+      $dzInput.value = "";
+    });
+  }
+
+  // ---- JSON file dropzone ----
+  const $jsonDrop = document.getElementById("jsonFileDrop");
+  const $jsonLabel = document.getElementById("jsonFileLabel");
+  const $jsonClear = document.getElementById("jsonFileClear");
+  const $jsonInput = document.getElementById("file"); // real input the outer IIFE listens on
+
+  function setJsonFile(f) {
+    if (!f) return;
+    const dt = new DataTransfer();
+    dt.items.add(f);
+    $jsonInput.files = dt.files;
+    $jsonInput.dispatchEvent(new Event("change"));
+  }
+
+  function clearJsonFile() {
+    const dt = new DataTransfer();
+    $jsonInput.files = dt.files;
+    $jsonInput.dispatchEvent(new Event("change"));
+    if ($jsonLabel) $jsonLabel.textContent = "Choose or drop .json file";
+    if ($jsonClear) $jsonClear.style.display = "none";
+    if ($jsonDrop) $jsonDrop.classList.remove("has-file");
+  }
+
+  if ($jsonDrop && $jsonInput) {
+    $jsonDrop.addEventListener("click", (e) => {
+      if (!e.target.closest(".sb-file-clear")) $jsonInput.click();
+    });
+    $jsonDrop.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $jsonInput.click(); }
+    });
+    $jsonDrop.addEventListener("dragover", (e) => { e.preventDefault(); $jsonDrop.classList.add("drag-over"); });
+    $jsonDrop.addEventListener("dragleave", () => $jsonDrop.classList.remove("drag-over"));
+    $jsonDrop.addEventListener("drop", (e) => {
+      e.preventDefault();
+      $jsonDrop.classList.remove("drag-over");
+      if (e.dataTransfer?.files?.length) setJsonFile(e.dataTransfer.files[0]);
+    });
+    if ($jsonClear) {
+      $jsonClear.addEventListener("click", (e) => { e.stopPropagation(); clearJsonFile(); });
+    }
+    // Reflect real input changes in the UI (fired by outer IIFE after parsing)
+    $jsonInput.addEventListener("change", () => {
+      const f = $jsonInput.files?.[0];
+      if (f) {
+        if ($jsonLabel) $jsonLabel.textContent = f.name;
+        if ($jsonClear) $jsonClear.style.display = "";
+        $jsonDrop.classList.add("has-file");
+      } else {
+        if ($jsonLabel) $jsonLabel.textContent = "Choose or drop .json file";
+        if ($jsonClear) $jsonClear.style.display = "none";
+        $jsonDrop.classList.remove("has-file");
+      }
+      refreshDetectedType();
+    }, { capture: false });
+  }
+
+  // ---- Schematic dropzone ----
+  const $schemDrop = document.getElementById("schemFileDrop");
+  const $schemLabel = document.getElementById("schemFileLabel");
+  const $schemClear = document.getElementById("schemFileClear");
+  const $schemInput = document.getElementById("schemDropInput");
+  const $extraFile = document.getElementById("extraFile");
+  const $extraFileKind = document.getElementById("extraFileKind");
+
+  function setSchemFile(f) {
+    if (!f || !$extraFile || !$extraFileKind) return;
+    const dt = new DataTransfer();
+    dt.items.add(f);
+    $extraFile.files = dt.files;
+    $extraFileKind.value = "schem";
+    $extraFile.dispatchEvent(new Event("change"));
+    if ($schemLabel) $schemLabel.textContent = f.name;
+    if ($schemClear) $schemClear.style.display = "";
+    if ($schemDrop) $schemDrop.classList.add("has-file");
+    _resetZipUi();  // only clear ZIP UI — $extraFile already holds schem
+    refreshDetectedType();
+  }
+
+  function clearSchemFile() {
+    if ($extraFile) { const dt = new DataTransfer(); $extraFile.files = dt.files; $extraFile.dispatchEvent(new Event("change")); }
+    _resetSchemUi();
+    refreshDetectedType();
+  }
+
+  function _resetSchemUi() {
+    if ($schemLabel) $schemLabel.textContent = "Choose or drop .schem / .litematic";
+    if ($schemClear) $schemClear.style.display = "none";
+    if ($schemDrop) $schemDrop.classList.remove("has-file");
+  }
+
+  if ($schemDrop && $schemInput) {
+    $schemDrop.addEventListener("click", (e) => {
+      if (!e.target.closest(".sb-file-clear")) $schemInput.click();
+    });
+    $schemDrop.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $schemInput.click(); }
+    });
+    $schemDrop.addEventListener("dragover", (e) => { e.preventDefault(); $schemDrop.classList.add("drag-over"); });
+    $schemDrop.addEventListener("dragleave", () => $schemDrop.classList.remove("drag-over"));
+    $schemDrop.addEventListener("drop", (e) => {
+      e.preventDefault();
+      $schemDrop.classList.remove("drag-over");
+      if (e.dataTransfer?.files?.length) setSchemFile(e.dataTransfer.files[0]);
+    });
+    $schemInput.addEventListener("change", () => {
+      if ($schemInput.files?.[0]) setSchemFile($schemInput.files[0]);
+      $schemInput.value = "";
+    });
+    if ($schemClear) {
+      $schemClear.addEventListener("click", (e) => { e.stopPropagation(); clearSchemFile(); });
+    }
+  }
+
+  // ---- ZIP dropzone ----
+  const $zipDrop = document.getElementById("zipFileDrop");
+  const $zipLabel = document.getElementById("zipFileLabel");
+  const $zipClear = document.getElementById("zipFileClear");
+  const $zipInput = document.getElementById("zipDropInput");
+
+  function setZipFile(f) {
+    if (!f || !$extraFile || !$extraFileKind) return;
+    const dt = new DataTransfer();
+    dt.items.add(f);
+    $extraFile.files = dt.files;
+    $extraFileKind.value = "zip";
+    $extraFile.dispatchEvent(new Event("change"));
+    if ($zipLabel) $zipLabel.textContent = f.name;
+    if ($zipClear) $zipClear.style.display = "";
+    if ($zipDrop) $zipDrop.classList.add("has-file");
+    _resetSchemUi();  // only clear SCHEM UI — $extraFile already holds zip
+    refreshDetectedType();
+  }
+
+  function clearZipFile() {
+    _resetZipUi();
+  }
+
+  function _resetZipUi() {
+    if ($zipLabel) $zipLabel.textContent = "Choose or drop .zip file";
+    if ($zipClear) $zipClear.style.display = "none";
+    if ($zipDrop) $zipDrop.classList.remove("has-file");
+  }
+
+  if ($zipDrop && $zipInput) {
+    $zipDrop.addEventListener("click", (e) => {
+      if (!e.target.closest(".sb-file-clear")) $zipInput.click();
+    });
+    $zipDrop.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $zipInput.click(); }
+    });
+    $zipDrop.addEventListener("dragover", (e) => { e.preventDefault(); $zipDrop.classList.add("drag-over"); });
+    $zipDrop.addEventListener("dragleave", () => $zipDrop.classList.remove("drag-over"));
+    $zipDrop.addEventListener("drop", (e) => {
+      e.preventDefault();
+      $zipDrop.classList.remove("drag-over");
+      if (e.dataTransfer?.files?.length) setZipFile(e.dataTransfer.files[0]);
+    });
+    $zipInput.addEventListener("change", () => {
+      if ($zipInput.files?.[0]) setZipFile($zipInput.files[0]);
+      $zipInput.value = "";
+    });
+    if ($zipClear) {
+      $zipClear.addEventListener("click", (e) => { e.stopPropagation(); clearZipFile(); $extraFile && ($extraFile.files = (new DataTransfer()).files); $extraFile && $extraFile.dispatchEvent(new Event("change")); refreshDetectedType(); });
+    }
+  }
+
+  // ---- Auto-detection display ----
+  function refreshDetectedType() {
+    const labelEl = document.getElementById("detectedTypeLabel");
+    const hintEl = document.getElementById("detectedTypeHint");
+    if (!labelEl) return;
+
+    const $ct = document.getElementById("contentType");
+    const $fa = document.getElementById("fileAvailability");
+    const $ef = document.getElementById("extraFile");
+    const $ek = document.getElementById("extraFileKind");
+    const $eu = document.getElementById("externalUrl");
+    const $su = document.getElementById("supportUrl");
+
+    const hasJson = Boolean(document.getElementById("file")?.files?.[0] || window.__mcHasJson);
+    const hasSchem = Boolean($ef?.files?.[0] && $ek?.value === "schem");
+    const hasZip = Boolean($ef?.files?.[0] && ($ek?.value === "zip" || $ek?.value === "world"));
+    const hasExternal = Boolean(String($eu?.value || "").trim());
+    const hasSupportUrl = Boolean(String($su?.value || "").trim());
+
+    let label = "—";
+    let hint = "";
+
+    if (hasJson && hasSchem) {
+      label = "JSON + Schematic — Complete Set";
+    } else if (hasJson) {
+      label = "MobCrafter Unit JSON";
+      hint = "Add a schematic for a Complete Set";
+    } else if (hasSchem) {
+      label = "Schematic Build";
+      hint = "Add MobCrafter JSON to enable 3D preview";
+    } else if (hasZip) {
+      label = "ZIP Pack";
+    } else if (hasExternal) {
+      label = "External Release";
+    }
+
+    if (hasSupportUrl && !hasExternal && ($ct?.value || "") === "free") {
+      hint = (hint ? hint + " · " : "") + "Support URL detected — consider Creator-supported access";
+    }
+
+    labelEl.textContent = label;
+    if (hintEl) hintEl.textContent = hint;
+  }
+
+  // Expose so outer IIFE calls can trigger it
+  window.__mcRefreshDetectedType = refreshDetectedType;
+
+  // Watch URL inputs for detection update
+  ["externalUrl", "supportUrl"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("input", refreshDetectedType);
+  });
+
+  // Initial render
+  refreshDetectedType();
+})();
 
 </body>
 </html>
