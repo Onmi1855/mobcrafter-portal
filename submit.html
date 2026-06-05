@@ -479,8 +479,13 @@
       if ($contentType.value === "schematic" || $contentType.value === "external_release") {
         $contentType.value = "mobcrafter_unit_json";
       }
-      if ($fileAvailability.value === "schem") $fileAvailability.value = "both";
-      else if ($fileAvailability.value === "external") $fileAvailability.value = "json";
+      // JSON + SCHEM (in any order) → both
+      if ($fileAvailability.value === "schem" || (hasExtraFile() && extra === "schem")) {
+        $fileAvailability.value = "both";
+        $contentType.value = "schematic_unit_set";
+      } else if ($fileAvailability.value === "external") {
+        $fileAvailability.value = "json";
+      }
     }
 
     if (!hasJson && hasExtraFile()) {
@@ -1768,21 +1773,26 @@ if ($btnGenThumb) {
     let hint = "";
 
     if (hasJson && hasSchem) {
-      label = "JSON + Schematic — Complete Set";
+      label = "Complete Set";
+      hint = "MobCrafter JSON + Minecraft Schematic";
+      if (hasSupportUrl) hint += " · Creator-supported link added";
     } else if (hasJson) {
       label = "MobCrafter Unit JSON";
       hint = "Add a schematic for a Complete Set";
+      if (hasSupportUrl) hint += " · Creator-supported link added";
     } else if (hasSchem) {
       label = "Schematic Build";
       hint = "Add MobCrafter JSON to enable 3D preview";
     } else if (hasZip) {
       label = "ZIP Pack";
+      if (hasSupportUrl) hint = "Creator-supported link added";
     } else if (hasExternal) {
       label = "External Release";
-    }
-
-    if (hasSupportUrl && !hasExternal && ($ct?.value || "") === "free") {
-      hint = (hint ? hint + " · " : "") + "Support URL detected — consider Creator-supported access";
+      hint = "No local file hosted on MobCrafter Hub";
+      if (hasSupportUrl) hint += " · Creator-supported link added";
+    } else if (hasSupportUrl) {
+      label = "Cannot publish yet";
+      hint = "Add a file or external release URL — Support URL alone is not enough.";
     }
 
     labelEl.textContent = label;
