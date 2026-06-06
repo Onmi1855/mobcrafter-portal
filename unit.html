@@ -513,6 +513,23 @@
     }
     .commentPager{ margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     .commentHint{ color:var(--muted); font-size:12px; }
+
+    /* === Embed mode: show only 3D canvas (used when embedded in /u detail iframe) === */
+    body.embed-mode { overflow:hidden; }
+    body.embed-mode header,
+    body.embed-mode .hero,
+    body.embed-mode .bannerErr,
+    body.embed-mode details,
+    body.embed-mode .relatedRow,
+    body.embed-mode .commentsBox,
+    body.embed-mode .bottomCta { display:none !important; }
+    body.embed-mode main { padding:4px 6px 6px; }
+    body.embed-mode .card { padding:0; box-shadow:none; border:none; border-radius:0; background:transparent; }
+    body.embed-mode .viewerRow { grid-template-columns:1fr !important; margin-top:0; gap:0; }
+    body.embed-mode .viewerRow > .panel + .panel { display:none !important; }
+    body.embed-mode .panelHead { padding:5px 10px; }
+    body.embed-mode .panelBody { padding:6px; min-height:auto; }
+    body.embed-mode .canvasWrap { height:100%; min-height:240px; }
   </style>
 </head>
 <body>
@@ -730,6 +747,11 @@
     }
   })();
   const api = (path) => (API_ORIGIN ? (API_ORIGIN + path) : path);
+
+  // Embed mode: activated by ?embed=1 — shows only 3D viewer (for use in /u detail iframe)
+  if (new URLSearchParams(location.search).get("embed") === "1") {
+    document.body.classList.add("embed-mode");
+  }
 
   // =========================
   // API endpoints (想定)

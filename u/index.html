@@ -156,8 +156,12 @@
       padding:12px;
       border-radius:12px;
       overflow:auto;
+      max-width:100%;
+      max-height:320px;
       font-size:12px;
       line-height:1.4;
+      white-space:pre-wrap;
+      word-break:break-word;
     }
     details{ margin-top:12px; }
     summary{ cursor:pointer; font-weight:700; }
@@ -1205,7 +1209,8 @@
     for(const file of (files || []).slice(0, 8)){
       const kind = String(file.file_kind || file.fileKind || "file").trim().toUpperCase();
       const label = String(file.label || file.original_name || file.name || kind).trim();
-      const href = String(file.download_path || file.external_url || "").trim();
+      const rawHref = String(file.download_path || file.external_url || "").trim();
+      const href = rawHref && /^https?:\/\//i.test(rawHref) ? rawHref : (rawHref ? api(rawHref) : "");
       addEntry(`${kind}: ${label}`, href || null);
     }
 
@@ -1309,8 +1314,9 @@
 
     if(preferred && preferred.download_path){
       const kind = String(preferred.file_kind || preferred.fileKind || "file").trim().toUpperCase();
-      setActionText(btn, /^https?:\/\//i.test(String(preferred.download_path)) ? "external" : "download", `Download ${kind}`);
-      btn.href = String(preferred.download_path);
+      const resolvedPath = /^https?:\/\//i.test(String(preferred.download_path)) ? String(preferred.download_path) : api(String(preferred.download_path));
+      setActionText(btn, /^https?:\/\//i.test(resolvedPath) ? "external" : "download", `Download ${kind}`);
+      btn.href = resolvedPath;
       if(/^https?:\/\//i.test(btn.href)){
         btn.target = "_blank";
         btn.rel = "noopener noreferrer";
@@ -1475,13 +1481,14 @@
       const hasJsonFile = fa === "json" || fa === "both";
       const hasSchemOnly = fa === "schem";
       const legacyPath = buildLegacyPath(item);
+      const apiParam = API_ORIGIN ? `&api=${encodeURIComponent(API_ORIGIN)}` : "";
       const box = el("preview3dBox");
       const frame = el("preview3dFrame");
       const newTab = el("preview3dNewTab");
       const noJsonBox = el("preview3dNoJsonBox");
       if (hasJsonFile) {
-        if (frame) frame.src = legacyPath;
-        if (newTab) newTab.href = legacyPath;
+        if (frame) frame.src = legacyPath + "&embed=1" + apiParam;
+        if (newTab) newTab.href = legacyPath; // open-in-new-tab goes to full unit.html
         if (box) box.style.display = "block";
       } else if (hasSchemOnly) {
         if (noJsonBox) noJsonBox.style.display = "block";
@@ -1529,19 +1536,28 @@
     renderMiniList("relatedList", [], { emptyText: "Looking for related creations..." });
 
     // JSONプレビュー（開いた時だけ描画、取得はキャッシュ）
-    let jsonLoaded = false;
     const jsonDetails = el("jsonDetails");
-    jsonDetails.addEventListener("toggle", async () => {
-      if(!jsonDetails.open) return;
-      if(jsonLoaded) return;
-      jsonLoaded = true;
-      try{
-        const data = await fetchPublicJsonOnce(item.id);
-        el("jsonPreview").textContent = data.text;
-      }catch(e){
-        el("jsonPreview").textContent = "Failed to fetch: " + String(e.message || e);
-      }
-    });
+    const _faForJson = String(item.file_availability || item.fileAvailability || "").toLowerCase();
+    if (_faForJson !== "json" && _faForJson !== "both") {
+      if (jsonDetails) jsonDetails.style.display = "none";
+    } else {
+      let jsonLoaded = false;
+      jsonDetails.addEventListener("toggle", async () => {
+        if(!jsonDetails.open) return;
+        if(jsonLoaded) return;
+        jsonLoaded = true;
+        try{
+          const data = await fetchPublicJsonOnce(item.id);
+          const MAX_JSON_PREVIEW = 50 * 1024;
+          const text = data.text;
+          el("jsonPreview").textContent = text.length > MAX_JSON_PREVIEW
+            ? text.substring(0, MAX_JSON_PREVIEW) + '\n\n... [Large JSON (' + Math.round(text.length / 1024) + 'KB) — use Download JSON for the full file]'
+            : text;
+        }catch(e){
+          el("jsonPreview").textContent = "JSON preview unavailable: " + String(e.message || e);
+        }
+      });
+    }
 
     // copy howto
     el("copyBtn").onclick = async () => {
@@ -1568,7 +1584,7 @@
         const schemBtn = el("schemDownloadBtn");
         const _fa = String(item.file_availability || "").toLowerCase();
         if (schemFile && schemBtn && schemFile.download_path && _fa === "both") {
-          schemBtn.href = schemFile.download_path;
+          schemBtn.href = api(schemFile.download_path);
           schemBtn.style.display = "inline-flex";
         }
 
@@ -1576,7 +1592,7 @@
         const zipFile = publicFiles.find(f => ["zip", "world"].includes(String(f.file_kind || "").toLowerCase()));
         const zipBtn = el("zipDownloadBtn");
         if (zipFile && zipBtn && zipFile.download_path) {
-          zipBtn.href = zipFile.download_path;
+          zipBtn.href = api(zipFile.download_path);
           zipBtn.style.display = "inline-flex";
         }
       })
