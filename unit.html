@@ -1650,15 +1650,27 @@
       (w - margin*2) / focusRangeX,
       (h - margin*2) / focusRangeY
     );
-    // zoom < 1 pulls the camera back (embed mode: model fits at 1/1.35 ≈ 0.74 scale)
-    const sBase = Math.max(
-      2.0,
-      Math.min(sFocus, sFull * 1.28)
-    );
-    const s = Math.max(1.5, sBase * zoom);
 
-    const cx = fullCx + (focusCx - fullCx) * 0.72;
-    const cy = fullCy + (focusCy - fullCy) * 0.72;
+    // embed mode (zoom<1): true proportional-padding bbox fit — guaranteed no clipping
+    //   rangeX/Y already include per-block envelope (±1 in x, −0.5/+1.5 in y),
+    //   so s = min(availW/rangeX, availH/rangeY) exactly fills the canvas with padding.
+    //   No max(2.0,...) floor — that clamp causes overflow for large/tall models.
+    // normal mode: existing focus-blend logic (unchanged)
+    let s, cx, cy;
+    if (zoom < 1.0) {
+      const padFrac = 0.10; // 10 % padding on each side
+      s = Math.max(0.5, Math.min(
+        w * (1 - 2 * padFrac) / rangeX,
+        h * (1 - 2 * padFrac) / rangeY
+      ));
+      cx = fullCx;
+      cy = fullCy;
+    } else {
+      const sBase = Math.max(2.0, Math.min(sFocus, sFull * 1.28));
+      s = Math.max(1.5, sBase);
+      cx = fullCx + (focusCx - fullCx) * 0.72;
+      cy = fullCy + (focusCy - fullCy) * 0.72;
+    }
     const ox = (w * 0.5) - (cx * s);
     const oy = (h * 0.5) - (cy * s);
 
