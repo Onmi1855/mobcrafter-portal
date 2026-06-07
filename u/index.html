@@ -48,6 +48,7 @@
     header p{ margin:6px 0 0; color:var(--muted); font-size:12px; }
     main{ max-width:1060px; margin:0 auto; padding:10px 16px 40px; }
     .wrap{ display:grid; grid-template-columns: 1.15fr .85fr; gap:14px; }
+    .wrap > *{ min-width: 0; }
     @media (max-width: 900px){ .wrap{ grid-template-columns: 1fr; } }
     .card{
       background:var(--card);
@@ -74,7 +75,7 @@
     .summaryGrid{
       margin-top:14px;
       display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
       gap:12px;
     }
     .infoBox{
@@ -274,7 +275,11 @@
     .preview3dBox{ margin-top:12px; border:1px solid rgba(148,163,184,.25); border-radius:14px; overflow:hidden; background:#fff; }
     .preview3dHeader{ padding:10px 14px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(148,163,184,.15); background:linear-gradient(180deg,rgba(37,99,235,.04),rgba(255,255,255,0)); }
     .preview3dHeader .label{ font-size:13px; font-weight:700; }
-    #preview3dFrame{ width:100%; height:360px; border:none; display:block; }
+    #preview3dFrame{ width:100%; height:300px; max-height:40vh; border:none; display:block; }
+    @media(max-width:700px){ #preview3dFrame{ height:240px; } }
+    .preview3dLazy{ padding:14px 16px; display:flex; flex-direction:column; gap:10px; }
+    .preview3dLazy p{ margin:0; font-size:13px; color:var(--muted); line-height:1.6; }
+    .preview3dLazyActions{ display:flex; gap:8px; flex-wrap:wrap; }
     .preview3dNoJson{ margin-top:10px; padding:12px 14px; border:1px solid rgba(148,163,184,.22); border-radius:12px; background:#f8fafc; font-size:13px; color:var(--muted); }
   </style>
 </head>
@@ -303,17 +308,6 @@
       <!-- Screenshot gallery (shows when submission_screens > 1) -->
       <div id="screensGallery" class="screensGallery" style="display:none;"></div>
 
-      <!-- 3D Preview section (shows when JSON is available) -->
-      <div id="preview3dBox" class="preview3dBox" style="display:none;">
-        <div class="preview3dHeader">
-          <span class="label">3D Preview</span>
-          <a id="preview3dNewTab" class="btn" href="#" target="_blank" rel="noopener noreferrer" style="font-size:12px; padding:6px 10px;"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#preview"></use></svg></span><span>Open in new tab</span></a>
-        </div>
-        <iframe id="preview3dFrame" title="3D Preview" loading="lazy"></iframe>
-      </div>
-      <!-- No-JSON notice for SCHEM-only -->
-      <div id="preview3dNoJsonBox" class="preview3dNoJson" style="display:none;">No MobCrafter JSON included — this release contains schematic / build data only. 3D preview is not available.</div>
-
       <div class="tags" id="tags"></div>
 
       <div class="actions">
@@ -339,6 +333,22 @@
           <ul class="infoList" id="requirementsList"></ul>
         </section>
       </div>
+
+      <!-- 3D Preview (lazy — iframe created on demand) -->
+      <div id="preview3dBox" class="preview3dBox" style="display:none;">
+        <div class="preview3dHeader">
+          <span class="label">3D Preview</span>
+          <a id="preview3dNewTab" class="btn" href="#" target="_blank" rel="noopener noreferrer" style="font-size:12px; padding:6px 10px;"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#preview"></use></svg></span><span>Open in new tab</span></a>
+        </div>
+        <div id="preview3dLazy" class="preview3dLazy">
+          <p>Preview is available for MobCrafter JSON creations.<br>Large creations may take a moment to load.</p>
+          <div class="preview3dLazyActions">
+            <button id="preview3dLoadBtn" class="btn primary" type="button">Load 3D Preview</button>
+          </div>
+        </div>
+      </div>
+      <!-- No-JSON notice for SCHEM-only -->
+      <div id="preview3dNoJsonBox" class="preview3dNoJson" style="display:none;">No MobCrafter JSON included — this release contains schematic / build data only. 3D preview is not available.</div>
 
       <details class="techBox">
         <summary>Technical details</summary>
@@ -1475,21 +1485,34 @@
       }
     }
 
-    // 3D preview section — show if JSON is included (file_availability json or both)
+    // 3D preview — lazy: show card, inject iframe only on "Load 3D Preview" click
     (() => {
       const fa = String(item.file_availability || item.fileAvailability || "").toLowerCase();
       const hasJsonFile = fa === "json" || fa === "both";
       const hasSchemOnly = fa === "schem";
       const legacyPath = buildLegacyPath(item);
       const apiParam = API_ORIGIN ? `&api=${encodeURIComponent(API_ORIGIN)}` : "";
+      const fullSrc = legacyPath + "&embed=1" + apiParam;
       const box = el("preview3dBox");
-      const frame = el("preview3dFrame");
       const newTab = el("preview3dNewTab");
       const noJsonBox = el("preview3dNoJsonBox");
+      const lazyDiv = el("preview3dLazy");
+      const loadBtn = el("preview3dLoadBtn");
       if (hasJsonFile) {
-        if (frame) frame.src = legacyPath + "&embed=1" + apiParam;
         if (newTab) newTab.href = legacyPath; // open-in-new-tab goes to full unit.html
         if (box) box.style.display = "block";
+        if (loadBtn) {
+          loadBtn.onclick = () => {
+            if (el("preview3dFrame")) return; // already loaded
+            const frame = document.createElement("iframe");
+            frame.id = "preview3dFrame";
+            frame.title = "3D Preview";
+            frame.setAttribute("loading", "eager");
+            frame.src = fullSrc;
+            if (lazyDiv) lazyDiv.style.display = "none";
+            if (box) box.appendChild(frame);
+          };
+        }
       } else if (hasSchemOnly) {
         if (noJsonBox) noJsonBox.style.display = "block";
       }
