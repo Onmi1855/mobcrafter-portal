@@ -749,7 +749,8 @@
   const api = (path) => (API_ORIGIN ? (API_ORIGIN + path) : path);
 
   // Embed mode: activated by ?embed=1 — shows only 3D viewer (for use in /u detail iframe)
-  if (new URLSearchParams(location.search).get("embed") === "1") {
+  const IS_EMBED = new URLSearchParams(location.search).get("embed") === "1";
+  if (IS_EMBED) {
     document.body.classList.add("embed-mode");
   }
 
@@ -1540,7 +1541,7 @@
     return { ok:true, blocks, count, format:"palette_instances" };
   }
 
-  function drawIso(canvas, blocks, yawDeg){
+  function drawIso(canvas, blocks, yawDeg, zoom = 1.0){
     const ctx = canvas.getContext("2d");
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0,0,w,h);
@@ -1620,7 +1621,8 @@
 
     const rangeX = Math.max(1e-6, (maxPX - minPX));
     const rangeY = Math.max(1e-6, (maxPY - minPY));
-    const trim = pts.length >= 180 ? 0.05 : (pts.length >= 48 ? 0.035 : 0);
+    // embed mode (zoom<1): trim=0 so the full bounding box is used and extremities aren't cut
+    const trim = (zoom < 1.0) ? 0 : (pts.length >= 180 ? 0.05 : (pts.length >= 48 ? 0.035 : 0));
     let focusMinPX = minPX, focusMaxPX = maxPX, focusMinPY = minPY, focusMaxPY = maxPY;
     if(trim > 0){
       sxs.sort((a,b)=> a - b);
@@ -1648,10 +1650,12 @@
       (w - margin*2) / focusRangeX,
       (h - margin*2) / focusRangeY
     );
-    const s = Math.max(
+    // zoom < 1 pulls the camera back (embed mode: model fits at 1/1.35 ≈ 0.74 scale)
+    const sBase = Math.max(
       2.0,
       Math.min(sFocus, sFull * 1.28)
     );
+    const s = Math.max(1.5, sBase * zoom);
 
     const cx = fullCx + (focusCx - fullCx) * 0.72;
     const cy = fullCy + (focusCy - fullCy) * 0.72;
@@ -1704,7 +1708,8 @@
 
   function render3D(){
     if(!UNIT_JSON) return;
-    drawIso(canvas, Array.isArray(UNIT_BLOCKS) ? UNIT_BLOCKS : [], computeYaw());
+    // embed mode: zoom out by 1/1.35 so the whole model fits in the compact iframe
+    drawIso(canvas, Array.isArray(UNIT_BLOCKS) ? UNIT_BLOCKS : [], computeYaw(), IS_EMBED ? (1 / 1.35) : 1.0);
   }
 
   function hubLabel(map, value, fallback){
