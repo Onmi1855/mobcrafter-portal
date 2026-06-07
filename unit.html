@@ -1672,7 +1672,8 @@
       cy = fullCy + (focusCy - fullCy) * 0.72;
     }
     const ox = (w * 0.5) - (cx * s);
-    const oy = (h * 0.5) - (cy * s);
+    // embed mode: shift model ~4% upward so tall/large models don't clip at bottom
+    const oy = (h * (zoom < 1.0 ? 0.46 : 0.5)) - (cy * s);
 
     // 奥→手前
     pts.sort((a,b)=> (a.x + a.z) - (b.x + b.z) || (a.y - b.y));
