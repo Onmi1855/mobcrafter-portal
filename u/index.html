@@ -635,7 +635,7 @@
     }
   }
 
-  function renderMiniList(targetId, items, { emptyText="Nothing to show yet.", metaBuilder=null } = {}){
+  function renderMiniList(targetId, items, { emptyText="Nothing to show yet.", metaBuilder=null, withThumb=false } = {}){
     const node = el(targetId);
     if(!node) return;
     clearChildren(node);
@@ -652,6 +652,17 @@
       const a = document.createElement("a");
       a.className = "miniCard";
       a.href = buildCanonicalPath(item);
+      if(withThumb && item.id){
+        const img = document.createElement("img");
+        img.className = "miniCardThumb";
+        img.alt = String(item.title || item.name || "");
+        img.loading = "lazy";
+        img.decoding = "async";
+        img.src = api(`/api/public/submissions/${encodeURIComponent(item.id)}/og-image`);
+        a.appendChild(img);
+      }
+      const body = document.createElement("div");
+      body.className = "miniCardBody";
       const title = document.createElement("div");
       title.className = "miniCardTitle";
       title.textContent = String(item.title || item.name || item.unit_id || "Untitled");
@@ -659,9 +670,10 @@
       meta.className = "miniCardMeta";
       meta.textContent = typeof metaBuilder === "function"
         ? String(metaBuilder(item) || "")
-        : `${contentTypeLabel(item.content_type || item.contentType)} • DL ${Number(item.download_count || item.downloadCount || 0) || 0}`;
-      a.appendChild(title);
-      a.appendChild(meta);
+        : `${contentTypeLabel(item.content_type || item.contentType)} \u2022 DL ${Number(item.download_count || item.downloadCount || 0) || 0}`;
+      body.appendChild(title);
+      body.appendChild(meta);
+      a.appendChild(body);
       node.appendChild(a);
     }
   }
