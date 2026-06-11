@@ -108,8 +108,10 @@
     .sideActions{ margin-top:12px; display:flex; flex-wrap:wrap; gap:8px; }
     .miniList{ display:flex; flex-direction:column; gap:10px; }
     .miniCard{
-      display:block;
-      padding:0;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 10px;
       border-radius:12px;
       border:1px solid rgba(148,163,184,.25);
       background:#fff;
@@ -120,24 +122,28 @@
     }
     .miniCard:hover{ box-shadow:0 4px 12px rgba(15,23,42,.10); }
     .miniCardThumb{
-      width:100%;
-      aspect-ratio:16/9;
+      width:56px;
+      height:56px;
+      flex-shrink:0;
       object-fit:cover;
-      display:block;
+      border-radius:8px;
       background:#f1f5f9;
-      border-bottom:1px solid rgba(148,163,184,.12);
+      display:block;
     }
-    .miniCardBody{ padding:8px 10px; }
+    .miniCardBody{ flex:1; min-width:0; }
     .miniCardTitle{
       font-size:13px;
       font-weight:700;
       line-height:1.4;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
     .miniCardMeta{
-      margin-top:4px;
+      margin-top:3px;
       color:var(--muted);
-      font-size:12px;
-      line-height:1.5;
+      font-size:11px;
+      line-height:1.4;
     }
     .actions{ margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .btn{
