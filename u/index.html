@@ -109,13 +109,25 @@
     .miniList{ display:flex; flex-direction:column; gap:10px; }
     .miniCard{
       display:block;
-      padding:10px 12px;
+      padding:0;
       border-radius:12px;
       border:1px solid rgba(148,163,184,.25);
       background:#fff;
       color:inherit;
       text-decoration:none;
+      overflow:hidden;
+      transition:box-shadow .15s;
     }
+    .miniCard:hover{ box-shadow:0 4px 12px rgba(15,23,42,.10); }
+    .miniCardThumb{
+      width:100%;
+      aspect-ratio:16/9;
+      object-fit:cover;
+      display:block;
+      background:#f1f5f9;
+      border-bottom:1px solid rgba(148,163,184,.12);
+    }
+    .miniCardBody{ padding:8px 10px; }
     .miniCardTitle{
       font-size:13px;
       font-weight:700;
@@ -1288,7 +1300,7 @@
     }
 
     const moreBy = (Array.isArray(data.items) ? data.items : []).filter((other) => String(other.id || "") !== String(item.id || "")).slice(0, 5);
-    renderMiniList("moreByList", moreBy, { emptyText: "No other public creations from this creator yet." });
+    renderMiniList("moreByList", moreBy, { emptyText: "No other public creations from this creator yet.", withThumb: true });
   }
 
   function setPrimaryAction(item, files = []){
@@ -1638,7 +1650,7 @@
       });
 
     void fetchRelatedItems(item)
-      .then((items) => renderMiniList("relatedList", items, { emptyText: "No related creations yet." }))
+      .then((items) => renderMiniList("relatedList", items, { emptyText: "No related creations yet.", withThumb: true }))
       .catch(() => renderMiniList("relatedList", [], { emptyText: "No related creations yet." }));
 
     if(who && who.email){
