@@ -5,48 +5,100 @@
      crossorigin="anonymous"></script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>How to Use MobCrafter Hub</title>
-  <meta name="description" content="How to download and use Hub releases inside MobCrafter." />
+  <title>How to Use Releases – MobCrafter Hub</title>
+  <meta name="description" content="Step-by-step instructions for installing MobCrafter unit JSON files, schematics, ZIP packs, and external releases from MobCrafter Hub." />
   <meta property="og:image" content="https://mobcrafter.net/assets/top_banner_new.png" />
   <link rel="stylesheet" href="/assets/site-pages.v1.css" />
 </head>
 <body>
   <header class="page-shell">
-    <a class="homeLink" href="/">Back to Hub</a>
+    <a class="homeLink" href="/">← Back to Hub</a>
     <section class="hero">
-      <p class="eyebrow">Help</p>
-      <h1>How to Use Hub Releases</h1>
-      <p class="lead">Different Hub releases install differently. JSON remains the most direct MobCrafter format, while schematics, packs, and external releases can include extra steps.</p>
+      <p class="eyebrow">How to Use Releases</p>
+      <h1>Installing MobCrafter Hub releases</h1>
+      <p class="lead">This guide walks through every Hub release type — from the most common unit JSON to ZIP packs and schematics — with clear step-by-step instructions so your install goes smoothly on the first try.</p>
       <div class="heroActions">
         <a class="primary" href="/">Browse releases</a>
-        <a href="/mobcrafter.html">MobCrafter basics</a>
+        <a href="/mobcrafter.html">What is MobCrafter?</a>
       </div>
     </section>
   </header>
   <main class="page-shell">
     <article class="contentCard">
-      <h2>MobCrafter JSON</h2>
-      <ol>
-        <li>Download the JSON release from the detail page.</li>
-        <li>Place it in config/mob_crafter/units/.</li>
-        <li>Install any dependency mods listed by the creator before loading the world or server.</li>
-        <li>Use MobCrafter items in-game to summon the unit.</li>
-      </ol>
+      <p style="font-size:13px;color:#64748b;margin-bottom:20px;">Last updated: June 30, 2026</p>
 
-      <h2>Schematics, ZIPs, and worlds</h2>
-      <p>Some releases are not summonable JSON. Schematics and ZIP bundles may contain build files, example worlds, textures, or creator assets. Use the included-file list and the release notes on the detail page before importing them.</p>
+      <h2>Before you start — prerequisites</h2>
+      <p>Every Hub release requires a working Minecraft Forge installation with the MobCrafter mod installed. Before you attempt to install any release:</p>
+      <ul>
+        <li><strong>Minecraft Java Edition</strong> — MobCrafter is a Forge mod for Java Edition. It does not work on Bedrock Edition.</li>
+        <li><strong>Minecraft Forge</strong> — Download the correct Forge version for the Minecraft version listed on the release page. Forge installer: <a href="https://files.minecraftforge.net" target="_blank" rel="noopener noreferrer">files.minecraftforge.net</a>.</li>
+        <li><strong>MobCrafter mod</strong> — Install the MobCrafter mod JAR into your Forge mods folder: <code>.minecraft/mods/</code>. Download from <a href="https://www.curseforge.com/minecraft/mc-mods/mobcrafter" target="_blank" rel="noopener noreferrer">CurseForge</a>.</li>
+        <li><strong>Dependency mods</strong> — Check the release page for any listed dependency mods. Dependency mods must also be installed in <code>.minecraft/mods/</code>. If a dependency is missing, the unit may fail to render or summon.</li>
+        <li>Launch Minecraft with the Forge profile at least once to let the mod generate its configuration folders before adding files manually.</li>
+      </ul>
+
+      <h2>Installing a MobCrafter unit JSON</h2>
+      <p>This is the most common Hub release type. A unit JSON is a plain-text file that describes the block structure of a summonable unit.</p>
+      <ol>
+        <li>On the release detail page, click the <strong>Download Unit JSON</strong> button to save the file to your computer.</li>
+        <li>Locate your Minecraft installation folder. On Windows, open File Explorer and type <code>%appdata%\.minecraft</code> in the address bar and press Enter.</li>
+        <li>Navigate to <code>.minecraft\config\mob_crafter\units\</code>. If the <code>units</code> folder does not exist, create it manually.</li>
+        <li>Copy the downloaded <code>.json</code> file into the <code>units</code> folder.</li>
+        <li>Launch (or restart) Minecraft with the Forge + MobCrafter profile. The unit will be automatically loaded from that folder when the game starts.</li>
+        <li>Use MobCrafter's in-game commands or items to summon the unit.</li>
+      </ol>
+      <div class="note">
+        <strong>File naming:</strong> The filename of the JSON (without the <code>.json</code> extension) is the unit's identifier. If you rename the file, the in-game unit ID changes. Do not rename unless you have a reason to.
+        <br><br>
+        <strong>Conflicts:</strong> If you already have a unit with the same filename, the new file will overwrite it. Rename one of them to keep both.
+        <br><br>
+        <strong>Multiplayer:</strong> On a server, place the JSON in the server's <code>config/mob_crafter/units/</code> directory instead. The server distributes unit data to connected clients automatically.
+      </div>
+
+      <h2>Installing a schematic file (.schem or .litematic)</h2>
+      <p>Some releases include a schematic for placing the block build directly in your world using a schematic mod. Two schematic types are commonly used:</p>
+      <ul>
+        <li><strong>.schem</strong> — WorldEdit format. Requires WorldEdit or CraftTweaker with WorldEdit support. Place <code>.schem</code> files in <code>.minecraft\config\worldedit\schematics\</code> (or the equivalent folder for your WorldEdit version). Load with <code>//load filename</code> and paste with <code>//paste</code>.</li>
+        <li><strong>.litematic</strong> — Litematica format. Requires the Litematica mod. Place <code>.litematic</code> files in <code>.minecraft\schematics\</code>. Open the Litematica menu in-game (default <code>M</code>) → Load schematic → place and materialize.</li>
+      </ul>
+      <p>Check the release description for which schematic type is included and which mod the creator recommends using it with.</p>
+
+      <h2>Installing a ZIP pack</h2>
+      <p>ZIP packs may contain any combination of unit JSONs, schematics, resource pack files, README instructions, or other creator assets. They are not Minecraft mod JARs — do not drop them in <code>mods/</code>.</p>
+      <ol>
+        <li>Download the <code>.zip</code> file from the release page.</li>
+        <li><strong>Read the README file first.</strong> Most ZIP packs include a <code>README.txt</code> or <code>README.md</code> file inside the archive that explains exactly which files go where. The structure varies by creator.</li>
+        <li>Extract the ZIP archive using File Explorer (right-click → Extract All) or a tool like 7-Zip.</li>
+        <li>Follow the README's file placement instructions. Typically, unit JSONs go in <code>config/mob_crafter/units/</code> and schematics go in the appropriate schematic folder.</li>
+      </ol>
+      <div class="note">If there is no README and the ZIP contains several folders, look at the folder names for hints — folders named <code>units</code>, <code>schematics</code>, or <code>mods</code> indicate where their contents should be placed in your Minecraft directory.</div>
 
       <h2>External releases</h2>
-      <p>If a release is hosted off-site, the Hub detail page will point to the creator-provided external URL. Supporter-only or creator-supported content may require leaving the Hub to access final downloads.</p>
+      <p>Some creators host their primary files on their own platforms — CurseForge, Patreon, GitHub, Gumroad, or personal sites. On these releases, the Hub page links out to the creator's download page.</p>
+      <p>For external releases, follow the installation instructions provided by the creator on their platform. MobCrafter Hub does not control external hosting and cannot guarantee the availability of externally-hosted files.</p>
 
-      <div class="note">If a page says a dependency mod is required, install that dependency first. Preview images do not guarantee bundled files or bundled permissions.</div>
+      <h2>Common errors and troubleshooting</h2>
+      <ul>
+        <li><strong>Unit not appearing in-game after installing JSON:</strong> Confirm the file is in <code>config/mob_crafter/units/</code> (not a subfolder), that the game was restarted after copying, and that all dependency mods are installed. Check the Minecraft log for errors mentioning the unit filename.</li>
+        <li><strong>Unit appears but has missing blocks (holes or gray cubes):</strong> At least one dependency mod is missing. Re-read the release description, install all listed mods, and restart the game.</li>
+        <li><strong>Schematic fails to load or paste:</strong> Confirm you are using the correct schematic mod (WorldEdit for <code>.schem</code>, Litematica for <code>.litematic</code>). Also check that the schematic was saved for the same Minecraft version you are running.</li>
+        <li><strong>Download fails or the download button does nothing:</strong> Try a different browser. If the problem persists, the release may have a configuration issue — report it via the <a href="/contact.html">Contact page</a>.</li>
+        <li><strong>ZIP extraction gives a "file is corrupted" error:</strong> Re-download the file. If the error persists, contact the creator directly via their support link on the release page.</li>
+      </ul>
+
+      <h2>Frequently asked questions</h2>
+      <ul>
+        <li><strong>Can I add these units to a modpack?</strong> Only with the creator's explicit permission. Check the access type on the release page — "Free" does not automatically mean "licensed for modpack redistribution." Contact the creator if you are unsure.</li>
+        <li><strong>Is MobCrafter Hub affiliated with Mojang or Microsoft?</strong> No. MobCrafter Hub is an independent, community-run platform. It is not endorsed by, affiliated with, or funded by Mojang Studios or Microsoft.</li>
+        <li><strong>The 3D preview in the browser looks different from the in-game unit. Which is correct?</strong> The in-game unit is authoritative. The 3D preview uses an approximation of block textures that may differ from what you see with your specific resource pack or mod setup.</li>
+        <li><strong>Can I use Hub units on a multiplayer server?</strong> Yes — place the unit JSON in <code>config/mob_crafter/units/</code> on the server. Clients do not need to have the file locally; the server syncs it. However, all players need the same mods installed (including MobCrafter and dependency mods).</li>
+      </ul>
     </article>
   </main>
   <footer class="page-shell footerLinks">
-    <a href="/about.html">About</a>
-    <a href="/mobcrafter.html">MobCrafter</a>
+    <a href="/">Home</a>
+    <a href="/mobcrafter.html">About MobCrafter</a>
     <a href="/upload-guide.html">Upload Guide</a>
-    <a href="/creator-support.html">Creator Support</a>
     <a href="/guidelines.html">Guidelines</a>
     <a href="/contact.html">Contact</a>
   </footer>

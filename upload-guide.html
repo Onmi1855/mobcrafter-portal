@@ -5,48 +5,101 @@
      crossorigin="anonymous"></script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MobCrafter Hub Upload Guide</title>
-  <meta name="description" content="How to publish releases through MobCrafter Hub Quick Upload." />
+  <title>Upload Guide – MobCrafter Hub</title>
+  <meta name="description" content="Step-by-step creator guide to publishing MobCrafter releases on MobCrafter Hub. Covers screenshots, file slots, metadata fields, access types, and common mistakes." />
   <meta property="og:image" content="https://mobcrafter.net/assets/top_banner_new.png" />
   <link rel="stylesheet" href="/assets/site-pages.v1.css" />
 </head>
 <body>
   <header class="page-shell">
-    <a class="homeLink" href="/">Back to Hub</a>
+    <a class="homeLink" href="/">← Back to Hub</a>
     <section class="hero">
-      <p class="eyebrow">Upload</p>
-      <h1>Quick Upload Guide</h1>
-      <p class="lead">Quick Upload now supports metadata-first Hub releases. JSON is still optional for metadata entry but remains the only format that unlocks the Hub 3D preview and legacy summon workflow.</p>
+      <p class="eyebrow">Upload Guide</p>
+      <h1>How to publish a release on MobCrafter Hub</h1>
+      <p class="lead">This guide walks through every step of the Quick Upload form, explains what each field does, and covers the most common publishing mistakes so your release reaches users in the best possible shape.</p>
       <div class="heroActions">
         <a class="primary" href="/submit.html">Open Quick Upload</a>
+        <a href="/guidelines.html">Community guidelines</a>
         <a href="/ai-guidelines.html">AI guidelines</a>
       </div>
     </section>
   </header>
   <main class="page-shell">
     <article class="contentCard">
-      <h2>Choose the right metadata</h2>
+      <p style="font-size:13px;color:#64748b;margin-bottom:20px;">Last updated: June 30, 2026</p>
+
+      <h2>Before you upload</h2>
       <ul>
-        <li>Set content type to match what you are actually sharing.</li>
-        <li>Set file availability so the detail page explains whether the release is JSON, schematic, ZIP, both, or external-only.</li>
-        <li>Use access type to make free, creator-supported, Patreon-linked, or external access clear up front.</li>
+        <li>You need a MobCrafter Hub account (Cloudflare Access login) to publish releases.</li>
+        <li>Make sure all files you plan to upload are fully tested and working in-game before submitting.</li>
+        <li>Read the <a href="/guidelines.html">Community Guidelines</a> before your first submission. In particular, review the third-party IP and metadata rules — these are the most common reasons releases are rejected by moderation.</li>
+        <li>If AI assisted any part of your creation, note that before starting. You will need to set the creation method and provide a disclosure note.</li>
       </ul>
 
-      <h2>Files and links</h2>
-      <p>You can upload the classic JSON, attach one extra file through the file-upload route, or publish an external release URL instead of uploading files directly. Support URLs are optional and can point to creator support pages such as Patreon.</p>
+      <h2>Step 1 — Screenshots</h2>
+      <p>Screenshots are how users decide whether to download your release. The first screenshot you add becomes the thumbnail shown on Hub cards and in search results.</p>
+      <ul>
+        <li>Accepted formats: PNG, JPG, WebP.</li>
+        <li>Show the release as it actually looks in-game. Do not use placeholder images, images from another creator's release, or screenshots that do not match the release content.</li>
+        <li>Good screenshots show the unit or build from multiple angles and include an in-game environment for context.</li>
+        <li>If no screenshots are uploaded, Hub will attempt to auto-generate a 3D preview from the unit JSON (for JSON releases only). The auto-preview is lower quality than a real screenshot.</li>
+      </ul>
 
-      <h2>Preview and edit mode</h2>
-      <p>JSON remains optional for Hub metadata, but it is still required for the in-browser 3D preview. Existing releases can be reopened in edit mode from the creator dashboard without assuming that every release has JSON.</p>
+      <h2>Step 2 — Upload files</h2>
+      <p>Quick Upload has separate slots for each file type. Use the right slot for each file — putting a JSON in the schematic slot or vice versa will cause the release to behave incorrectly.</p>
+      <ul>
+        <li><strong>Unit JSON slot:</strong> For the <code>.json</code> unit file from <code>config/mob_crafter/units/</code>. Unlocks the in-browser 3D preview and the direct download button.</li>
+        <li><strong>Schematic slot:</strong> For <code>.schem</code> (WorldEdit) or <code>.litematic</code> (Litematica) files. Separate from the JSON slot — a release can have both.</li>
+        <li><strong>ZIP / Pack slot:</strong> For archive bundles containing multiple files or creator assets. Maximum file size: 50 MB. If your bundle exceeds this limit, host it externally and use the External URL field instead.</li>
+        <li><strong>External URL:</strong> If the primary download is on your own site, CurseForge, Patreon, GitHub, or another platform, paste the URL here. You can use an external URL alone or alongside uploaded files.</li>
+      </ul>
 
-      <div class="note">Only upload content you have the right to distribute. If AI assisted the build or workflow, disclose that in the creation method metadata.</div>
+      <h2>Step 3 — Basic info</h2>
+      <ul>
+        <li><strong>Title</strong> — The name of your release. Maximum 80 characters. Use the actual name of the creation, not keyword phrases. A clear title like "Iron Golem Siege Unit" is better than "Minecraft iron golem mob crafter unit download free".</li>
+        <li><strong>Tags</strong> — Choose tags that accurately describe the content: mob type, theme, size, style, Minecraft version, etc. Do not add tags for characters or brands that are not actually in the release.</li>
+        <li><strong>Description</strong> — This is the most important metadata field. A good description should include: what the unit or build is, what makes it interesting or unique, what Minecraft version it was made for, what dependency mods are required, any known limitations, and basic usage notes for users who are new to the release type.</li>
+      </ul>
+      <div class="note">Releases with vague or one-line descriptions are more likely to be flagged during moderation review. Take time on this field — it directly affects how discoverable and trustworthy your release appears.</div>
+
+      <h2>Step 4 — Release settings</h2>
+      <ul>
+        <li><strong>Content type</strong> — What the primary content is: Unit JSON, Schematic + Unit Set, Schematic only, ZIP Pack, or External. Set this to match your files, not what you wish you had uploaded.</li>
+        <li><strong>File availability</strong> — What file types are actually included in this release (JSON, schematic, ZIP, or external). Users see this on the release page before they click download.</li>
+        <li><strong>Access type</strong> — How users access the download:
+          <ul>
+            <li><em>Free</em>: Anyone can download from Hub directly.</li>
+            <li><em>Creator-supported</em>: Free but the creator has a support link (e.g., Patreon, Ko-fi) shown on the page.</li>
+            <li><em>Supporter only</em>: The primary file is gated behind the creator's external platform. Only supporters get access.</li>
+            <li><em>External only</em>: No Hub-hosted file. All downloads go through the external URL.</li>
+          </ul>
+        </li>
+        <li><strong>Creation method</strong> — How the release was made: Hand-crafted, AI-assisted, AI-generated, or Commissioned. Be honest — undisclosed AI content is a guidelines violation.</li>
+        <li><strong>Visibility</strong> — Draft saves the release privately; Published submits it to the moderation queue for review.</li>
+      </ul>
+
+      <h2>After submitting</h2>
+      <p>When you set visibility to Published and submit, the release enters a moderation queue. Moderation checks that the metadata is accurate, the files work, and the content meets the community guidelines. Once approved, the release becomes publicly visible on the Hub catalog.</p>
+      <p>You can edit a release at any time from your creator dashboard without re-submitting to moderation — unless you make a change that requires a full re-review (such as replacing the primary file or making a significant metadata change).</p>
+
+      <h2>Common mistakes to avoid</h2>
+      <ul>
+        <li><strong>Wrong file in the wrong slot</strong> — A JSON placed in the schematic slot will not generate a 3D preview. A schematic placed in the JSON slot will fail to parse. Use each slot for its intended file type.</li>
+        <li><strong>Missing dependency disclosure</strong> — If your unit uses blocks from other mods, list those mods and versions in the description. Releases that cause "missing blocks" errors due to undisclosed dependencies are one of the most common user complaints.</li>
+        <li><strong>Thumbnail that does not match the release</strong> — Using a placeholder, a generic image, or a screenshot from a different build as the thumbnail misleads users and is a moderation flag.</li>
+        <li><strong>Vague or one-line description</strong> — "A cool unit" tells users nothing. Describe what the build is, why it is interesting, and what users need to use it.</li>
+        <li><strong>Wrong access type</strong> — Setting a release to "Free" but placing all files behind an external paywall confuses users. If the files require external access, set the access type accordingly.</li>
+        <li><strong>Missing Minecraft version</strong> — Always note which Minecraft version the release was built and tested on. A unit made for 1.20.1 may not work correctly in 1.21.</li>
+      </ul>
     </article>
   </main>
   <footer class="page-shell footerLinks">
+    <a href="/">Home</a>
     <a href="/how-to-use.html">How to Use</a>
     <a href="/guidelines.html">Guidelines</a>
     <a href="/ai-guidelines.html">AI Guidelines</a>
-    <a href="/creator-support.html">Creator Support</a>
     <a href="/terms.html">Terms</a>
+    <a href="/contact.html">Contact</a>
   </footer>
 </body>
 </html>

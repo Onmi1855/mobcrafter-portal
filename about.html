@@ -6,41 +6,71 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>About MobCrafter Hub</title>
-  <meta name="description" content="What MobCrafter Hub is, what it publishes, and how it fits the MobCrafter mod workflow." />
+  <meta name="description" content="MobCrafter Hub is the community library for MobCrafter units, schematics, and builds — maintained by and for the MobCrafter mod community." />
   <meta property="og:image" content="https://mobcrafter.net/assets/top_banner_new.png" />
   <link rel="stylesheet" href="/assets/site-pages.v1.css" />
 </head>
 <body>
   <header class="page-shell">
-    <a class="homeLink" href="/">Back to Hub</a>
+    <a class="homeLink" href="/">← Back to Hub</a>
     <section class="hero">
       <p class="eyebrow">About</p>
-      <h1>MobCrafter Hub</h1>
-      <p class="lead">MobCrafter Hub is the public release catalog for MobCrafter units, schematics, unit packs, creator assets, and linked creator-supported downloads. It keeps the existing static site plus Cloudflare Worker, D1, R2, and Access setup intact while exposing a cleaner public catalog.</p>
+      <h1>About MobCrafter Hub</h1>
+      <p class="lead">MobCrafter Hub is an independent, community-maintained library for the MobCrafter Minecraft Forge mod. It exists because creators needed a single, searchable place to share their units and builds — rather than scattered Discord attachments and file hosting links.</p>
       <div class="heroMedia"><img src="/assets/top_banner_new.png" alt="MobCrafter Hub banner" /></div>
       <div class="heroActions">
-        <a class="primary" href="/">Browse Hub</a>
-        <a href="/submit.html">Quick Upload</a>
-        <a href="/creators/">Creators</a>
+        <a class="primary" href="/">Browse the Hub</a>
+        <a href="/submit.html">Publish a release</a>
       </div>
     </section>
   </header>
   <main class="page-shell">
     <article class="contentCard">
-      <h2>What lives here</h2>
-      <p>The Hub can publish classic MobCrafter JSON releases, schematic-only downloads, mixed schematic plus unit sets, ZIP bundles, worlds, and external release links. Legacy JSON support remains first-class so existing content and older workflows keep working.</p>
+      <p style="font-size:13px;color:#64748b;margin-bottom:20px;">Last updated: June 30, 2026</p>
 
-      <h2>What the site does not invent</h2>
-      <p>Creator pages and release cards are built from real submission data. The site shows titles, descriptions, tags, creator names, download counts, support links, and related metadata that creators or moderators actually saved.</p>
+      <h2>What the Hub is</h2>
+      <p>MobCrafter is a Minecraft Forge mod that lets you capture block structures and turn them into summonable, animated units. It produces a JSON file for each unit — a simple, portable format that can be shared between players just by copying a file.</p>
+      <p>Before the Hub, sharing those JSON files meant hoping someone in a Discord server could find your old attachment, or maintaining your own download page. The Hub solves that by giving every unit and build a permanent, discoverable catalog entry with screenshots, in-browser 3D preview, dependency information, and a direct download.</p>
 
-      <h2>How the stack stays the same</h2>
-      <p>The public pages are still static HTML. The same-origin Worker continues to handle metadata, uploads, moderation, and public APIs. D1 stores release metadata, comments, and likes. R2 stores uploaded files and screenshots. Cloudflare Access remains the login gate for authenticated flows.</p>
+      <h2>What you can find here</h2>
+      <p>The Hub catalog includes four types of community-made content:</p>
+      <ul>
+        <li><strong>MobCrafter Unit JSON</strong> — Summonable units that you install in one file copy. Includes in-browser 3D preview for supported releases.</li>
+        <li><strong>Schematics + Unit Sets</strong> — Build files (.schem / .litematic) paired with the matching unit JSON, so you can place the structure in your world AND summon it as a unit.</li>
+        <li><strong>Schematic only</strong> — Standalone build files for world-builders who want the structure without the summonable unit.</li>
+        <li><strong>ZIP Packs and External releases</strong> — Multi-file bundles, creator asset sets, or releases hosted on the creator's own platform, linked from the Hub catalog.</li>
+      </ul>
 
-      <div class="note">MobCrafter Hub is intentionally additive: existing public pages, existing APIs, and existing release data remain valid while new Hub metadata and creator surfaces sit on top.</div>
+      <h2>For creators</h2>
+      <p>Publishing a release on the Hub takes a few minutes through Quick Upload. Creators retain ownership of their work — the Hub hosts or links to it, but does not claim rights over creator content.</p>
+      <ul>
+        <li>Upload once, edit any time from your creator dashboard.</li>
+        <li>Choose your access model: free, creator-supported, supporter-only, or external-only.</li>
+        <li>Releases go through a moderation queue before becoming publicly visible, keeping the catalog quality consistent.</li>
+        <li>Creators can maintain a public creator page that shows all their published releases.</li>
+      </ul>
+
+      <h2>Community values</h2>
+      <p>The Hub is built on four principles that shape how moderation decisions are made:</p>
+      <ul>
+        <li><strong>Honesty</strong> — Metadata, descriptions, and access types must accurately represent what a release contains. Misleading users is not acceptable regardless of intent.</li>
+        <li><strong>Attribution</strong> — Credit the creators and mods that made your work possible. Do not claim or re-upload others' work without explicit permission.</li>
+        <li><strong>Quality over quantity</strong> — Releases should be tested, complete, and useful before being published. The goal is a catalog users can trust, not a high submission count.</li>
+        <li><strong>Community safety</strong> — No malware, no deceptive archives, no content designed to harm users or the game environment.</li>
+      </ul>
+
+      <h2>Technical foundation</h2>
+      <p>The Hub is a static site hosted on Cloudflare Pages, backed by a Cloudflare Worker API, a D1 database for release metadata and community data, and an R2 bucket for uploaded files and screenshots. Authentication for creator flows uses Cloudflare Access. The stack was chosen to keep running costs minimal and performance consistent globally without managing servers.</p>
+
+      <h2>Not affiliated with Mojang or Microsoft</h2>
+      <p>MobCrafter Hub is an independent, community-run project. It is not endorsed by, affiliated with, sponsored by, or funded by Mojang Studios, Microsoft, or any other company. Minecraft is a registered trademark of Mojang Studios. The MobCrafter mod is a third-party Forge mod created independently of Mojang.</p>
+
+      <div class="note">For copyright, DMCA, or legal questions, see the <a href="/dmca.html">DMCA page</a>. For privacy questions, see the <a href="/privacy.html">Privacy Policy</a>. For general questions, see the <a href="/contact.html">Contact page</a>.</div>
     </article>
   </main>
   <footer class="page-shell footerLinks">
-    <a href="/mobcrafter.html">MobCrafter</a>
+    <a href="/">Home</a>
+    <a href="/mobcrafter.html">What is MobCrafter?</a>
     <a href="/how-to-use.html">How to Use</a>
     <a href="/upload-guide.html">Upload Guide</a>
     <a href="/guidelines.html">Guidelines</a>

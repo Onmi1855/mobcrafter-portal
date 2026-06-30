@@ -5,47 +5,92 @@
      crossorigin="anonymous"></script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MobCrafter</title>
-  <meta name="description" content="Quick explanation of the MobCrafter mod workflow and how Hub releases fit into it." />
+  <title>What is MobCrafter? – MobCrafter Hub</title>
+  <meta name="description" content="MobCrafter is a Minecraft Forge mod that turns block structures into summonable units. Learn how it works, what unit JSON files are, and how Hub releases fit in." />
   <meta property="og:image" content="https://mobcrafter.net/assets/top_banner_new.png" />
   <link rel="stylesheet" href="/assets/site-pages.v1.css" />
 </head>
 <body>
   <header class="page-shell">
-    <a class="homeLink" href="/">Back to Hub</a>
+    <a class="homeLink" href="/">← Back to Hub</a>
     <section class="hero">
-      <p class="eyebrow">MobCrafter</p>
-      <h1>What the mod does</h1>
-      <p class="lead">MobCrafter lets you turn Minecraft block builds into summonable units. Hub releases package those units and related creator files so they can be shared publicly.</p>
+      <p class="eyebrow">About MobCrafter</p>
+      <h1>What is the MobCrafter mod?</h1>
+      <p class="lead">MobCrafter is a Minecraft Forge mod that lets you capture block structures and turn them into summonable, animated units. MobCrafter Hub is the community library where creators share their units and builds for everyone to download and use.</p>
       <div class="heroActions">
         <a class="primary" href="/how-to-use.html">How to use releases</a>
-        <a href="/submit.html">Publish a release</a>
+        <a href="/">Browse the Hub</a>
+        <a href="https://www.curseforge.com/minecraft/mc-mods/mobcrafter" target="_blank" rel="noopener noreferrer">Get MobCrafter on CurseForge</a>
       </div>
     </section>
   </header>
   <main class="page-shell">
     <article class="contentCard">
-      <h2>Basic in-game flow</h2>
+
+      <h2>The core concept</h2>
+      <p>MobCrafter works by letting you build structures out of Minecraft blocks and then <em>capture</em> those structures as reusable units. Once captured, a unit can be summoned in-game and will appear exactly as the block structure you built — without needing a separate entity model or a texture pack.</p>
+      <p>This makes MobCrafter fundamentally different from traditional entity mods: there are no custom 3D mob models in the traditional sense. Your block build <em>is</em> the mob. Every detail you place with blocks becomes part of the unit's appearance.</p>
+
+      <h2>How the in-game workflow works</h2>
       <ol>
-        <li>Build a structure with blocks.</li>
-        <li>Attach a Bone Block as the core or pivot.</li>
-        <li>Use the Capture Tool on the Bone Block to save the structure as a unit.</li>
-        <li>Summon the unit in-game.</li>
+        <li><strong>Build a structure with blocks.</strong> Use any combination of vanilla Minecraft blocks and mod-added blocks to construct what you want your unit to look like. Complexity is up to you — from simple two-block creatures to elaborate multi-hundred-block boss designs.</li>
+        <li><strong>Place a Bone Block as the core or pivot.</strong> The Bone Block acts as the root point of the unit and determines its orientation when summoned.</li>
+        <li><strong>Use the Capture Tool on the Bone Block.</strong> MobCrafter's Capture Tool records the surrounding structure and saves it as a unit JSON file at <code>config/mob_crafter/units/</code> in your Minecraft directory.</li>
+        <li><strong>Summon the unit in-game.</strong> Use MobCrafter items and commands to spawn the captured unit wherever you want it to appear. It will look exactly like your block build.</li>
       </ol>
 
-      <h2>Where JSON releases go</h2>
-      <p>Downloaded unit JSON files are loaded from config/mob_crafter/units/. In multiplayer, server-side JSON is the source of truth and is synced to clients.</p>
+      <h2>What is a unit JSON file?</h2>
+      <p>The unit JSON is a plain-text file that fully describes a captured block structure — every block's position, type, and state — along with the unit's name, identifier, and optional configuration data. Because it is just a text file, units can be:</p>
+      <ul>
+        <li>Shared between players simply by copying the file into the right folder.</li>
+        <li>Backed up, version-controlled, and edited in any text editor.</li>
+        <li>Loaded on servers without client-side installation — in multiplayer, the server-side JSON is the source of truth and is synced to connecting clients automatically.</li>
+      </ul>
+      <p>JSON remains the most direct and portable format for MobCrafter units, which is why Hub gives it first-class treatment: JSON releases unlock the in-browser 3D preview, the legacy unit page, and the standard summon workflow.</p>
 
-      <h2>What Hub adds</h2>
-      <p>The Hub keeps JSON compatible while also letting creators publish schematics, ZIP bundles, worlds, creator assets, and external release links around the same creation.</p>
+      <h2>Types of releases on MobCrafter Hub</h2>
+      <p>Hub releases are organized by what they contain, so you always know what you are getting before you download:</p>
+      <ul>
+        <li><strong>MobCrafter Unit JSON</strong> — the unit file itself. Download it, drop it in your config folder, and summon the unit in-game. Most Hub releases include this type.</li>
+        <li><strong>Schematic + Unit Set</strong> — includes both a summonable unit JSON and a Minecraft schematic file (.schem or .litematic). Use the JSON for summoning and the schematic for placing the build directly in your world with a schematic mod.</li>
+        <li><strong>Schematic only</strong> — a standalone schematic file for the Minecraft builder in you, without a summonable unit component.</li>
+        <li><strong>ZIP / Unit Pack</strong> — a bundle that may contain multiple units, example worlds, resource packs, configuration patches, or other creator-made assets packaged together for convenience.</li>
+        <li><strong>External release</strong> — the creator hosts the primary file on their own platform (such as CurseForge, Patreon, GitHub, or a personal site). The Hub page links out to their download.</li>
+      </ul>
+
+      <h2>Mod compatibility and dependencies</h2>
+      <p>MobCrafter is a Minecraft Forge mod. Check each release's detail page for the Minecraft version and MobCrafter version it was created with, and always verify compatibility with your current installation before downloading.</p>
+      <p>If a unit uses blocks from other mods (anything outside vanilla Minecraft and MobCrafter itself), those mods must be installed for the unit to render correctly. The "Requirements" section on each release page lists known dependencies. Install all listed dependencies <em>before</em> loading the unit.</p>
+
+      <h2>What MobCrafter Hub adds to the ecosystem</h2>
+      <p>Before the Hub, finding and sharing MobCrafter units meant hunting through Discord servers, personal sites, and file hosts with no standard format. The Hub solves that by giving creators a consistent, searchable, discoverable catalog:</p>
+      <ul>
+        <li>Browse and search community-made units and builds in one place.</li>
+        <li>View in-browser 3D previews of units (for JSON releases) before downloading.</li>
+        <li>See creator screenshots to understand what a build looks like in-game.</li>
+        <li>Read dependency disclosures, version compatibility notes, and creator-provided install instructions on every release page.</li>
+        <li>Download directly from the release page — no external sign-up required for free releases.</li>
+        <li>Like releases you enjoy and leave comments to help the community.</li>
+        <li>Follow creator pages to discover new content from creators you trust.</li>
+      </ul>
+
+      <h2>Getting started</h2>
+      <p>New to MobCrafter Hub? Here is the recommended path:</p>
+      <ol>
+        <li>Install Minecraft Forge and the MobCrafter mod from <a href="https://www.curseforge.com/minecraft/mc-mods/mobcrafter" target="_blank" rel="noopener noreferrer">CurseForge</a>.</li>
+        <li>Browse the Hub to find a release you want to try.</li>
+        <li>Follow the <a href="/how-to-use.html">How to Use guide</a> for step-by-step installation instructions.</li>
+        <li>Once you are comfortable using Hub releases, try capturing your own build and <a href="/submit.html">publishing it on the Hub</a>.</li>
+      </ol>
     </article>
   </main>
   <footer class="page-shell footerLinks">
-    <a href="/about.html">About</a>
+    <a href="/">Home</a>
     <a href="/how-to-use.html">How to Use</a>
     <a href="/upload-guide.html">Upload Guide</a>
-    <a href="/creator-support.html">Creator Support</a>
     <a href="/guidelines.html">Guidelines</a>
+    <a href="/about.html">About the Hub</a>
+    <a href="/contact.html">Contact</a>
   </footer>
 </body>
 </html>
