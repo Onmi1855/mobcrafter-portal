@@ -301,6 +301,10 @@
     .preview3dLazy p{ margin:0; font-size:13px; color:var(--muted); line-height:1.6; }
     .preview3dLazyActions{ display:flex; gap:8px; flex-wrap:wrap; }
     .preview3dNoJson{ margin-top:10px; padding:12px 14px; border:1px solid rgba(148,163,184,.22); border-radius:12px; background:#f8fafc; font-size:13px; color:var(--muted); }
+    /* About this creation */
+    .aboutSection{ margin-top:16px; padding:16px 20px; background:#f8fafc; border:1px solid rgba(148,163,184,.22); border-radius:14px; }
+    .aboutHeading{ font-size:15px; font-weight:700; color:var(--fg, #0f172a); margin:0 0 10px; }
+    .aboutBody{ margin:0; font-size:14px; line-height:1.75; color:var(--fg, #0f172a); white-space:pre-wrap; word-break:break-word; }
   </style>
 </head>
 <body>
@@ -338,6 +342,11 @@
         <a id="supportBtn" class="btn" href="#" target="_blank" rel="noopener noreferrer" style="display:none;"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#support"></use></svg></span><span>Support creator</span></a>
         <button id="copyBtn" class="btn" type="button"><span class="ui-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="/assets/ui-icons.v1.svg#copy"></use></svg></span><span>Copy instructions</span></button>
       </div>
+
+      <section class="aboutSection" id="aboutSection" aria-label="About this creation">
+        <h2 class="aboutHeading">About this creation</h2>
+        <p id="aboutBody" class="aboutBody"></p>
+      </section>
 
       <div class="summaryGrid">
         <section class="infoBox">
@@ -1490,6 +1499,13 @@
 
     const tags = normalizeTags(item.tags);
     el("tags").innerHTML = tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join("");
+
+    const aboutBodyEl = el("aboutBody");
+    if (aboutBodyEl) {
+      const desc = String(item.description || "").trim();
+      const FALLBACK = "This MobCrafter release includes a downloadable creation for Minecraft. Check the included files and dependency information before downloading.";
+      aboutBodyEl.textContent = desc || FALLBACK;
+    }
 
     el("kv").innerHTML = [
       kvRow("Created", item.created_at || ""),

@@ -521,6 +521,7 @@
     body.embed-mode header,
     body.embed-mode .hero,
     body.embed-mode .bannerErr,
+    body.embed-mode .aboutSection,
     body.embed-mode details,
     body.embed-mode .relatedRow,
     body.embed-mode .commentsBox,
@@ -532,6 +533,11 @@
     body.embed-mode .panelHead { padding:5px 10px; }
     body.embed-mode .panelBody { padding:6px; min-height:auto; }
     body.embed-mode .canvasWrap { height:100%; min-height:240px; }
+    /* About this creation */
+    .aboutSection{ margin-top:20px; padding:16px 20px; background:#f8fafc; border:1px solid rgba(148,163,184,.22); border-radius:14px; }
+    .aboutSection.embed-hidden{ display:none; }
+    .aboutHeading{ font-size:15px; font-weight:700; color:var(--fg); margin:0 0 10px; }
+    .aboutBody{ margin:0; font-size:14px; line-height:1.75; color:var(--fg); white-space:pre-wrap; word-break:break-word; }
   </style>
 </head>
 <body>
@@ -607,6 +613,11 @@
         </div>
       </div>
     </div>
+
+    <section class="aboutSection" id="aboutSection" aria-label="About this creation">
+      <h2 class="aboutHeading">About this creation</h2>
+      <p id="aboutBody" class="aboutBody"></p>
+    </section>
 
     <div class="bannerErr" id="warn"></div>
 
@@ -1814,7 +1825,12 @@
     if(title) subtitle.textContent = title;
     if (heroTitleEl) heroTitleEl.textContent = title || "(untitled)";
     if (heroDescEl) {
-      heroDescEl.textContent = desc ? desc : "Preview the build here, then open the main Hub page for download notes, creator links, and release details.";
+      heroDescEl.textContent = "Preview the build, browse screenshots, and explore the download information below.";
+    }
+    const aboutBodyEl = document.getElementById("aboutBody");
+    if (aboutBodyEl) {
+      const FALLBACK = "This MobCrafter release includes a downloadable creation for Minecraft. Check the included files and dependency information before downloading.";
+      aboutBodyEl.textContent = desc || FALLBACK;
     }
     renderHubMetaPills(meta);
 
