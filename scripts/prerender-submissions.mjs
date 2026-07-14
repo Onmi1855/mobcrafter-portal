@@ -15,7 +15,7 @@
 //  - Any fetch failure, count mismatch, or write error => process.exit(1),
 //    so a broken run never deploys stale/partial output.
 
-import { readdir, rm, mkdir, writeFile, stat } from "node:fs/promises";
+import { readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { extractShared } from "./lib/extract-shared.mjs";
@@ -93,9 +93,10 @@ async function fetchPublicList() {
   return items;
 }
 
-// Remove every existing /u/<uuid>/ directory (stale + to-be-regenerated).
-// Non-UUID entries (index.html, other files) are preserved.
-async function cleanUuidDirs() {
+// Remove every existing prerendered creation page (flat u/<uuid>.html files and
+// any legacy u/<uuid>/ directories). Non-UUID entries (index.html, other files)
+// are preserved.
+async function cleanUuidPages() {
   let entries;
   try {
     entries = await readdir(U_DIR, { withFileTypes: true });
@@ -107,6 +108,12 @@ async function cleanUuidDirs() {
     if (ent.isDirectory() && UUID_RE.test(ent.name)) {
       await rm(path.join(U_DIR, ent.name), { recursive: true, force: true });
       removed++;
+    } else if (ent.isFile()) {
+      const m = ent.name.match(/^([0-9a-f-]+)\.html$/i);
+      if (m && UUID_RE.test(m[1])) {
+        await rm(path.join(U_DIR, ent.name), { force: true });
+        removed++;
+      }
     }
   }
   return removed;
@@ -180,21 +187,19 @@ async function main() {
     items.push({ item: meta, files });
   }
 
-  // 4) Clean stale UUID dirs, then generate current set.
-  const removed = isLimited ? 0 : await cleanUuidDirs();
-  if (!isLimited) console.log(`[prerender] removed ${removed} existing /u/<uuid>/ dir(s)`);
+  // 4) Clean stale pages, then generate current set (flat u/<uuid>.html files).
+  const removed = isLimited ? 0 : await cleanUuidPages();
+  if (!isLimited) console.log(`[prerender] removed ${removed} existing creation page(s)`);
 
   let written = 0;
   for (const { item, files } of items) {
     const id = item.id;
     if (!isUuid(id)) fail(`refusing to write non-UUID id: ${JSON.stringify(id)}`);
-    const dir = path.join(U_DIR, id);
-    await mkdir(dir, { recursive: true });
     const html = renderSubmissionPage(item, files);
-    if (!html.includes(escapeHtml(String(item.title || "").trim())) && item.title) {
+    if (item.title && !html.includes(escapeHtml(String(item.title).trim()))) {
       fail(`rendered HTML missing title for ${id}`);
     }
-    await writeFile(path.join(dir, "index.html"), html, "utf8");
+    await writeFile(path.join(U_DIR, `${id}.html`), html, "utf8");
     written++;
   }
   console.log(`[prerender] wrote ${written} creation page(s)`);
