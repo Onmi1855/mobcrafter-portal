@@ -15,12 +15,13 @@
 //  - Any fetch failure, count mismatch, or write error => process.exit(1),
 //    so a broken run never deploys stale/partial output.
 
-import { readdir, rm, writeFile } from "node:fs/promises";
+import { readdir, rm, writeFile, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { extractShared } from "./lib/extract-shared.mjs";
 import {
   renderSubmissionPage,
+  buildTopStatic,
   isUuid,
   UUID_RE,
   escapeHtml,
@@ -31,6 +32,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORTAL_ROOT = path.resolve(__dirname, "..");
 const U_DIR = path.join(PORTAL_ROOT, "u");
 const SITEMAP_PATH = path.join(PORTAL_ROOT, "sitemap.xml");
+const INDEX_PATH = path.join(PORTAL_ROOT, "index.html");
+const STATIC_START = "<!-- STATIC_CREATIONS:START -->";
+const STATIC_END = "<!-- STATIC_CREATIONS:END -->";
 const API_BASE = process.env.PRERENDER_API_BASE || SITE;
 
 const STATIC_PAGES = [
@@ -148,6 +152,31 @@ function buildSitemap(publicItems) {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>\n`;
 }
 
+// Replace the STATIC_CREATIONS marker region in index.html with generated,
+// crawlable creation links. Fails if markers are missing or no card is produced.
+async function injectTopStatic(publicItems) {
+  let html;
+  try {
+    html = await readFile(INDEX_PATH, "utf8");
+  } catch (e) {
+    throw new Error(`cannot read index.html: ${e?.message || e}`);
+  }
+  const startIdx = html.indexOf(STATIC_START);
+  const endIdx = html.indexOf(STATIC_END);
+  if (startIdx === -1 || endIdx === -1 || endIdx < startIdx) {
+    throw new Error("index.html is missing STATIC_CREATIONS markers");
+  }
+  const block = buildTopStatic(publicItems);
+  const cardCount = (block.match(/class="mc-static-card"/g) || []).length;
+  if (cardCount === 0) throw new Error("static creation block produced 0 cards");
+
+  const before = html.slice(0, startIdx + STATIC_START.length);
+  const after = html.slice(endIdx);
+  const next = `${before}\n  ${block}\n  ${after}`;
+  await writeFile(INDEX_PATH, next, "utf8");
+  return cardCount;
+}
+
 async function main() {
   console.log(`[prerender] API base: ${API_BASE}`);
 
@@ -209,13 +238,19 @@ async function main() {
     fail(`generated count (${written}) != public count (${publicCount})`);
   }
 
-  // 6) Verify no non-public UUID dir remains (defense-in-depth).
+  // 6) Verify no non-public creation page remains (defense-in-depth).
   const publicIds = new Set(items.map((x) => x.item.id));
   if (!isLimited) {
     const after = await readdir(U_DIR, { withFileTypes: true });
     for (const ent of after) {
-      if (ent.isDirectory() && UUID_RE.test(ent.name) && !publicIds.has(ent.name)) {
-        fail(`stale non-public page remains: /u/${ent.name}`);
+      let uuid = null;
+      if (ent.isDirectory() && UUID_RE.test(ent.name)) uuid = ent.name;
+      else if (ent.isFile()) {
+        const m = ent.name.match(/^([0-9a-f-]+)\.html$/i);
+        if (m && UUID_RE.test(m[1])) uuid = m[1];
+      }
+      if (uuid && !publicIds.has(uuid)) {
+        fail(`stale non-public page remains: /u/${uuid}`);
       }
     }
   }
@@ -229,6 +264,10 @@ async function main() {
   await writeFile(SITEMAP_PATH, sitemap, "utf8");
   const sitemapCreations = items.length;
   console.log(`[prerender] sitemap.xml updated: ${STATIC_PAGES.length} static + ${sitemapCreations} creations`);
+
+  // 8) Inject the crawlable static creation links into index.html.
+  const injectedCount = await injectTopStatic(items.map((x) => x.item));
+  console.log(`[prerender] index.html static links updated (${injectedCount} card link[s])`);
 
   console.log(`\n[prerender] DONE. public=${publicCount} generated=${written} sitemap_creations=${sitemapCreations}`);
 }

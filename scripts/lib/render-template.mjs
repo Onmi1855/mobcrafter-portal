@@ -207,6 +207,44 @@ function kvRow(k, v) {
 const FALLBACK_DESC =
   "This MobCrafter release includes a downloadable creation for Minecraft. Check the included files and dependency information before downloading.";
 
+// Build a crawlable, no-JS static block of creation links for the homepage.
+// Official Starter (max 6) + newest (max 12), each with title, short description,
+// representative image, and a /u/<uuid> link. Hidden when JS renders the live UI.
+export function buildTopStatic(items) {
+  const byNewest = [...items].sort((a, b) => {
+    const da = String(a.created_at || "");
+    const db = String(b.created_at || "");
+    return db.localeCompare(da);
+  });
+  const starters = byNewest.filter((it) => it.is_official_starter).slice(0, 6);
+  const news = byNewest.slice(0, 12);
+
+  const card = (it) => {
+    const id = it.id;
+    const title = String(it.title || "Untitled").trim();
+    const desc = trimText(String(it.description || "").trim() || FALLBACK_DESC, 90);
+    const img = `${SITE}/api/public/submissions/${id}/og-image`;
+    return (
+      `<a class="mc-static-card" href="/u/${escapeHtml(id)}">` +
+      `<img src="${escapeHtml(img)}" alt="${escapeHtml(title)}" loading="lazy" decoding="async" width="96" height="96" />` +
+      `<div class="b"><div class="t">${escapeHtml(title)}</div><div class="d">${escapeHtml(desc)}</div></div>` +
+      `</a>`
+    );
+  };
+
+  const section = (heading, list) =>
+    list.length
+      ? `<h2>${escapeHtml(heading)}</h2><div class="mc-static-grid">${list.map(card).join("")}</div>`
+      : "";
+
+  return (
+    `<section id="staticCreations" class="mc-static-creations" aria-label="Featured MobCrafter creations">` +
+    section("Official Starter Collection", starters) +
+    section("New Community Uploads", news) +
+    `</section>`
+  );
+}
+
 // Render the full HTML document for one public submission.
 export function renderSubmissionPage(item, files = []) {
   const id = item.id;
