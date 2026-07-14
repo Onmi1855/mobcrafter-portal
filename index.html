@@ -1,7 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>document.documentElement.className += " has-js";</script>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1227105355658053"
      crossorigin="anonymous"></script>
   <meta charset="UTF-8" />
@@ -31,9 +30,11 @@
       color:var(--text);
       background:var(--bg);
     }
-    /* No-JS static creation links (crawlable). Hidden once JS renders the live UI. */
+    /* No-JS static creation links (crawlable). Stays visible until the dynamic
+       catalog has actually rendered (mc-dynamic-ready). If JS is disabled OR the
+       API fetch fails, the static list remains as a fallback. */
     .mc-static-creations{ max-width:1060px; margin:0 auto 10px; padding:0 16px; }
-    html.has-js .mc-static-creations{ display:none !important; }
+    html.mc-dynamic-ready .mc-static-creations{ display:none !important; }
     .mc-static-creations h2{ font-size:16px; margin:14px 0 8px; }
     .mc-static-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; }
     .mc-static-card{ display:flex; gap:10px; border:1px solid var(--line); border-radius:12px; background:#fff; overflow:hidden; text-decoration:none; color:inherit; }
@@ -3246,6 +3247,14 @@
       });
 
       renderGrid(items);
+      // Dynamic catalog rendered successfully -> hide the no-JS static fallback.
+      // Only when we actually have cards, so an empty/failed load keeps the
+      // static list visible as a fallback.
+      if (Array.isArray(items) && items.length > 0) {
+        document.documentElement.classList.add("mc-dynamic-ready");
+        const sc = document.getElementById("staticCreations");
+        if (sc && sc.parentNode) sc.parentNode.removeChild(sc);
+      }
       if (!wantDiscover) {
         hydrateLikesForGrid(items.map(x=>x.id));
       }
