@@ -1,0 +1,14 @@
+{
+  "name": "mobcrafter-portal",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "MobCrafter Hub static portal (Cloudflare Pages) with prerendered public creation pages.",
+  "scripts": {
+    "prerender": "node scripts/prerender-submissions.mjs",
+    "build": "node scripts/prerender-submissions.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
